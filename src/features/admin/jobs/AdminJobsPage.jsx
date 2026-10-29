@@ -264,9 +264,57 @@ export default function AdminJobsPage() {
             <p style={{ color: 'var(--text-muted)' }}>Loading job vacancies...</p>
           </div>
         ) : error ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--status-danger)' }}>
-            <AlertCircle size={32} style={{ margin: '0 auto 1rem' }} />
-            <p>{error}</p>
+          <div style={{ textAlign: 'center', padding: '3.5rem 1.5rem' }}>
+            <div
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                background: '#FEF2F2',
+                border: '1px solid #FECACA',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.25rem',
+                color: '#DC2626',
+              }}
+            >
+              <AlertCircle size={28} />
+            </div>
+            {error.toLowerCase().includes('token') || error.toLowerCase().includes('unauthorized') ? (
+              <>
+                <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem', color: '#0F172A', fontWeight: 700 }}>
+                  Administrator Session Expired
+                </h3>
+                <p style={{ color: '#475569', fontSize: '0.95rem', maxWidth: '460px', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
+                  Your secure administrator session has timed out (sessions expire after 15 minutes of inactivity for security). Please sign in again to continue managing jobs.
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                  <a
+                    href="/login?redirect=/admin/jobs"
+                    className="btn btn-primary"
+                    style={{ padding: '0.75rem 1.75rem' }}
+                  >
+                    <span>Sign In Again</span>
+                  </a>
+                  <button type="button" onClick={fetchJobs} className="btn btn-secondary">
+                    <RefreshCw size={14} />
+                    <span>Retry</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#DC2626', fontWeight: 600 }}>
+                  Failed to Load Jobs
+                </h3>
+                <p style={{ color: '#475569', marginBottom: '1.5rem' }}>{error}</p>
+                <button type="button" onClick={fetchJobs} className="btn btn-secondary">
+                  <RefreshCw size={14} />
+                  <span>Retry</span>
+                </button>
+              </>
+            )}
           </div>
         ) : jobs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem' }}>

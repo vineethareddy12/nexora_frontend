@@ -74,4 +74,7 @@ export async function authFetch(url, options = {}) {
 function handleSessionExpired() {
   localStorage.removeItem('nexora_access_token');
   localStorage.removeItem('nexora_refresh_token');
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('nexora:auth-expired'));
+  }
 }

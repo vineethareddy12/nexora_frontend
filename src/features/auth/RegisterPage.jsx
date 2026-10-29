@@ -53,10 +53,11 @@ export default function RegisterPage() {
         email: formData.email.trim().toLowerCase(),
       };
 
-      // Call backend API
+      // Call backend API with phone/mobile included
       const result = await authApi.register({
         fullName: payload.fullName,
         email: payload.email,
+        phone: payload.mobile ? payload.mobile.trim() : undefined,
         password: payload.password,
       });
 
@@ -73,26 +74,38 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ maxWidth: '480px', margin: '4rem auto', padding: '0 1.5rem' }}>
-      <div className="glass-panel" style={{ padding: '2.5rem' }}>
+    <div style={{ maxWidth: '480px', margin: '4rem auto', padding: '0 1.5rem', background: '#FFFFFF' }}>
+      <div
+        className="card"
+        style={{
+          padding: '2.5rem',
+          background: '#FFFFFF',
+          borderRadius: '20px',
+          border: '1px solid #E2E8F0',
+          boxShadow: 'var(--shadow-md)',
+        }}
+      >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div
             style={{
-              width: '44px',
-              height: '44px',
+              width: '46px',
+              height: '46px',
               borderRadius: '12px',
-              background: 'var(--gradient-brand)',
+              background: 'linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 1rem',
-              color: '#fff',
+              color: '#FFFFFF',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
             }}
           >
             <UserPlus size={22} />
           </div>
-          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.4rem' }}>Applicant Registration</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.4rem', color: '#0F172A', fontWeight: 700 }}>
+            Applicant Registration
+          </h2>
+          <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
             Create an account to apply for open roles and track your journey
           </p>
         </div>
@@ -102,24 +115,24 @@ export default function RegisterPage() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1rem',
+              gap: '0.65rem',
+              padding: '0.85rem 1rem',
               marginBottom: '1.25rem',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#f87171',
-              fontSize: '0.85rem',
+              borderRadius: '10px',
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: '#DC2626',
+              fontSize: '0.875rem',
             }}
           >
-            <AlertCircle size={16} />
+            <AlertCircle size={18} style={{ flexShrink: 0, color: '#DC2626' }} />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.45rem' }}>
               Full Name *
             </label>
             <div style={{ position: 'relative' }}>
@@ -130,7 +143,7 @@ export default function RegisterPage() {
                   left: '0.85rem',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: 'var(--text-dim)',
+                  color: '#94A3B8',
                 }}
               />
               <input
@@ -143,19 +156,18 @@ export default function RegisterPage() {
                 style={{
                   width: '100%',
                   padding: '0.75rem 1rem 0.75rem 2.5rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
+                  borderRadius: '10px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  color: '#0F172A',
                   fontSize: '0.9rem',
-                  outline: 'none',
                 }}
               />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.45rem' }}>
               Email Address *
             </label>
             <div style={{ position: 'relative' }}>
@@ -166,7 +178,7 @@ export default function RegisterPage() {
                   left: '0.85rem',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: 'var(--text-dim)',
+                  color: '#94A3B8',
                 }}
               />
               <input
@@ -179,19 +191,18 @@ export default function RegisterPage() {
                 style={{
                   width: '100%',
                   padding: '0.75rem 1rem 0.75rem 2.5rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
+                  borderRadius: '10px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  color: '#0F172A',
                   fontSize: '0.9rem',
-                  outline: 'none',
                 }}
               />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.45rem' }}>
               Mobile Number
             </label>
             <div style={{ position: 'relative' }}>
@@ -202,7 +213,7 @@ export default function RegisterPage() {
                   left: '0.85rem',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: 'var(--text-dim)',
+                  color: '#94A3B8',
                 }}
               />
               <input
@@ -214,19 +225,18 @@ export default function RegisterPage() {
                 style={{
                   width: '100%',
                   padding: '0.75rem 1rem 0.75rem 2.5rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
+                  borderRadius: '10px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  color: '#0F172A',
                   fontSize: '0.9rem',
-                  outline: 'none',
                 }}
               />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.45rem' }}>
               Password *
             </label>
             <div style={{ position: 'relative' }}>
@@ -237,7 +247,7 @@ export default function RegisterPage() {
                   left: '0.85rem',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: 'var(--text-dim)',
+                  color: '#94A3B8',
                 }}
               />
               <input
@@ -250,12 +260,11 @@ export default function RegisterPage() {
                 style={{
                   width: '100%',
                   padding: '0.75rem 1rem 0.75rem 2.5rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
+                  borderRadius: '10px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  color: '#0F172A',
                   fontSize: '0.9rem',
-                  outline: 'none',
                 }}
               />
             </div>
@@ -265,7 +274,7 @@ export default function RegisterPage() {
             type="submit"
             disabled={loading}
             className="btn btn-primary"
-            style={{ padding: '0.75rem', width: '100%', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}
+            style={{ padding: '0.85rem', width: '100%', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}
           >
             <span>{loading ? 'Creating Account...' : 'Create Applicant Account'}</span>
             <ArrowRight size={16} />
@@ -277,13 +286,13 @@ export default function RegisterPage() {
             textAlign: 'center',
             marginTop: '1.75rem',
             paddingTop: '1.5rem',
-            borderTop: '1px solid var(--border-subtle)',
+            borderTop: '1px solid #E2E8F0',
             fontSize: '0.875rem',
-            color: 'var(--text-muted)',
+            color: '#64748B',
           }}
         >
           Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+          <Link to="/login" style={{ color: '#2563EB', fontWeight: 600 }}>
             Sign In
           </Link>
         </div>

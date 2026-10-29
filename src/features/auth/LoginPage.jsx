@@ -69,26 +69,38 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ maxWidth: '440px', margin: '4rem auto', padding: '0 1.5rem' }}>
-      <div className="glass-panel" style={{ padding: '2.5rem' }}>
+    <div style={{ maxWidth: '440px', margin: '4rem auto', padding: '0 1.5rem', background: '#FFFFFF' }}>
+      <div
+        className="card"
+        style={{
+          padding: '2.5rem',
+          background: '#FFFFFF',
+          borderRadius: '20px',
+          border: '1px solid #E2E8F0',
+          boxShadow: 'var(--shadow-md)',
+        }}
+      >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div
             style={{
-              width: '44px',
-              height: '44px',
+              width: '46px',
+              height: '46px',
               borderRadius: '12px',
-              background: 'var(--gradient-brand)',
+              background: 'linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 1rem',
-              color: '#fff',
+              color: '#FFFFFF',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
             }}
           >
             <LogIn size={22} />
           </div>
-          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.4rem' }}>Welcome Back</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.4rem', color: '#0F172A', fontWeight: 700 }}>
+            Welcome Back
+          </h2>
+          <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
             Sign in to access your recruitment portal
           </p>
         </div>
@@ -98,24 +110,24 @@ export default function LoginPage() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1rem',
+              gap: '0.65rem',
+              padding: '0.85rem 1rem',
               marginBottom: '1.25rem',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#f87171',
-              fontSize: '0.85rem',
+              borderRadius: '10px',
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: '#DC2626',
+              fontSize: '0.875rem',
             }}
           >
-            <AlertCircle size={16} />
+            <AlertCircle size={18} style={{ flexShrink: 0, color: '#DC2626' }} />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.45rem' }}>
               Email Address
             </label>
             <div style={{ position: 'relative' }}>
@@ -126,7 +138,7 @@ export default function LoginPage() {
                   left: '0.85rem',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: 'var(--text-dim)',
+                  color: '#94A3B8',
                 }}
               />
               <input
@@ -139,21 +151,20 @@ export default function LoginPage() {
                 style={{
                   width: '100%',
                   padding: '0.75rem 1rem 0.75rem 2.5rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
+                  borderRadius: '10px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  color: '#0F172A',
                   fontSize: '0.9rem',
-                  outline: 'none',
                 }}
               />
             </div>
           </div>
 
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-              <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Password</label>
-              <Link to="/forgot-password" style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0F172A' }}>Password</label>
+              <Link to="/forgot-password" style={{ fontSize: '0.825rem', color: '#2563EB', fontWeight: 600 }}>
                 Forgot?
               </Link>
             </div>
@@ -165,7 +176,7 @@ export default function LoginPage() {
                   left: '0.85rem',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: 'var(--text-dim)',
+                  color: '#94A3B8',
                 }}
               />
               <input
@@ -178,12 +189,11 @@ export default function LoginPage() {
                 style={{
                   width: '100%',
                   padding: '0.75rem 1rem 0.75rem 2.5rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
+                  borderRadius: '10px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  color: '#0F172A',
                   fontSize: '0.9rem',
-                  outline: 'none',
                 }}
               />
             </div>
@@ -193,7 +203,7 @@ export default function LoginPage() {
             type="submit"
             disabled={loading}
             className="btn btn-primary"
-            style={{ padding: '0.75rem', width: '100%', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}
+            style={{ padding: '0.85rem', width: '100%', marginTop: '0.5rem', opacity: loading ? 0.7 : 1 }}
           >
             <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
             <ArrowRight size={16} />
@@ -205,13 +215,13 @@ export default function LoginPage() {
             textAlign: 'center',
             marginTop: '1.75rem',
             paddingTop: '1.5rem',
-            borderTop: '1px solid var(--border-subtle)',
+            borderTop: '1px solid #E2E8F0',
             fontSize: '0.875rem',
-            color: 'var(--text-muted)',
+            color: '#64748B',
           }}
         >
           Don't have an account?{' '}
-          <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+          <Link to="/register" style={{ color: '#2563EB', fontWeight: 600 }}>
             Create one
           </Link>
         </div>

@@ -63,20 +63,50 @@ export default function CareersPage() {
   };
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '4rem 1.5rem' }}>
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <span className="badge badge-primary" style={{ marginBottom: '0.75rem' }}>Open Roles</span>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Build Your Career at Nexora</h1>
-        <p style={{ color: 'var(--text-muted)', maxWidth: '640px', margin: '0 auto', fontSize: '1.05rem' }}>
-          Explore career-defining opportunities across engineering, architecture, and technology leadership.
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '5rem 1.5rem', background: '#FFFFFF' }}>
+      <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+        <span className="badge badge-primary" style={{ marginBottom: '0.85rem' }}>
+          Open Roles
+        </span>
+        <h1
+          style={{
+            fontSize: 'clamp(2.25rem, 4vw, 3.25rem)',
+            marginBottom: '1rem',
+            color: '#0F172A',
+            fontWeight: 800,
+          }}
+        >
+          Build Your Career at Nexora
+        </h1>
+        <p style={{ color: '#475569', maxWidth: '640px', margin: '0 auto', fontSize: '1.1rem', lineHeight: 1.7 }}>
+          Explore career-defining opportunities across software engineering, cloud architecture, and technology
+          leadership.
         </p>
       </div>
 
       {/* Search and Filters Shell */}
-      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2.5rem' }}>
+      <div
+        className="card"
+        style={{
+          padding: '1.75rem',
+          marginBottom: '2.5rem',
+          background: '#F8FAFC',
+          borderRadius: '16px',
+          border: '1px solid #E2E8F0',
+        }}
+      >
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           <div style={{ position: 'relative' }}>
-            <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
+            <Search
+              size={18}
+              style={{
+                position: 'absolute',
+                left: '1rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#94A3B8',
+              }}
+            />
             <input
               type="text"
               placeholder="Search by job title or keyword..."
@@ -85,12 +115,11 @@ export default function CareersPage() {
               style={{
                 width: '100%',
                 padding: '0.75rem 1rem 0.75rem 2.75rem',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-main)',
+                borderRadius: '10px',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                color: '#0F172A',
                 fontSize: '0.9rem',
-                outline: 'none',
               }}
             />
           </div>
@@ -100,12 +129,11 @@ export default function CareersPage() {
             onChange={(e) => setSelectedType(e.target.value)}
             style={{
               padding: '0.75rem 1rem',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-main)',
+              borderRadius: '10px',
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              color: '#0F172A',
               fontSize: '0.9rem',
-              outline: 'none',
               cursor: 'pointer',
             }}
           >
@@ -121,12 +149,11 @@ export default function CareersPage() {
             onChange={(e) => setSelectedMode(e.target.value)}
             style={{
               padding: '0.75rem 1rem',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-main)',
+              borderRadius: '10px',
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              color: '#0F172A',
               fontSize: '0.9rem',
-              outline: 'none',
               cursor: 'pointer',
             }}
           >
@@ -142,18 +169,19 @@ export default function CareersPage() {
               onChange={(e) => setSelectedDept(e.target.value)}
               style={{
                 padding: '0.75rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-main)',
+                borderRadius: '10px',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                color: '#0F172A',
                 fontSize: '0.9rem',
-                outline: 'none',
                 cursor: 'pointer',
               }}
             >
               <option value="ALL">All Departments</option>
               {departments.map((d) => (
-                <option key={d} value={d}>{d}</option>
+                <option key={d} value={d}>
+                  {d}
+                </option>
               ))}
             </select>
           )}
@@ -163,17 +191,29 @@ export default function CareersPage() {
       {/* Loading state */}
       {loading && (
         <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
-          <RefreshCw className="animate-spin" size={32} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
-          <p style={{ color: 'var(--text-muted)' }}>Loading open vacancies from Nexora database...</p>
+          <RefreshCw className="spin" size={32} color="#2563EB" style={{ margin: '0 auto 1rem' }} />
+          <p style={{ color: '#64748B' }}>Loading open vacancies from Nexora database...</p>
         </div>
       )}
 
       {/* Error state */}
       {!loading && error && (
-        <div className="glass-panel" style={{ padding: '2.5rem', textAlign: 'center', borderColor: 'var(--status-danger)' }}>
-          <AlertCircle size={36} color="var(--status-danger)" style={{ margin: '0 auto 1rem' }} />
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Failed to Load Vacancies</h3>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>{error}</p>
+        <div
+          className="card"
+          style={{
+            padding: '2.5rem',
+            textAlign: 'center',
+            borderColor: '#FECACA',
+            background: '#FEF2F2',
+            maxWidth: '540px',
+            margin: '0 auto 2.5rem',
+          }}
+        >
+          <AlertCircle size={36} color="#DC2626" style={{ margin: '0 auto 1rem' }} />
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: '#DC2626' }}>
+            Failed to Load Vacancies
+          </h3>
+          <p style={{ color: '#475569', marginBottom: '1.5rem' }}>{error}</p>
           <button onClick={fetchJobs} className="btn btn-secondary">
             <RefreshCw size={16} />
             <span>Retry</span>
@@ -183,10 +223,18 @@ export default function CareersPage() {
 
       {/* Empty state */}
       {!loading && !error && jobs.length === 0 && (
-        <div className="glass-panel" style={{ padding: '3.5rem 1.5rem', textAlign: 'center' }}>
-          <Briefcase size={44} color="var(--text-dim)" style={{ margin: '0 auto 1rem' }} />
-          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.5rem' }}>No Vacancies Found</h3>
-          <p style={{ color: 'var(--text-muted)', maxWidth: '480px', margin: '0 auto 1.5rem' }}>
+        <div
+          className="card"
+          style={{
+            padding: '3.5rem 1.5rem',
+            textAlign: 'center',
+            background: '#F8FAFC',
+            border: '1px solid #E2E8F0',
+          }}
+        >
+          <Briefcase size={44} color="#94A3B8" style={{ margin: '0 auto 1rem' }} />
+          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.5rem', color: '#0F172A' }}>No Vacancies Found</h3>
+          <p style={{ color: '#64748B', maxWidth: '480px', margin: '0 auto 1.5rem' }}>
             We could not find any active vacancies matching your search criteria. Try adjusting your filters or check back soon.
           </p>
           {(searchTerm || selectedType !== 'ALL' || selectedMode !== 'ALL' || selectedDept !== 'ALL') && (
@@ -209,37 +257,62 @@ export default function CareersPage() {
       {!loading && !error && jobs.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {jobs.map((job) => (
-            <div key={job.id} className="glass-panel" style={{ padding: '1.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div
+              key={job.id}
+              className="card card-hover"
+              style={{
+                padding: '2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '1.5rem',
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1px solid #E2E8F0',
+              }}
+            >
               <div style={{ flex: '1 1 500px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.65rem', flexWrap: 'wrap' }}>
                   <span className="badge badge-info">{job.department}</span>
                   <span className="badge badge-primary">{formatWorkMode(job.workMode)}</span>
-                  <span className="badge badge-secondary">{job.jobCode}</span>
+                  <span className="badge badge-neutral">{job.jobCode}</span>
                 </div>
-                <h3 style={{ fontSize: '1.35rem', marginBottom: '0.5rem' }}>{job.title}</h3>
-                <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-muted)', fontSize: '0.85rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '1.35rem', marginBottom: '0.5rem', color: '#0F172A', fontWeight: 700 }}>
+                  {job.title}
+                </h3>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '1.5rem',
+                    color: '#64748B',
+                    fontSize: '0.875rem',
+                    flexWrap: 'wrap',
+                    marginBottom: '0.75rem',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <MapPin size={15} />
+                    <MapPin size={15} color="#2563EB" />
                     <span>{job.location}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <Briefcase size={15} />
+                    <Briefcase size={15} color="#06B6D4" />
                     <span>{formatEmploymentType(job.employmentType)}</span>
                   </div>
                   {job.experienceRequired && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <Layers size={15} />
+                      <Layers size={15} color="#059669" />
                       <span>{job.experienceRequired}</span>
                     </div>
                   )}
                   {job.applicationDeadline && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <Clock size={15} />
+                      <Clock size={15} color="#D97706" />
                       <span>Deadline: {new Date(job.applicationDeadline).toLocaleDateString()}</span>
                     </div>
                   )}
                 </div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '750px', lineHeight: 1.6 }}>
+                <p style={{ color: '#475569', fontSize: '0.925rem', maxWidth: '780px', lineHeight: 1.6, margin: 0 }}>
                   {job.description}
                 </p>
               </div>

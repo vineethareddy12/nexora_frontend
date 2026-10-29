@@ -90,7 +90,7 @@ export default function ApplicantProfilePage() {
           ...data,
           fullName: data.fullName || user?.fullName || '',
           email: data.email || user?.email || '',
-          phone: data.phone || '',
+          phone: data.phone || user?.phone || '',
           currentLocation: data.currentLocation || '',
           highestQualification: data.highestQualification || '',
           collegeUniversity: data.collegeUniversity || '',

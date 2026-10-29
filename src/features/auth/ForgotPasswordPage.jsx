@@ -12,7 +12,6 @@ export default function ForgotPasswordPage() {
     error: null,
   });
 
-  // Spread operator updates form state cleanly
   const handleChange = (e) => {
     const { value } = e.target;
     setState((prev) => ({
@@ -28,7 +27,6 @@ export default function ForgotPasswordPage() {
 
     try {
       const response = await authApi.forgotPassword(state.email.trim().toLowerCase());
-      // Spread operator merges response attributes into component state
       setState((prev) => ({
         ...prev,
         ...response.data,
@@ -46,26 +44,38 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div style={{ maxWidth: '440px', margin: '4rem auto', padding: '0 1.5rem' }}>
-      <div className="glass-panel" style={{ padding: '2.5rem' }}>
+    <div style={{ maxWidth: '440px', margin: '4rem auto', padding: '0 1.5rem', background: '#FFFFFF' }}>
+      <div
+        className="card"
+        style={{
+          padding: '2.5rem',
+          background: '#FFFFFF',
+          borderRadius: '20px',
+          border: '1px solid #E2E8F0',
+          boxShadow: 'var(--shadow-md)',
+        }}
+      >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div
             style={{
-              width: '44px',
-              height: '44px',
+              width: '46px',
+              height: '46px',
               borderRadius: '12px',
-              background: 'var(--gradient-brand)',
+              background: 'linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 1rem',
-              color: '#fff',
+              color: '#FFFFFF',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
             }}
           >
             <KeyRound size={22} />
           </div>
-          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.4rem' }}>Reset Password</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.4rem', color: '#0F172A', fontWeight: 700 }}>
+            Reset Password
+          </h2>
+          <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
             Enter your registered email and we'll send a password recovery link
           </p>
         </div>
@@ -75,47 +85,48 @@ export default function ForgotPasswordPage() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1rem',
+              gap: '0.65rem',
+              padding: '0.85rem 1rem',
               marginBottom: '1.25rem',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#f87171',
-              fontSize: '0.85rem',
+              borderRadius: '10px',
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: '#DC2626',
+              fontSize: '0.875rem',
             }}
           >
-            <AlertCircle size={16} />
+            <AlertCircle size={18} style={{ flexShrink: 0, color: '#DC2626' }} />
             <span>{state.error}</span>
           </div>
         )}
 
         {state.sent ? (
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <CheckCircle2 size={40} style={{ color: 'var(--status-success)', margin: '0 auto 1rem' }} />
-            <p style={{ color: 'var(--status-success)', fontWeight: 600, marginBottom: '0.5rem' }}>
+            <CheckCircle2 size={44} style={{ color: '#059669', margin: '0 auto 1rem' }} />
+            <p style={{ color: '#059669', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
               Reset Link Dispatched!
             </p>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+            <p style={{ color: '#475569', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
               If an account exists for {state.email}, you will receive password reset instructions.
             </p>
 
             {state.previewToken && (
               <div
                 style={{
-                  background: 'var(--bg-secondary)',
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
                   padding: '1rem',
-                  borderRadius: 'var(--radius-md)',
+                  borderRadius: '10px',
                   marginBottom: '1.5rem',
                   textAlign: 'left',
                 }}
               >
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '0.5rem' }}>
+                <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.5rem', fontWeight: 600 }}>
                   DEV PREVIEW RESET LINK:
                 </div>
                 <Link
                   to={`/reset-password?token=${state.previewToken}`}
-                  style={{ color: 'var(--primary)', fontSize: '0.85rem', wordBreak: 'break-all' }}
+                  style={{ color: '#2563EB', fontSize: '0.85rem', wordBreak: 'break-all', fontWeight: 500 }}
                 >
                   Click here to complete password reset &rarr;
                 </Link>
@@ -128,7 +139,7 @@ export default function ForgotPasswordPage() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                color: 'var(--primary)',
+                color: '#2563EB',
                 fontSize: '0.9rem',
                 fontWeight: 600,
               }}
@@ -140,7 +151,7 @@ export default function ForgotPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.45rem' }}>
                 Email Address
               </label>
               <div style={{ position: 'relative' }}>
@@ -151,7 +162,7 @@ export default function ForgotPasswordPage() {
                     left: '0.85rem',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    color: 'var(--text-dim)',
+                    color: '#94A3B8',
                   }}
                 />
                 <input
@@ -163,12 +174,11 @@ export default function ForgotPasswordPage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem 1rem 0.75rem 2.5rem',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'var(--text-main)',
+                    borderRadius: '10px',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    color: '#0F172A',
                     fontSize: '0.9rem',
-                    outline: 'none',
                   }}
                 />
               </div>
@@ -178,29 +188,29 @@ export default function ForgotPasswordPage() {
               type="submit"
               disabled={state.loading}
               className="btn btn-primary"
-              style={{ padding: '0.75rem', width: '100%', opacity: state.loading ? 0.7 : 1 }}
+              style={{ padding: '0.85rem', width: '100%', marginTop: '0.5rem', opacity: state.loading ? 0.7 : 1 }}
             >
-              <span>{state.loading ? 'Sending Instructions...' : 'Send Recovery Link'}</span>
+              <span>{state.loading ? 'Dispatching Link...' : 'Send Reset Link'}</span>
               <Send size={16} />
             </button>
-
-            <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-              <Link
-                to="/login"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.85rem',
-                }}
-              >
-                <ArrowLeft size={14} />
-                <span>Return to Sign In</span>
-              </Link>
-            </div>
           </form>
         )}
+
+        <div
+          style={{
+            textAlign: 'center',
+            marginTop: '1.75rem',
+            paddingTop: '1.5rem',
+            borderTop: '1px solid #E2E8F0',
+            fontSize: '0.875rem',
+            color: '#64748B',
+          }}
+        >
+          Remembered your password?{' '}
+          <Link to="/login" style={{ color: '#2563EB', fontWeight: 600 }}>
+            Sign In
+          </Link>
+        </div>
       </div>
     </div>
   );

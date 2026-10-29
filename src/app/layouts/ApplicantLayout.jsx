@@ -63,18 +63,19 @@ export default function ApplicantLayout() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
       <ScrollRestoration />
       <ScrollToTop />
-      {/* Top Navigation Bar (Full Width, No Sidebar) */}
+
+      {/* Top Light Navigation Bar (Full Width, No Sidebar) */}
       <header
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          background: 'rgba(11, 15, 25, 0.92)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid var(--border-subtle)',
+          background: '#FFFFFF',
+          borderBottom: '1px solid #E2E8F0',
+          boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
         }}
       >
         <div
@@ -90,7 +91,7 @@ export default function ApplicantLayout() {
           }}
         >
           {/* Left: Brand Identity */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
               <div
                 style={{
@@ -101,26 +102,42 @@ export default function ApplicantLayout() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#fff',
+                  color: '#FFFFFF',
                   fontWeight: 800,
                   fontSize: '1.1rem',
-                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 N
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.15rem', color: 'var(--text-main)', lineHeight: 1.1 }}>
-                  Nexora
+                <div
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontWeight: 800,
+                    fontSize: '1.2rem',
+                    color: '#0F172A',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  Nexora<span style={{ color: '#2563EB' }}>.</span>
                 </div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--primary)', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
+                <div
+                  style={{
+                    fontSize: '0.7rem',
+                    color: '#2563EB',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    fontWeight: 600,
+                  }}
+                >
                   Applicant Hub
                 </div>
               </div>
             </Link>
 
             {/* Top Navigation Tabs */}
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -132,11 +149,12 @@ export default function ApplicantLayout() {
                       alignItems: 'center',
                       gap: '0.5rem',
                       padding: '0.5rem 0.85rem',
-                      borderRadius: 'var(--radius-md)',
+                      borderRadius: '8px',
                       fontSize: '0.875rem',
                       fontWeight: isActive ? 600 : 500,
-                      color: isActive ? '#ffffff' : 'var(--text-muted)',
-                      background: isActive ? 'var(--primary)' : 'transparent',
+                      color: isActive ? '#2563EB' : '#475569',
+                      background: isActive ? '#EFF6FF' : 'transparent',
+                      border: isActive ? '1px solid #BFDBFE' : '1px solid transparent',
                       textDecoration: 'none',
                       transition: 'all 0.15s ease',
                     })}
@@ -158,12 +176,13 @@ export default function ApplicantLayout() {
                 alignItems: 'center',
                 gap: '0.4rem',
                 fontSize: '0.85rem',
-                color: 'var(--text-muted)',
+                color: '#475569',
                 textDecoration: 'none',
                 padding: '0.45rem 0.85rem',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid var(--border-subtle)',
+                borderRadius: '8px',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                fontWeight: 500,
               }}
             >
               <span>Explore Jobs</span>
@@ -181,10 +200,10 @@ export default function ApplicantLayout() {
                   gap: '0.65rem',
                   padding: '0.35rem 0.75rem',
                   borderRadius: '9999px',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-subtle)',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
                   cursor: 'pointer',
-                  color: 'var(--text-main)',
+                  color: '#0F172A',
                   transition: 'border-color 0.15s ease',
                 }}
               >
@@ -194,7 +213,7 @@ export default function ApplicantLayout() {
                     height: '28px',
                     borderRadius: '50%',
                     background: 'var(--gradient-brand)',
-                    color: '#fff',
+                    color: '#FFFFFF',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -205,11 +224,28 @@ export default function ApplicantLayout() {
                   {userInitial}
                 </div>
                 <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      maxWidth: '140px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      color: '#0F172A',
+                    }}
+                  >
                     {displayName}
                   </div>
                 </div>
-                <ChevronDown size={15} style={{ color: 'var(--text-dim)', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                <ChevronDown
+                  size={15}
+                  style={{
+                    color: '#64748B',
+                    transform: dropdownOpen ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 0.2s',
+                  }}
+                />
               </button>
 
               {/* Dropdown Content */}
@@ -220,20 +256,30 @@ export default function ApplicantLayout() {
                     top: 'calc(100% + 8px)',
                     right: 0,
                     width: '260px',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-lg)',
-                    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.5)',
-                    padding: '0.5rem',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '14px',
+                    boxShadow: '0 12px 32px rgba(15, 23, 42, 0.12)',
+                    padding: '0.65rem',
                     zIndex: 101,
                   }}
                 >
                   {/* User identity card */}
-                  <div style={{ padding: '0.75rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '0.4rem' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>{displayName}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', wordBreak: 'break-all', marginTop: '0.15rem' }}>{displayEmail}</div>
+                  <div
+                    style={{
+                      padding: '0.75rem',
+                      borderBottom: '1px solid #F1F5F9',
+                      marginBottom: '0.4rem',
+                      background: '#F8FAFC',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>{displayName}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', wordBreak: 'break-all', marginTop: '0.15rem' }}>
+                      {displayEmail}
+                    </div>
                     <div style={{ marginTop: '0.5rem' }}>
-                      <span className="badge badge-info" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>
+                      <span className="badge badge-primary" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>
                         {user?.role || 'APPLICANT'}
                       </span>
                     </div>
@@ -249,13 +295,13 @@ export default function ApplicantLayout() {
                         alignItems: 'center',
                         gap: '0.65rem',
                         padding: '0.55rem 0.75rem',
-                        borderRadius: 'var(--radius-md)',
+                        borderRadius: '8px',
                         fontSize: '0.85rem',
-                        color: 'var(--text-main)',
+                        color: '#0F172A',
                         textDecoration: 'none',
                       }}
                     >
-                      <User size={15} color="var(--primary)" />
+                      <User size={15} color="#2563EB" />
                       <span>My Profile</span>
                     </Link>
 
@@ -267,13 +313,13 @@ export default function ApplicantLayout() {
                         alignItems: 'center',
                         gap: '0.65rem',
                         padding: '0.55rem 0.75rem',
-                        borderRadius: 'var(--radius-md)',
+                        borderRadius: '8px',
                         fontSize: '0.85rem',
-                        color: 'var(--text-main)',
+                        color: '#0F172A',
                         textDecoration: 'none',
                       }}
                     >
-                      <Lock size={15} color="var(--accent)" />
+                      <Lock size={15} color="#06B6D4" />
                       <span>Change Password</span>
                     </Link>
 
@@ -285,17 +331,17 @@ export default function ApplicantLayout() {
                         alignItems: 'center',
                         gap: '0.65rem',
                         padding: '0.55rem 0.75rem',
-                        borderRadius: 'var(--radius-md)',
+                        borderRadius: '8px',
                         fontSize: '0.85rem',
-                        color: 'var(--text-main)',
+                        color: '#475569',
                         textDecoration: 'none',
                       }}
                     >
-                      <ArrowLeft size={15} color="var(--text-muted)" />
+                      <ArrowLeft size={15} color="#64748B" />
                       <span>Back to Public Website</span>
                     </Link>
 
-                    <div style={{ height: '1px', background: 'var(--border-subtle)', margin: '0.35rem 0' }} />
+                    <div style={{ height: '1px', background: '#E2E8F0', margin: '0.35rem 0' }} />
 
                     <button
                       type="button"
@@ -305,9 +351,9 @@ export default function ApplicantLayout() {
                         alignItems: 'center',
                         gap: '0.65rem',
                         padding: '0.55rem 0.75rem',
-                        borderRadius: 'var(--radius-md)',
+                        borderRadius: '8px',
                         fontSize: '0.85rem',
-                        color: '#f87171',
+                        color: '#DC2626',
                         background: 'transparent',
                         border: 'none',
                         cursor: 'pointer',
@@ -326,7 +372,7 @@ export default function ApplicantLayout() {
         </div>
       </header>
 
-      {/* Main Content Workspace (Full Width, Wide Layout) */}
+      {/* Main Content Workspace */}
       <main style={{ flex: 1, width: '100%', maxWidth: '1360px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
         <Outlet />
       </main>

@@ -32,7 +32,15 @@ export default function AdminLayout() {
     if (!loading && (!accessToken || !user || user.role !== 'ADMIN')) {
       navigate('/login', { replace: true });
     }
-  }, [loading, accessToken, user, navigate]);
+
+    const handleAuthExpired = () => {
+      toast.error('Session timed out. Please sign in again.', { title: 'Session Expired' });
+      navigate('/login?redirect=/admin/jobs', { replace: true });
+    };
+
+    window.addEventListener('nexora:auth-expired', handleAuthExpired);
+    return () => window.removeEventListener('nexora:auth-expired', handleAuthExpired);
+  }, [loading, accessToken, user, navigate, toast]);
 
   useEffect(() => {
     // 2. Load public company branding
@@ -67,49 +75,62 @@ export default function AdminLayout() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC' }}>
       <ScrollRestoration />
       <ScrollToTop />
 
-      {/* Admin Sidebar */}
-      <aside style={{
-        width: '270px',
-        background: '#0d1322',
-        borderRight: '1px solid var(--border-subtle)',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'sticky',
-        top: 0,
-        height: '100vh',
-        zIndex: 50,
-      }}>
+      {/* Admin Light Sidebar */}
+      <aside
+        style={{
+          width: '270px',
+          background: '#FFFFFF',
+          borderRight: '1px solid #E2E8F0',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          zIndex: 50,
+        }}
+      >
         {/* Brand & Security Chip */}
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #E2E8F0' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                background: logoUrl ? 'transparent' : 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                color: '#fff',
-                fontWeight: 800,
-              }}>
+              <div
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '8px',
+                  background: logoUrl ? '#FFFFFF' : 'var(--gradient-brand)',
+                  border: logoUrl ? '1px solid #E2E8F0' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  boxShadow: 'var(--shadow-sm)',
+                }}
+              >
                 {logoUrl ? (
                   <img src={logoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 ) : (
                   'N'
                 )}
               </div>
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.1rem' }}>Nexora</span>
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.15rem', color: '#0F172A' }}>
+                Nexora<span style={{ color: '#2563EB' }}>.</span>
+              </span>
             </Link>
-            <span className="badge badge-warning" style={{ fontSize: '0.65rem' }}>Admin</span>
+            <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '0.15rem 0.5rem' }}>
+              Admin
+            </span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Recruitment & Company Ops</div>
+          <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500 }}>
+            Recruitment & Company Ops
+          </div>
         </div>
 
         {/* Navigation list */}
@@ -124,16 +145,17 @@ export default function AdminLayout() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.75rem',
-                  padding: '0.6rem 0.85rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
-                  color: isActive ? '#ffffff' : 'var(--text-muted)',
-                  background: isActive ? 'linear-gradient(90deg, #6366f1 0%, #4f46e5 100%)' : 'transparent',
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: isActive ? 600 : 500,
+                  color: isActive ? '#2563EB' : '#475569',
+                  background: isActive ? '#EFF6FF' : 'transparent',
+                  border: isActive ? '1px solid #BFDBFE' : '1px solid transparent',
                   transition: 'all 0.15s ease',
                 })}
               >
-                <Icon size={17} />
+                <Icon size={18} />
                 <span>{item.label}</span>
               </NavLink>
             );
@@ -141,14 +163,27 @@ export default function AdminLayout() {
         </nav>
 
         {/* Sidebar Footer */}
-        <div style={{ padding: '1.25rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link to="/" style={{
+        <div
+          style={{
+            padding: '1.25rem',
+            borderTop: '1px solid #E2E8F0',
             display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: '0.5rem',
-            color: 'var(--text-dim)',
-            fontSize: '0.85rem',
-          }}>
+            background: '#FFFFFF',
+          }}
+        >
+          <Link
+            to="/"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: '#64748B',
+              fontSize: '0.85rem',
+              fontWeight: 500,
+            }}
+          >
             <ArrowLeft size={16} />
             <span>Public Website</span>
           </Link>
@@ -160,7 +195,7 @@ export default function AdminLayout() {
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'var(--text-dim)',
+              color: '#64748B',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -168,7 +203,7 @@ export default function AdminLayout() {
               fontSize: '0.8rem',
             }}
           >
-            <LogOut size={14} />
+            <LogOut size={15} />
           </button>
         </div>
       </aside>
@@ -176,51 +211,59 @@ export default function AdminLayout() {
       {/* Main Content Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top Header */}
-        <header style={{
-          height: '64px',
-          borderBottom: '1px solid var(--border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 2rem',
-          background: 'rgba(13, 19, 34, 0.75)',
-          backdropFilter: 'blur(8px)',
-        }}>
+        <header
+          style={{
+            height: '64px',
+            borderBottom: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 2rem',
+            background: '#FFFFFF',
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShieldAlert size={16} color="var(--status-warning)" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Secure Administrator Console</span>
+            <ShieldAlert size={16} color="#2563EB" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0F172A' }}>
+              Secure Administrator Console
+            </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.82rem',
-              color: 'var(--text-muted)',
-            }}>
-              <ShieldCheck size={14} color="#10b981" />
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.825rem',
+                color: '#64748B',
+              }}
+            >
+              <ShieldCheck size={15} color="#059669" />
               <span>{user?.email || 'Administrator'}</span>
             </div>
 
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              padding: '0.35rem 0.85rem',
-              borderRadius: '9999px',
-              background: 'rgba(236, 72, 153, 0.1)',
-              border: '1px solid rgba(236, 72, 153, 0.3)',
-            }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ec4899' }} />
-              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f472b6' }}>Super Admin</span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.3rem 0.75rem',
+                borderRadius: '9999px',
+                background: '#EFF6FF',
+                border: '1px solid #BFDBFE',
+              }}
+            >
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2563EB' }} />
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#2563EB' }}>Super Admin</span>
             </div>
 
             <button
               type="button"
               onClick={handleSignOut}
               className="btn btn-outline"
-              style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', gap: '0.35rem' }}
+              style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem', gap: '0.4rem' }}
               title="Sign out of Admin"
             >
               <LogOut size={13} />
@@ -230,7 +273,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Sub-view Content */}
-        <main style={{ padding: '2rem', flex: 1, minWidth: 0 }}>
+        <main style={{ padding: '2rem', flex: 1, minWidth: 0, background: '#F8FAFC' }}>
           <Outlet />
         </main>
       </div>
