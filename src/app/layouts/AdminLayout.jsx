@@ -34,13 +34,14 @@ export default function AdminLayout() {
     }
 
     const handleAuthExpired = () => {
+      logout();
       toast.error('Session timed out. Please sign in again.', { title: 'Session Expired' });
       navigate('/login?redirect=/admin/jobs', { replace: true });
     };
 
     window.addEventListener('nexora:auth-expired', handleAuthExpired);
     return () => window.removeEventListener('nexora:auth-expired', handleAuthExpired);
-  }, [loading, accessToken, user, navigate, toast]);
+  }, [loading, accessToken, user, navigate, toast, logout]);
 
   useEffect(() => {
     // 2. Load public company branding

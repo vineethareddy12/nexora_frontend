@@ -80,3 +80,4 @@ export const applicationsApi = {
     return json.data;
   },
 };
+

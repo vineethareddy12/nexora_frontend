@@ -28,7 +28,15 @@ export default function ApplicantLayout() {
     if (!loading && (!accessToken || !user)) {
       navigate('/login', { replace: true });
     }
-  }, [loading, accessToken, user, navigate]);
+
+    const handleAuthExpired = () => {
+      logout();
+      navigate('/login', { replace: true });
+    };
+
+    window.addEventListener('nexora:auth-expired', handleAuthExpired);
+    return () => window.removeEventListener('nexora:auth-expired', handleAuthExpired);
+  }, [loading, accessToken, user, navigate, logout]);
 
   const navItems = [
     { label: 'Dashboard', path: '/app/dashboard', icon: LayoutDashboard },

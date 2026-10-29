@@ -13,17 +13,27 @@ export function ToastProvider({ children }) {
   }, []);
 
   const addToast = useCallback(({ type = 'info', title, message, duration = 4000, action }) => {
-    const id = `toast-${Date.now()}-${++toastCount}`;
-    const newToast = { id, type, title, message, duration, action, createdAt: Date.now() };
+    let newId = null;
 
-    setToasts((prev) => [...prev, newToast]);
+    setToasts((prev) => {
+      // Prevent spamming identical toast notifications
+      const isDuplicate = prev.some((t) => t.message === message && t.title === title);
+      if (isDuplicate) return prev;
 
-    if (duration > 0) {
-      setTimeout(() => {
-        removeToast(id);
-      }, duration);
-    }
-    return id;
+      newId = `toast-${Date.now()}-${++toastCount}`;
+      const newToast = { id: newId, type, title, message, duration, action, createdAt: Date.now() };
+
+      if (duration > 0) {
+        setTimeout(() => {
+          removeToast(newId);
+        }, duration);
+      }
+
+      // Cap at most 4 toasts on screen to prevent rendering lag
+      return [...prev.slice(-3), newToast];
+    });
+
+    return newId;
   }, [removeToast]);
 
   const toast = {
