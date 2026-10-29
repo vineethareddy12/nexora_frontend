@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '../../../../config/apiConfig';
 const API_BASE = API_ENDPOINTS.v1;
 
 export const enquiryApi = {
-  async submitEnquiry(data) {
+  async submitEnquiry(data, retryCount = 1) {
     try {
       const res = await fetch(`${API_BASE}/enquiries`, {
         method: 'POST',
@@ -17,16 +17,24 @@ export const enquiryApi = {
       const json = isJson ? await res.json() : null;
 
       if (!res.ok) {
-        if (res.status === 502 || res.status === 503) {
-          throw new Error('Server is currently updating or waking up. Please try sending again in a few seconds.');
+        if (res.status === 502 || res.status === 503 || res.status === 504) {
+          throw new Error('The server is currently waking up or updating. Please wait a moment and try again.');
         }
-        throw new Error(json?.error?.message || `Failed to send message (Status ${res.status})`);
+        throw new Error(json?.error?.message || `Unable to submit enquiry (Error ${res.status}).`);
       }
 
       return json;
     } catch (err) {
-      if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        throw new Error('Unable to connect to the server. Please check your internet connection or try again in a moment.');
+      // If server was sleeping or network dropped, auto-retry once after a short delay
+      if (retryCount > 0 && (err.name === 'TypeError' || err.message?.includes('fetch') || err.message?.includes('waking up'))) {
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+        return this.submitEnquiry(data, retryCount - 1);
+      }
+
+      if (err.name === 'TypeError' || (err.message && err.message.toLowerCase().includes('fetch'))) {
+        throw new Error(
+          'The server is waking up from idle mode (free hosting takes ~30-45 seconds to spin up). Please wait a moment and click Send again.'
+        );
       }
       throw err;
     }

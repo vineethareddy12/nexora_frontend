@@ -143,9 +143,33 @@ export default function ContactPage() {
           </div>
 
           {submitError && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-md)', color: '#fca5a5', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-              <AlertCircle size={18} style={{ flexShrink: 0 }} />
-              <span>{submitError}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-md)', color: '#fca5a5', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <AlertCircle size={18} style={{ flexShrink: 0, color: '#ef4444' }} />
+                <span style={{ flex: 1, lineHeight: 1.5 }}>{submitError}</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                style={{
+                  alignSelf: 'flex-start',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  fontSize: '0.85rem',
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                  color: '#fff',
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  cursor: 'pointer',
+                  marginTop: '0.25rem',
+                }}
+              >
+                <RefreshCw size={14} className={submitting ? 'spin' : ''} />
+                {submitting ? 'Retrying...' : 'Click to Retry'}
+              </button>
             </div>
           )}
 
