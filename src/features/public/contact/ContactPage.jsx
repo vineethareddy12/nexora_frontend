@@ -139,7 +139,7 @@ export default function ContactPage() {
         <div className="glass-panel" style={{ padding: '2.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.5rem' }}>
             <MessageSquare size={20} color="var(--primary)" />
-            <h3 style={{ fontSize: '1.4rem', margin: 0, fontWeight: 700 }}>Send Us an Enterprise Enquiry</h3>
+            <h3 style={{ fontSize: '1.4rem', margin: 0, fontWeight: 700 }}>Send Us a Message</h3>
           </div>
 
           {submitError && (
@@ -152,9 +152,9 @@ export default function ContactPage() {
           {submitted ? (
             <div style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
               <CheckCircle2 size={56} color="var(--status-success)" style={{ margin: '0 auto 1.25rem' }} />
-              <h4 style={{ fontSize: '1.35rem', marginBottom: '0.5rem' }}>Message Dispatched Successfully!</h4>
+              <h4 style={{ fontSize: '1.35rem', marginBottom: '0.5rem' }}>Message Sent Successfully!</h4>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', maxWidth: '440px', margin: '0 auto 1.5rem', lineHeight: 1.6 }}>
-                Thank you for reaching out to {company?.companyName || 'Nexora Technologies'}. Your enquiry has been received and logged into our system. Our team will review your inquiry and get back to you promptly.
+                Thank you for reaching out to {company?.companyName || 'Nexora Technologies'}. We have received your message and our team will get back to you shortly.
               </p>
               <button
                 type="button"
@@ -171,7 +171,7 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.35rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
-                  Full Legal Name *
+                  Full Name *
                 </label>
                 <input
                   type="text"
@@ -244,13 +244,13 @@ export default function ContactPage() {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
-                  Enquiry Subject *
+                  Subject *
                 </label>
                 <input
                   type="text"
                   name="subject"
                   required
-                  placeholder="e.g. Enterprise Web Development Partnership"
+                  placeholder="e.g. Inquiry regarding services or career opportunities"
                   value={formData.subject}
                   onChange={handleChange}
                   style={{
@@ -268,13 +268,13 @@ export default function ContactPage() {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
-                  Detailed Message / Requirements *
+                  Message *
                 </label>
                 <textarea
                   name="message"
                   required
                   rows={4}
-                  placeholder="Describe your project scope, timeline, technology preferences, or questions..."
+                  placeholder="Write your message, question, or inquiry here..."
                   value={formData.message}
                   onChange={handleChange}
                   style={{
@@ -301,11 +301,11 @@ export default function ContactPage() {
                 {submitting ? (
                   <>
                     <RefreshCw className="animate-spin" size={16} />
-                    <span>Transmitting Enquiry...</span>
+                    <span>Sending Message...</span>
                   </>
                 ) : (
                   <>
-                    <span>Send Enterprise Message</span>
+                    <span>Send Message</span>
                     <Send size={16} />
                   </>
                 )}

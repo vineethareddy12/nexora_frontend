@@ -5,14 +5,31 @@ const API_BASE = API_ENDPOINTS.v1;
 
 export const enquiryApi = {
   async submitEnquiry(data) {
-    const res = await fetch(`${API_BASE}/enquiries`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error?.message || 'Failed to submit enquiry');
-    return json;
+    try {
+      const res = await fetch(`${API_BASE}/enquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const contentType = res.headers.get('content-type');
+      const isJson = contentType && contentType.includes('application/json');
+      const json = isJson ? await res.json() : null;
+
+      if (!res.ok) {
+        if (res.status === 502 || res.status === 503) {
+          throw new Error('Server is currently updating or waking up. Please try sending again in a few seconds.');
+        }
+        throw new Error(json?.error?.message || `Failed to send message (Status ${res.status})`);
+      }
+
+      return json;
+    } catch (err) {
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        throw new Error('Unable to connect to the server. Please check your internet connection or try again in a moment.');
+      }
+      throw err;
+    }
   },
 
   async getAdminEnquiries(params = {}, accessToken) {
