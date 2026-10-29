@@ -2,6 +2,30 @@ import { API_ENDPOINTS } from '../../../config/apiConfig';
 
 const API_BASE = API_ENDPOINTS.auth;
 
+async function parseResponse(res, fallbackMessage) {
+  const contentType = res.headers.get('content-type');
+  let json = null;
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      json = await res.json();
+    } catch {
+      json = null;
+    }
+  }
+
+  if (!res.ok) {
+    if (res.status === 404) {
+      throw new Error('API endpoint not found. Please ensure backend is running and connected.');
+    }
+    if (res.status === 502 || res.status === 503) {
+      throw new Error('Backend server is currently waking up or unavailable. Please wait a few seconds and try again.');
+    }
+    throw new Error(json?.error?.message || fallbackMessage || `Server responded with status ${res.status}`);
+  }
+
+  return json?.data !== undefined ? json.data : json;
+}
+
 export const authApi = {
   async register(data) {
     const res = await fetch(`${API_BASE}/register`, {
@@ -9,9 +33,7 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error?.message || 'Registration failed');
-    return json.data;
+    return parseResponse(res, 'Registration failed');
   },
 
   async login(credentials) {
@@ -20,9 +42,7 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error?.message || 'Login failed');
-    return json.data;
+    return parseResponse(res, 'Invalid email or password');
   },
 
   async refresh(refreshToken) {
@@ -31,26 +51,27 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error?.message || 'Refresh failed');
-    return json.data;
+    return parseResponse(res, 'Session refresh failed');
   },
 
   async logout(refreshToken) {
-    await fetch(`${API_BASE}/logout`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    });
+    try {
+      await fetch(`${API_BASE}/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch {
+      // Ignore logout errors
+    }
   },
 
   async getCurrentUser(accessToken) {
     const res = await fetch(`${API_BASE}/me`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error?.message || 'Failed to fetch user');
-    return json.data.user;
+    const data = await parseResponse(res, 'Failed to fetch user session');
+    return data?.user || data;
   },
 
   async forgotPassword(email) {
@@ -59,8 +80,7 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
-    const json = await res.json();
-    return json;
+    return parseResponse(res, 'Password reset request failed');
   },
 
   async resetPassword(token, newPassword) {
@@ -69,9 +89,7 @@ export const authApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, newPassword }),
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error?.message || 'Reset failed');
-    return json;
+    return parseResponse(res, 'Password reset failed');
   },
 
   async changePassword(currentPassword, newPassword, accessToken) {
@@ -83,8 +101,6 @@ export const authApi = {
       },
       body: JSON.stringify({ currentPassword, newPassword }),
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error?.message || 'Password update failed');
-    return json;
+    return parseResponse(res, 'Password update failed');
   },
 };
