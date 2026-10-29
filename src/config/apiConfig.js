@@ -19,5 +19,6 @@ export const API_ENDPOINTS = {
   v1: `${API_BASE_URL}/api/v1`,
   auth: `${API_BASE_URL}/api/v1/auth`,
   profile: `${API_BASE_URL}/api/v1/me/profile`,
+  documents: `${API_BASE_URL}/api/v1/me/documents`,
 };
 
