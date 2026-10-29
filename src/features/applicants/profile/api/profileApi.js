@@ -1,6 +1,7 @@
 import { authFetch } from '../../../auth/api/authFetch';
+import { API_ENDPOINTS } from '../../../../config/apiConfig';
 
-const API_BASE = '/api/v1/me/profile';
+const API_BASE = API_ENDPOINTS.profile;
 
 export const profileApi = {
   async getProfile(accessToken) {

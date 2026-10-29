@@ -200,7 +200,7 @@ export default function AdminLayout() {
               color: 'var(--text-muted)',
             }}>
               <ShieldCheck size={14} color="#10b981" />
-              <span>{user?.email || 'admin@nexoratech.com'}</span>
+              <span>{user?.email || 'Administrator'}</span>
             </div>
 
             <div style={{

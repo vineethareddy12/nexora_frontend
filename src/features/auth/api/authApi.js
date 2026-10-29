@@ -1,4 +1,6 @@
-const API_BASE = '/api/v1/auth';
+import { API_ENDPOINTS } from '../../../config/apiConfig';
+
+const API_BASE = API_ENDPOINTS.auth;
 
 export const authApi = {
   async register(data) {

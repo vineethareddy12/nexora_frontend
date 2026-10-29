@@ -1,6 +1,7 @@
 import { authFetch } from '../../auth/api/authFetch';
+import { API_ENDPOINTS } from '../../../config/apiConfig';
 
-const API_BASE = '/api/v1';
+const API_BASE = API_ENDPOINTS.v1;
 
 export const companyApi = {
   async getPublicProfile() {

@@ -1,3 +1,5 @@
+import { API_ENDPOINTS } from '../../../config/apiConfig';
+
 /**
  * AuthFetch Utility
  * Intercepts 401 Unauthorized / Expired Token responses and automatically
@@ -35,7 +37,7 @@ export async function authFetch(url, options = {}) {
     const refreshToken = localStorage.getItem('nexora_refresh_token');
     if (refreshToken) {
       try {
-        const refreshResponse = await fetch('/api/v1/auth/refresh', {
+        const refreshResponse = await fetch(`${API_ENDPOINTS.auth}/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken }),
