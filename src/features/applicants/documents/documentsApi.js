@@ -120,3 +120,4 @@ export const documentsApi = {
     setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
   },
 };
+
