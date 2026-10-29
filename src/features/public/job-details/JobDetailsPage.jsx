@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { jobsApi } from '../careers/api/jobsApi';
+import JobApplicationWizardModal from '../../applicants/applications/JobApplicationWizardModal';
 
 export default function JobDetailsPage() {
   const { id } = useParams();
@@ -325,190 +326,12 @@ export default function JobDetailsPage() {
         </div>
       </div>
 
-      {/* Application Submission Modal */}
-      {showApplyModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1.5rem',
-          }}
-        >
-          <div
-            className="card"
-            style={{
-              width: '100%',
-              maxWidth: '560px',
-              padding: '2rem',
-              background: '#FFFFFF',
-              position: 'relative',
-              borderRadius: '20px',
-              border: '1px solid #E2E8F0',
-              boxShadow: 'var(--shadow-xl)',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setShowApplyModal(false)}
-              style={{
-                position: 'absolute',
-                top: '1.25rem',
-                right: '1.25rem',
-                background: 'transparent',
-                border: 'none',
-                color: '#64748B',
-                cursor: 'pointer',
-              }}
-            >
-              <X size={20} />
-            </button>
-
-            {!submitted ? (
-              <form onSubmit={handleApplySubmit}>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>
-                    Application Submission
-                  </span>
-                  <h2 style={{ fontSize: '1.45rem', marginBottom: '0.35rem', color: '#0F172A', fontWeight: 700 }}>
-                    {job.title}
-                  </h2>
-                  <p style={{ color: '#475569', fontSize: '0.875rem' }}>
-                    Confirm your details to submit your profile directly to the Nexora recruitment team.
-                  </p>
-                </div>
-
-                <div
-                  style={{
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
-                    padding: '1rem',
-                    marginBottom: '1.25rem',
-                  }}
-                >
-                  <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '0.25rem' }}>
-                    Candidate Coordinates
-                  </div>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F172A' }}>{user?.fullName}</div>
-                  <div style={{ fontSize: '0.85rem', color: '#475569' }}>{user?.email}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#2563EB', marginTop: '0.35rem', fontWeight: 500 }}>
-                    &bull; Your registered resume and technical credentials will be attached automatically.
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.4rem' }}>
-                      Notice Period / Availability
-                    </label>
-                    <select
-                      value={applicationData.noticePeriod}
-                      onChange={(e) => setApplicationData({ ...applicationData, noticePeriod: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.7rem 0.9rem',
-                        borderRadius: '10px',
-                        background: '#FFFFFF',
-                        border: '1px solid #E2E8F0',
-                        color: '#0F172A',
-                        fontSize: '0.9rem',
-                        outline: 'none',
-                      }}
-                    >
-                      <option value="Immediate to 15 days">Immediate to 15 days</option>
-                      <option value="Immediate to 30 days">Immediate to 30 days</option>
-                      <option value="60 days">60 days</option>
-                      <option value="90 days">90 days</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.4rem' }}>
-                      Note to Hiring Manager (Optional)
-                    </label>
-                    <textarea
-                      rows={3}
-                      placeholder="Briefly highlight why you're a great fit for this engineering role..."
-                      value={applicationData.coverNote}
-                      onChange={(e) => setApplicationData({ ...applicationData, coverNote: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.7rem 0.9rem',
-                        borderRadius: '10px',
-                        background: '#FFFFFF',
-                        border: '1px solid #E2E8F0',
-                        color: '#0F172A',
-                        fontSize: '0.9rem',
-                        outline: 'none',
-                        resize: 'none',
-                        fontFamily: 'inherit',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowApplyModal(false)}
-                    className="btn btn-secondary"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="btn btn-primary"
-                    style={{ minWidth: '160px' }}
-                  >
-                    {submitting ? 'Submitting...' : 'Confirm & Apply'}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-                <div
-                  style={{
-                    width: '56px',
-                    height: '56px',
-                    borderRadius: '50%',
-                    background: '#ECFDF5',
-                    border: '1px solid #A7F3D0',
-                    color: '#059669',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 1rem',
-                  }}
-                >
-                  <CheckCircle2 size={32} />
-                </div>
-                <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem', color: '#0F172A', fontWeight: 700 }}>
-                  Application Submitted!
-                </h3>
-                <p style={{ color: '#475569', fontSize: '0.9rem', maxWidth: '400px', margin: '0 auto 1.5rem', lineHeight: 1.6 }}>
-                  Your application for <strong>{job.title}</strong> has been logged under reference{' '}
-                  <strong>{job.jobCode}</strong>.
-                </p>
-                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-                  <Link to="/app/profile" className="btn btn-primary" onClick={() => setShowApplyModal(false)}>
-                    View Candidate Profile &rarr;
-                  </Link>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowApplyModal(false)}>
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* 8-Step Complete Application Submission Wizard (Phase 2) */}
+      <JobApplicationWizardModal
+        job={job}
+        isOpen={showApplyModal}
+        onClose={() => setShowApplyModal(false)}
+      />
     </div>
   );
 }
