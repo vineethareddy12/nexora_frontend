@@ -38,6 +38,47 @@ export function AuthProvider({ children }) {
 
     initAuth();
 
+    // Proactive background silent refresh every 15 minutes to keep sessions seamless
+    const refreshInterval = setInterval(async () => {
+      const storedRefresh = localStorage.getItem('nexora_refresh_token');
+      if (storedRefresh) {
+        try {
+          const res = await authApi.refresh(storedRefresh);
+          if (res?.accessToken) {
+            setAccessToken(res.accessToken);
+            if (res.refreshToken) setRefreshToken(res.refreshToken);
+            localStorage.setItem('nexora_access_token', res.accessToken);
+            if (res.refreshToken) localStorage.setItem('nexora_refresh_token', res.refreshToken);
+          }
+        } catch (e) {
+          // Silent refresh failed in background; authFetch will handle on next request if expired
+        }
+      }
+    }, 15 * 60 * 1000);
+
+    // Refresh when user returns to the tab after sleep or switching apps
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        const storedRefresh = localStorage.getItem('nexora_refresh_token');
+        const storedAccess = localStorage.getItem('nexora_access_token');
+        if (storedRefresh && storedAccess) {
+          try {
+            const res = await authApi.refresh(storedRefresh);
+            if (res?.accessToken) {
+              setAccessToken(res.accessToken);
+              if (res.refreshToken) setRefreshToken(res.refreshToken);
+              localStorage.setItem('nexora_access_token', res.accessToken);
+              if (res.refreshToken) localStorage.setItem('nexora_refresh_token', res.refreshToken);
+            }
+          } catch (e) {
+            // ignore silent ping error
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     const handleTokenRefreshed = (e) => {
       if (e.detail?.accessToken) {
         setAccessToken(e.detail.accessToken);
@@ -48,7 +89,11 @@ export function AuthProvider({ children }) {
     };
 
     window.addEventListener('nexora:token-refreshed', handleTokenRefreshed);
-    return () => window.removeEventListener('nexora:token-refreshed', handleTokenRefreshed);
+    return () => {
+      clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('nexora:token-refreshed', handleTokenRefreshed);
+    };
   }, []);
 
   const login = (userData, tokens) => {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
 import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
@@ -7,12 +7,21 @@ let toastCount = 0;
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
+  const recentToastsRef = useRef(new Map());
 
   const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   const addToast = useCallback(({ type = 'info', title, message, duration = 4000, action }) => {
+    const toastKey = `${title || ''}:${message || ''}`;
+    const now = Date.now();
+    const lastSeen = recentToastsRef.current.get(toastKey);
+    if (lastSeen && now - lastSeen < 4000) {
+      return null; // Strict debounce: ignore duplicate within 4 seconds
+    }
+    recentToastsRef.current.set(toastKey, now);
+
     let newId = null;
 
     setToasts((prev) => {
@@ -20,8 +29,8 @@ export function ToastProvider({ children }) {
       const isDuplicate = prev.some((t) => t.message === message && t.title === title);
       if (isDuplicate) return prev;
 
-      newId = `toast-${Date.now()}-${++toastCount}`;
-      const newToast = { id: newId, type, title, message, duration, action, createdAt: Date.now() };
+      newId = `toast-${now}-${++toastCount}`;
+      const newToast = { id: newId, type, title, message, duration, action, createdAt: now };
 
       if (duration > 0) {
         setTimeout(() => {
@@ -29,20 +38,20 @@ export function ToastProvider({ children }) {
         }, duration);
       }
 
-      // Cap at most 4 toasts on screen to prevent rendering lag
-      return [...prev.slice(-3), newToast];
+      // Cap at most 3 toasts on screen to prevent rendering lag
+      return [...prev.slice(-2), newToast];
     });
 
     return newId;
   }, [removeToast]);
 
-  const toast = {
+  const toast = useMemo(() => ({
     success: (message, options = {}) => addToast({ type: 'success', title: options.title || 'Success', message, ...options }),
     error: (message, options = {}) => addToast({ type: 'error', title: options.title || 'Error', message, ...options }),
     info: (message, options = {}) => addToast({ type: 'info', title: options.title || 'Notice', message, ...options }),
     warning: (message, options = {}) => addToast({ type: 'warning', title: options.title || 'Warning', message, ...options }),
     remove: removeToast,
-  };
+  }), [addToast, removeToast]);
 
   return (
     <ToastContext.Provider value={{ toast, addToast, removeToast }}>

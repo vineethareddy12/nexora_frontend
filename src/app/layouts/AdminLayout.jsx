@@ -23,6 +23,8 @@ import ScrollToTop from '../../components/common/ScrollToTop';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useToast } from '../../components/toast/ToastContext';
 
+let lastAdminAuthExpiredToast = 0;
+
 export default function AdminLayout() {
   const { user, accessToken, loading, logout } = useAuth();
   const navigate = useNavigate();
@@ -43,8 +45,12 @@ export default function AdminLayout() {
     }
 
     const handleAuthExpired = () => {
+      const now = Date.now();
+      if (now - lastAdminAuthExpiredToast > 12000) {
+        lastAdminAuthExpiredToast = now;
+        toast.error('Session timed out. Please sign in again.', { title: 'Session Expired' });
+      }
       logout();
-      toast.error('Session timed out. Please sign in again.', { title: 'Session Expired' });
       navigate('/login?redirect=/admin/jobs', { replace: true });
     };
 
@@ -186,15 +192,17 @@ export default function AdminLayout() {
                 style={({ isActive }) => ({
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.65rem 0.85rem',
+                  gap: '0.85rem',
+                  padding: '0.75rem 1rem',
+                  minHeight: '44px',
                   borderRadius: '8px',
-                  fontSize: '0.875rem',
-                  fontWeight: isActive ? 600 : 500,
-                  color: isActive ? '#2563EB' : '#475569',
+                  fontSize: '0.925rem',
+                  fontWeight: isActive ? 700 : 600,
+                  color: isActive ? '#2563EB' : '#1E293B',
                   background: isActive ? '#EFF6FF' : 'transparent',
                   border: isActive ? '1px solid #BFDBFE' : '1px solid transparent',
                   transition: 'all 0.15s ease',
+                  cursor: 'pointer',
                 })}
               >
                 <Icon size={18} />
@@ -356,27 +364,27 @@ export default function AdminLayout() {
             left: 0;
             top: 0;
             bottom: 0;
-            width: min(280px, 84vw) !important;
+            width: min(290px, 86vw) !important;
             background: #FFFFFF !important;
-            z-index: 2000 !important;
+            z-index: 9999 !important;
             transform: translateX(-100%);
             transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
-            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.35);
+            box-shadow: 6px 0 25px rgba(15, 23, 42, 0.25);
             visibility: hidden;
             pointer-events: none;
+            overflow-y: auto;
           }
           .admin-sidebar-open {
             transform: translateX(0) !important;
             visibility: visible !important;
             pointer-events: auto !important;
-            z-index: 2000 !important;
+            z-index: 9999 !important;
           }
           .admin-sidebar-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(2px);
-            z-index: 1800 !important;
+            background: rgba(15, 23, 42, 0.45);
+            z-index: 9998 !important;
             cursor: pointer;
           }
           .admin-menu-toggle {

@@ -327,7 +327,9 @@ export default function ApplicantProfilePage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.75rem 1.25rem',
+                padding: '0.75rem 1.15rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
                 background: isActive ? 'var(--primary)' : 'rgba(255, 255, 255, 0.03)',
                 color: isActive ? '#ffffff' : 'var(--text-muted)',
                 border: '1px solid',
@@ -391,7 +393,7 @@ export default function ApplicantProfilePage() {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.5rem' }}>
+            <div className="form-grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.5rem' }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Full Legal Name</div>
                 <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>{profile.fullName || 'Not specified'}</div>
@@ -429,7 +431,7 @@ export default function ApplicantProfilePage() {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.5rem' }}>
+            <div className="form-grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.5rem' }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Highest Qualification</div>
                 <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>{profile.highestQualification || 'Not provided'}</div>
@@ -514,7 +516,7 @@ export default function ApplicantProfilePage() {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.25rem' }}>
+            <div className="form-grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.25rem' }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>LinkedIn</div>
                 {profile.linkedinUrl ? (

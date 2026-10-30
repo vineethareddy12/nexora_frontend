@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Briefcase,
-  Clock,
+  Search,
+  Filter,
   Calendar,
   CheckCircle2,
   ChevronRight,
+  ChevronLeft,
   XCircle,
   ArrowRight,
   FileText,
@@ -18,6 +20,8 @@ import {
   MapPin,
   X,
   ShieldAlert,
+  RotateCcw,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { applicationsApi } from './applicationsApi';
 import { useAuth } from '../../auth/hooks/useAuth';
@@ -33,6 +37,25 @@ const STATUS_CONFIG = {
   HIRED: { label: 'Hired', badgeClass: 'badge-success' },
   WITHDRAWN: { label: 'Withdrawn', badgeClass: 'badge-neutral' },
 };
+
+function normalizeStatusParam(status) {
+  if (!status) return 'ALL';
+  const s = status.trim().toUpperCase();
+  if (s === 'ALL') return 'ALL';
+  if (s === 'INTERVIEW') return 'INTERVIEW_SCHEDULED';
+  if (s === 'OFFER' || s === 'OFFERED') return 'OFFER_EXTENDED';
+  const valid = [
+    'SUBMITTED',
+    'UNDER_REVIEW',
+    'SHORTLISTED',
+    'INTERVIEW_SCHEDULED',
+    'OFFER_EXTENDED',
+    'HIRED',
+    'REJECTED',
+    'WITHDRAWN',
+  ];
+  return valid.includes(s) ? s : 'ALL';
+}
 
 function formatDate(isoString) {
   if (!isoString) return '—';
@@ -50,25 +73,88 @@ function formatDate(isoString) {
 export default function ApplicantApplicationsPage() {
   const { user } = useAuth();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  // Search & Filter State
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+  const [statusFilter, setStatusFilter] = useState(() => normalizeStatusParam(searchParams.get('status')));
+  const [fromDate, setFromDate] = useState(searchParams.get('fromDate') || '');
+  const [toDate, setToDate] = useState(searchParams.get('toDate') || '');
+  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'createdAt');
+  const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'desc');
+  const [page, setPage] = useState(parseInt(searchParams.get('page') || '1', 10));
+  const [limit] = useState(10);
+
+  // Synchronize component state whenever URL query params change (e.g. from KPI card click)
+  useEffect(() => {
+    const rawStatus = searchParams.get('status');
+    const targetStatus = normalizeStatusParam(rawStatus);
+    if (targetStatus !== statusFilter) {
+      setStatusFilter(targetStatus);
+      setPage(1);
+    }
+
+    const rawSearch = searchParams.get('search') || '';
+    if (rawSearch !== searchTerm) {
+      setSearchTerm(rawSearch);
+      setDebouncedSearch(rawSearch);
+    }
+  }, [searchParams]);
+
+  // Data & Pagination
   const [applications, setApplications] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('ALL');
 
-  // Details Modal
+  // Modals
   const [selectedApp, setSelectedApp] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-
-  // Withdraw Modal
   const [withdrawTargetApp, setWithdrawTargetApp] = useState(null);
   const [withdrawReason, setWithdrawReason] = useState('');
   const [withdrawing, setWithdrawing] = useState(false);
 
+  // Debounce search input by 300ms
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Fetch applications with server-side filters
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      const data = await applicationsApi.getMyApplications();
-      setApplications(data);
+      const data = await applicationsApi.getMyApplications({
+        page,
+        limit,
+        search: debouncedSearch,
+        status: statusFilter,
+        fromDate: fromDate || undefined,
+        toDate: toDate || undefined,
+        sortBy,
+        sortOrder,
+      });
+
+      if (data && data.applications) {
+        setApplications(data.applications);
+        if (data.pagination) setPagination(data.pagination);
+      } else if (Array.isArray(data)) {
+        setApplications(data);
+        setPagination({
+          page: 1,
+          limit: data.length,
+          total: data.length,
+          totalPages: 1,
+        });
+      }
     } catch (err) {
       console.error('Failed to load applications:', err);
       toast.error(err.message || 'Unable to retrieve applications.');
@@ -79,7 +165,23 @@ export default function ApplicantApplicationsPage() {
 
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [debouncedSearch, statusFilter, fromDate, toDate, sortBy, sortOrder, page]);
+
+  // Deep-linking: auto-open details modal if openId is in URL
+  const initialOpenDoneRef = useRef(false);
+  useEffect(() => {
+    const openId = searchParams.get('openId');
+    if (openId && !initialOpenDoneRef.current) {
+      initialOpenDoneRef.current = true;
+      applicationsApi.getApplicationDetails(openId)
+        .then((fullDetails) => {
+          setSelectedApp(fullDetails);
+        })
+        .catch((err) => {
+          console.error('Failed to open deep-linked application:', err);
+        });
+    }
+  }, [searchParams]);
 
   const openDetailsModal = async (app) => {
     try {
@@ -112,10 +214,41 @@ export default function ApplicantApplicationsPage() {
     }
   };
 
-  const filteredApps = applications.filter((app) => {
-    if (statusFilter === 'ALL') return true;
-    return app.status === statusFilter;
-  });
+  const handleStatusFilterChange = (key) => {
+    setStatusFilter(key);
+    setPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    if (key === 'ALL') {
+      newParams.delete('status');
+    } else {
+      newParams.set('status', key);
+    }
+    newParams.delete('page');
+    setSearchParams(newParams);
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setDebouncedSearch('');
+    setStatusFilter('ALL');
+    setFromDate('');
+    setToDate('');
+    setSortBy('createdAt');
+    setSortOrder('desc');
+    setPage(1);
+    setSearchParams({});
+  };
+
+  const statusTabs = [
+    { key: 'ALL', label: 'All Statuses' },
+    { key: 'SUBMITTED', label: 'Submitted' },
+    { key: 'UNDER_REVIEW', label: 'Under Review' },
+    { key: 'SHORTLISTED', label: 'Shortlisted' },
+    { key: 'INTERVIEW_SCHEDULED', label: 'Interview Scheduled' },
+    { key: 'OFFER_EXTENDED', label: 'Offer Extended' },
+    { key: 'REJECTED', label: 'Not Selected' },
+    { key: 'WITHDRAWN', label: 'Withdrawn' },
+  ];
 
   return (
     <div style={{ maxWidth: '1360px', margin: '0 auto', width: '100%', padding: '0 0.5rem 3rem' }}>
@@ -131,12 +264,9 @@ export default function ApplicantApplicationsPage() {
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.4rem' }}>
-
-            <h1 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-              My Job Applications
-            </h1>
-          </div>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 1.9rem)', fontWeight: 800, color: '#0F172A', margin: 0, marginBottom: '0.4rem' }}>
+            My Job Applications
+          </h1>
           <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
             Monitor your submission reference codes, recruitment lifecycle stages, and preserved application documents.
           </p>
@@ -160,54 +290,200 @@ export default function ApplicantApplicationsPage() {
         </Link>
       </div>
 
-      {/* 2. Filter Tabs */}
+      {/* 2. Search & Filter Bar */}
       <div
+        className="card"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
+          padding: '1.25rem',
+          background: '#FFFFFF',
+          borderRadius: '14px',
+          border: '1px solid #E2E8F0',
           marginBottom: '1.5rem',
-          overflowX: 'auto',
-          paddingBottom: '0.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1rem',
+          boxShadow: 'var(--shadow-sm)',
         }}
       >
-        {[
-          { key: 'ALL', label: `All (${applications.length})` },
-          { key: 'SUBMITTED', label: 'Submitted' },
-          { key: 'UNDER_REVIEW', label: 'Under Review' },
-          { key: 'SHORTLISTED', label: 'Shortlisted' },
-          { key: 'INTERVIEW_SCHEDULED', label: 'Interviewing' },
-          { key: 'WITHDRAWN', label: 'Withdrawn' },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setStatusFilter(tab.key)}
+        {/* Row 1: Search + Sort */}
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ flex: '1 1 260px', position: 'relative' }}>
+            <Search
+              size={18}
+              style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}
+            />
+            <input
+              type="text"
+              placeholder="Search by reference # or job title..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.65rem 0.85rem 0.65rem 2.5rem',
+                borderRadius: '8px',
+                border: '1px solid #CBD5E1',
+                fontSize: '0.875rem',
+                outline: 'none',
+                background: '#F8FAFC',
+              }}
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: '#94A3B8',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <select
+              value={`${sortBy}:${sortOrder}`}
+              onChange={(e) => {
+                const [sb, so] = e.target.value.split(':');
+                setSortBy(sb);
+                setSortOrder(so);
+                setPage(1);
+              }}
+              style={{
+                padding: '0.65rem 0.85rem',
+                borderRadius: '8px',
+                border: '1px solid #CBD5E1',
+                fontSize: '0.85rem',
+                background: '#FFFFFF',
+                color: '#0F172A',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="createdAt:desc">Newest First</option>
+              <option value="createdAt:asc">Oldest First</option>
+              <option value="status:asc">Status (A-Z)</option>
+            </select>
+
+            {(searchTerm || statusFilter !== 'ALL' || fromDate || toDate) && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="btn btn-secondary"
+                style={{ padding: '0.65rem 0.85rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                title="Reset all filters"
+              >
+                <RotateCcw size={14} />
+                <span>Reset</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Row 2: Status Pills */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            overflowX: 'auto',
+            paddingBottom: '0.35rem',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {statusTabs.map((tab) => {
+            const isSelected = statusFilter === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                onClick={() => handleStatusFilterChange(tab.key)}
+                style={{
+                  padding: '0.45rem 0.95rem',
+                  borderRadius: '9999px',
+                  fontSize: '0.8rem',
+                  fontWeight: isSelected ? 700 : 500,
+                  background: isSelected ? '#2563EB' : '#FFFFFF',
+                  color: isSelected ? '#FFFFFF' : '#475569',
+                  border: isSelected ? '1px solid #2563EB' : '1px solid #E2E8F0',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  boxShadow: isSelected ? '0 2px 4px rgba(37, 99, 235, 0.25)' : 'none',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Row 3: Active Status Filter Indicator Banner with Clear button */}
+        {statusFilter !== 'ALL' && (
+          <div
             style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '9999px',
-              fontSize: '0.85rem',
-              fontWeight: statusFilter === tab.key ? 600 : 500,
-              background: statusFilter === tab.key ? '#2563EB' : '#FFFFFF',
-              color: statusFilter === tab.key ? '#FFFFFF' : '#475569',
-              border: statusFilter === tab.key ? '1px solid #2563EB' : '1px solid #E2E8F0',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.15s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.55rem 0.85rem',
+              background: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              borderRadius: '8px',
+              marginTop: '0.75rem',
+              fontSize: '0.825rem',
+              color: '#1E40AF',
+              flexWrap: 'wrap',
+              gap: '0.5rem',
             }}
           >
-            {tab.label}
-          </button>
-        ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <SlidersHorizontal size={14} color="#2563EB" />
+              <span>
+                Filtered by status: <strong>{statusTabs.find(t => t.key === statusFilter)?.label || STATUS_CONFIG[statusFilter]?.label || statusFilter}</strong>
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleStatusFilterChange('ALL')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                background: '#DBEAFE',
+                border: '1px solid #BFDBFE',
+                color: '#1E40AF',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                padding: '0.2rem 0.55rem',
+                borderRadius: '6px',
+                transition: 'all 0.15s ease',
+              }}
+              title="Clear status filter"
+            >
+              <span>Clear Filter</span>
+              <X size={13} />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* 3. Applications List Container */}
+      {/* 3. Applications Listing Container */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '5rem 2rem', color: '#64748B' }}>
           <Loader2 size={32} className="spin" style={{ margin: '0 auto 1rem', color: '#2563EB' }} />
           <p style={{ fontSize: '0.95rem', margin: 0 }}>Loading your submitted applications...</p>
         </div>
-      ) : filteredApps.length === 0 ? (
+      ) : applications.length === 0 ? (
         /* Empty State */
         <div
           className="card"
@@ -236,140 +512,282 @@ export default function ApplicantApplicationsPage() {
             <Briefcase size={32} />
           </div>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.5rem' }}>
-            {statusFilter === 'ALL' ? 'No Job Applications Submitted Yet' : `No Applications in status "${statusFilter}"`}
+            {searchTerm || statusFilter !== 'ALL'
+              ? 'No Matching Applications Found'
+              : 'No Job Applications Submitted Yet'}
           </h3>
           <p style={{ color: '#64748B', fontSize: '0.9rem', maxWidth: '460px', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
-            Browse our open engineering, cloud architecture, and AI engineering positions to launch your next career opportunity.
+            {searchTerm || statusFilter !== 'ALL'
+              ? 'Try modifying your search keywords or resetting status filters to discover your records.'
+              : 'Browse our open engineering, cloud architecture, and AI engineering positions to launch your next career opportunity.'}
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/careers" className="btn btn-primary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem' }}>
-              <span>View Open Roles</span>
-              <ArrowRight size={15} />
-            </Link>
-            <Link to="/app/documents" className="btn btn-secondary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem' }}>
-              <span>Manage Resumes Vault</span>
-            </Link>
+            {searchTerm || statusFilter !== 'ALL' ? (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="btn btn-primary"
+                style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem' }}
+              >
+                Clear All Filters
+              </button>
+            ) : (
+              <>
+                <Link to="/careers" className="btn btn-primary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem' }}>
+                  <span>View Open Roles</span>
+                  <ArrowRight size={15} />
+                </Link>
+                <Link to="/app/documents" className="btn btn-secondary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem' }}>
+                  <span>Manage Resumes Vault</span>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       ) : (
-        /* Applications List */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {filteredApps.map((app) => {
-            const statusConfig = STATUS_CONFIG[app.status] || STATUS_CONFIG.SUBMITTED;
-            const canWithdraw = app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW';
+        <>
+          {/* Desktop Table View (>= 768px) */}
+          <div className="desktop-table-view card" style={{ padding: 0, overflow: 'hidden', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', marginBottom: '1.5rem' }}>
+            <div className="table-responsive" style={{ margin: 0 }}>
+              <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 700 }}>
+                    <th style={{ padding: '0.85rem 1.25rem' }}>Reference #</th>
+                    <th style={{ padding: '0.85rem 1.25rem' }}>Role & Department</th>
+                    <th style={{ padding: '0.85rem 1.25rem' }}>Location</th>
+                    <th style={{ padding: '0.85rem 1.25rem' }}>Submitted</th>
+                    <th style={{ padding: '0.85rem 1.25rem' }}>Status</th>
+                    <th style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {applications.map((app) => {
+                    const statusConfig = STATUS_CONFIG[app.status] || STATUS_CONFIG.SUBMITTED;
+                    const canWithdraw = app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW';
 
-            return (
-              <div
-                key={app.id}
-                className="card"
-                style={{
-                  padding: 'clamp(1.25rem, 3.5vw, 2rem)',
-                  background: '#FFFFFF',
-                  borderRadius: '16px',
-                  border: '1px solid #E2E8F0',
-                  boxShadow: 'var(--shadow-sm)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  flexWrap: 'wrap',
-                  gap: '1.5rem',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {/* Left: Job & Status Info */}
-                <div style={{ flex: '1 1 400px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                    <span
-                      style={{
-                        fontSize: '0.8rem',
-                        fontWeight: 700,
-                        color: '#2563EB',
-                        background: '#EFF6FF',
-                        padding: '0.2rem 0.65rem',
-                        borderRadius: '6px',
-                        border: '1px solid #DBEAFE',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {app.referenceNumber}
-                    </span>
-                    <span className={`badge ${statusConfig.badgeClass}`} style={{ fontSize: '0.75rem' }}>
+                    return (
+                      <tr key={app.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                        <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: '#2563EB', fontSize: '0.85rem' }}>
+                          {app.referenceNumber}
+                        </td>
+                        <td style={{ padding: '1rem 1.25rem' }}>
+                          <div style={{ fontWeight: 700, color: '#0F172A' }}>{app.job?.title || 'Job Opening'}</div>
+                          <div style={{ fontSize: '0.78rem', color: '#64748B' }}>{app.job?.department || 'Engineering'}</div>
+                        </td>
+                        <td style={{ padding: '1rem 1.25rem', color: '#64748B', fontSize: '0.85rem' }}>
+                          {app.job?.location || 'Remote'}
+                        </td>
+                        <td style={{ padding: '1rem 1.25rem', color: '#64748B', fontSize: '0.85rem' }}>
+                          {formatDate(app.submittedAt)}
+                        </td>
+                        <td style={{ padding: '1rem 1.25rem' }}>
+                          <span className={`badge ${statusConfig.badgeClass}`} style={{ fontSize: '0.75rem' }}>
+                            {statusConfig.label}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <button
+                              type="button"
+                              onClick={() => openDetailsModal(app)}
+                              className="btn btn-secondary"
+                              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                            >
+                              <Eye size={14} />
+                              <span>View</span>
+                            </button>
+                            {canWithdraw && (
+                              <button
+                                type="button"
+                                onClick={() => setWithdrawTargetApp(app)}
+                                style={{
+                                  padding: '0.4rem 0.65rem',
+                                  fontSize: '0.8rem',
+                                  background: '#FFFFFF',
+                                  border: '1px solid #FEE2E2',
+                                  color: '#EF4444',
+                                  borderRadius: '6px',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Withdraw
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Mobile Cards View (< 768px): Vertical Stack with 0 Horizontal Overflow */}
+          <div className="mobile-cards-view" style={{ flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+            {applications.map((app) => {
+              const statusConfig = STATUS_CONFIG[app.status] || STATUS_CONFIG.SUBMITTED;
+              const canWithdraw = app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW';
+
+              return (
+                <div
+                  key={`mobile-${app.id}`}
+                  className="card"
+                  style={{
+                    padding: '1.25rem',
+                    background: '#FFFFFF',
+                    borderRadius: '14px',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.85rem',
+                    boxShadow: 'var(--shadow-sm)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                    <div>
+                      <span
+                        style={{
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          color: '#2563EB',
+                          background: '#EFF6FF',
+                          padding: '0.15rem 0.5rem',
+                          borderRadius: '6px',
+                          border: '1px solid #DBEAFE',
+                        }}
+                      >
+                        {app.referenceNumber}
+                      </span>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', marginTop: '0.45rem', marginBottom: '0.2rem' }}>
+                        {app.job?.title || 'Job Opening'}
+                      </h3>
+                      <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                        {app.job?.department} • {app.job?.location}
+                      </div>
+                    </div>
+                    <span className={`badge ${statusConfig.badgeClass}`} style={{ fontSize: '0.72rem', flexShrink: 0 }}>
                       {statusConfig.label}
                     </span>
-                    <span style={{ fontSize: '0.78rem', color: '#64748B' }}>
-                      Submitted {formatDate(app.submittedAt)}
-                    </span>
                   </div>
 
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.4rem' }}>
-                    {app.job?.title || 'Job Opening'}
-                  </h3>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', color: '#64748B', fontSize: '0.85rem', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Building size={15} color="#94A3B8" />
-                      <span>{app.job?.department || 'Engineering'}</span>
+                  <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div>
+                      <strong>Submitted:</strong> {formatDate(app.submittedAt)}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <MapPin size={15} color="#94A3B8" />
-                      <span>{app.job?.location || 'Remote'} ({app.job?.workMode || 'Hybrid'})</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <FileText size={15} color="#94A3B8" />
-                      <span>{app.documents?.length || 1} Document(s) Preserved</span>
+                    <div>
+                      <strong>Documents:</strong> {app.documents?.length || 1}
                     </div>
                   </div>
-                </div>
 
-                {/* Right: Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', alignSelf: 'center', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => openDetailsModal(app)}
-                    className="btn btn-secondary"
-                    style={{
-                      padding: '0.6rem 1.1rem',
-                      fontSize: '0.85rem',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                    }}
-                  >
-                    <Eye size={16} />
-                    <span>View Details</span>
-                  </button>
-
-                  {canWithdraw && (
+                  <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '0.75rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                     <button
                       type="button"
-                      onClick={() => setWithdrawTargetApp(app)}
-                      style={{
-                        padding: '0.6rem 1rem',
-                        fontSize: '0.85rem',
-                        background: '#FFFFFF',
-                        border: '1px solid #FEE2E2',
-                        color: '#EF4444',
-                        borderRadius: '8px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.35rem',
-                      }}
+                      onClick={() => openDetailsModal(app)}
+                      className="btn btn-secondary"
+                      style={{ padding: '0.45rem 0.9rem', fontSize: '0.825rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', flex: '1 1 auto', justifyContent: 'center' }}
                     >
-                      <XCircle size={15} />
-                      <span>Withdraw</span>
+                      <Eye size={15} />
+                      <span>View Details</span>
                     </button>
-                  )}
+                    {canWithdraw && (
+                      <button
+                        type="button"
+                        onClick={() => setWithdrawTargetApp(app)}
+                        style={{
+                          padding: '0.45rem 0.9rem',
+                          fontSize: '0.825rem',
+                          background: '#FFFFFF',
+                          border: '1px solid #FEE2E2',
+                          color: '#EF4444',
+                          borderRadius: '8px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          flex: '1 1 auto',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <XCircle size={15} />
+                        <span>Withdraw</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+
+          {/* 4. Pagination Controls */}
+          {pagination.totalPages > 1 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                padding: '1rem 0.5rem',
+              }}
+            >
+              <div style={{ fontSize: '0.85rem', color: '#64748B' }}>
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} applications
               </div>
-            );
-          })}
-        </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                  disabled={pagination.page <= 1}
+                  className="btn btn-secondary"
+                  style={{
+                    padding: '0.45rem 0.85rem',
+                    fontSize: '0.85rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    opacity: pagination.page <= 1 ? 0.5 : 1,
+                    cursor: pagination.page <= 1 ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                  <span>Previous</span>
+                </button>
+
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0F172A', padding: '0 0.5rem' }}>
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(p + 1, pagination.totalPages))}
+                  disabled={pagination.page >= pagination.totalPages}
+                  className="btn btn-secondary"
+                  style={{
+                    padding: '0.45rem 0.85rem',
+                    fontSize: '0.85rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    opacity: pagination.page >= pagination.totalPages ? 0.5 : 1,
+                    cursor: pagination.page >= pagination.totalPages ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  <span>Next</span>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          4. APPLICATION DETAILS MODAL (WITH FROZEN DOCUMENT SNAPSHOTS)
+          5. APPLICATION DETAILS MODAL (WITH FROZEN DOCUMENT SNAPSHOTS)
       ───────────────────────────────────────────────────────────── */}
       {selectedApp && (
         <div
@@ -492,12 +910,14 @@ export default function ApplicantApplicationsPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <FileText size={18} color={doc.isResume ? '#2563EB' : '#16A34A'} />
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#0F172A' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#0F172A', wordBreak: 'break-all' }}>
                           {doc.originalFilename}
                         </div>
                         <div style={{ fontSize: '0.72rem', color: '#64748B' }}>
@@ -540,7 +960,7 @@ export default function ApplicantApplicationsPage() {
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          5. WITHDRAW CONFIRMATION MODAL
+          6. WITHDRAW CONFIRMATION MODAL
       ───────────────────────────────────────────────────────────── */}
       {withdrawTargetApp && (
         <div
@@ -619,7 +1039,7 @@ export default function ApplicantApplicationsPage() {
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 onClick={() => setWithdrawTargetApp(null)}

@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
   profile: `${API_BASE_URL}/api/v1/me/profile`,
   documents: `${API_BASE_URL}/api/v1/me/documents`,
   applications: `${API_BASE_URL}/api/v1/me/applications`,
+  dashboard: `${API_BASE_URL}/api/v1/me/dashboard`,
   jobs: `${API_BASE_URL}/api/v1/jobs`,
 };
 

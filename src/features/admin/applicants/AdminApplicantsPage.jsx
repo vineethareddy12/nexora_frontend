@@ -47,7 +47,8 @@ export default function AdminApplicantsPage() {
         </div>
       ) : (
         <div className="glass-panel" style={{ padding: 'clamp(1rem, 2vw, 1.5rem)' }}>
-          <div className="table-responsive">
+          {/* Desktop Table View */}
+          <div className="desktop-table-view table-responsive">
             <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
@@ -78,6 +79,43 @@ export default function AdminApplicantsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards View */}
+          <div className="mobile-cards-view">
+            {applicants.map((a) => (
+              <div
+                key={`applicant-${a.id}`}
+                className="card"
+                style={{
+                  padding: '1.15rem',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F172A' }}>{a.name}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', wordBreak: 'break-all' }}>{a.email}</div>
+                  </div>
+                  <span className="badge badge-info">{a.exp}</span>
+                </div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  <div><strong>Qualification:</strong> {a.qualification || 'N/A'}</div>
+                  <div><strong>Registered:</strong> {a.registeredDate}</div>
+                </div>
+                <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '0.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <Eye size={14} />
+                    <span>Review Candidate</span>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

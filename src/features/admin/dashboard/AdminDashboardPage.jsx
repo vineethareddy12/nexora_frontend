@@ -166,7 +166,7 @@ export default function AdminDashboardPage() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
             Publish open job postings to the public careers page, edit requirements, manage deadlines, or archive positions.
           </p>
-          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <div className="admin-card-actions" style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
             <Link to="/admin/jobs" className="btn btn-primary" style={{ padding: '0.5rem 0.85rem', fontSize: '0.825rem', whiteSpace: 'nowrap' }}>
               <Plus size={15} />
               <span>Post New Vacancy</span>
@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
             Maintain service offerings, technology stacks, capabilities, and presentation orders visible on the public portal.
           </p>
-          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <div className="admin-card-actions" style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
             <Link to="/admin/services" className="btn btn-primary" style={{ padding: '0.5rem 0.85rem', fontSize: '0.825rem', whiteSpace: 'nowrap' }}>
               <Plus size={15} />
               <span>Add New Service</span>
@@ -206,7 +206,7 @@ export default function AdminDashboardPage() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
             Review, triage, and record notes on technical consulting and enterprise project leads sent via the Contact page.
           </p>
-          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <div className="admin-card-actions" style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
             <Link to="/admin/enquiries" className="btn btn-primary" style={{ padding: '0.5rem 0.85rem', fontSize: '0.825rem', whiteSpace: 'nowrap' }}>
               <span>Review Enquiries</span>
               <ArrowRight size={14} />
@@ -225,7 +225,7 @@ export default function AdminDashboardPage() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
             Update official company details, mission statement, contact numbers, address, and enterprise expertise domains.
           </p>
-          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <div className="admin-card-actions" style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
             <Link to="/admin/company" className="btn btn-primary" style={{ padding: '0.5rem 0.85rem', fontSize: '0.825rem', whiteSpace: 'nowrap' }}>
               <span>Edit Company Profile</span>
               <ArrowRight size={14} />

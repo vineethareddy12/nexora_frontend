@@ -39,7 +39,8 @@ export default function AdminOffersPage() {
         </div>
       ) : (
         <div className="glass-panel" style={{ padding: 'clamp(1rem, 2vw, 1.5rem)' }}>
-          <div className="table-responsive">
+          {/* Desktop Table View */}
+          <div className="desktop-table-view table-responsive">
             <table style={{ width: '100%', minWidth: '650px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
@@ -73,6 +74,53 @@ export default function AdminOffersPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Vertical Cards View */}
+          <div className="mobile-cards-view">
+            {offers.map((item) => (
+              <div
+                key={`card-${item.id}`}
+                className="card"
+                style={{
+                  padding: '1.15rem',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 700 }}>
+                      {item.ref}
+                    </span>
+                    <h4 style={{ margin: '0.2rem 0 0', fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
+                      {item.candidate}
+                    </h4>
+                    <div style={{ fontSize: '0.85rem', color: '#64748B' }}>{item.role}</div>
+                  </div>
+                  <span className="badge badge-success">{item.status}</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', fontSize: '0.8rem', color: '#64748B' }}>
+                  <span className="badge badge-info">{item.version}</span>
+                </div>
+
+                <div className="admin-card-actions" style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', paddingTop: '0.65rem', borderTop: '1px solid #F1F5F9' }}>
+                  <button className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                    <Download size={14} />
+                    <span>Preview PDF</span>
+                  </button>
+                  <button className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                    <RefreshCw size={14} />
+                    <span>Revise</span>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

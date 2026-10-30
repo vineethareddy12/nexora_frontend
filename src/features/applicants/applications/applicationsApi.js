@@ -21,17 +21,42 @@ export const applicationsApi = {
   },
 
   /**
-   * Retrieves all applications submitted by the logged-in candidate.
+   * Retrieves applications submitted by the logged-in candidate with search, filters, pagination.
    */
-  async getMyApplications() {
-    const res = await authFetch(API_ENDPOINTS.applications);
+  async getMyApplications(params = {}) {
+    const query = new URLSearchParams();
+    if (params.page) query.append('page', params.page);
+    if (params.limit) query.append('limit', params.limit);
+    if (params.search && params.search.trim() !== '') query.append('search', params.search.trim());
+    if (params.status && params.status !== 'ALL') query.append('status', params.status);
+    if (params.fromDate) query.append('fromDate', params.fromDate);
+    if (params.toDate) query.append('toDate', params.toDate);
+    if (params.sortBy) query.append('sortBy', params.sortBy);
+    if (params.sortOrder) query.append('sortOrder', params.sortOrder);
+
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    const res = await authFetch(`${API_ENDPOINTS.applications}${qs}`);
     const json = await res.json();
 
     if (!res.ok) {
       throw new Error(json?.error?.message || `Failed to fetch applications (Error ${res.status})`);
     }
 
-    return json.data?.applications || [];
+    return json.data;
+  },
+
+  /**
+   * Retrieves aggregated dashboard summary metrics and 5 latest applications.
+   */
+  async getApplicantDashboard() {
+    const res = await authFetch(API_ENDPOINTS.dashboard);
+    const json = await res.json();
+
+    if (!res.ok) {
+      throw new Error(json?.error?.message || `Failed to fetch dashboard metrics (Error ${res.status})`);
+    }
+
+    return json.data;
   },
 
   /**
