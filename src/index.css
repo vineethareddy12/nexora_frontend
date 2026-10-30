@@ -430,3 +430,135 @@ tr:hover td {
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   Comprehensive Responsive System Utilities & Breakpoints
+   ========================================================================== */
+
+/* 1. Responsive Table Container */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 0.5rem;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 9999px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+
+/* 2. Responsive Hide & Show Classes */
+@media (max-width: 640px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  .show-mobile-only {
+    display: block !important;
+  }
+  .show-mobile-flex {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .show-mobile-only,
+  .show-mobile-flex {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .hide-tablet {
+    display: none !important;
+  }
+  .show-tablet-only {
+    display: block !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .show-tablet-only {
+    display: none !important;
+  }
+}
+
+/* 3. Fluid Container */
+.container-responsive {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(1rem, 3vw, 2rem);
+  padding-right: clamp(1rem, 3vw, 2rem);
+}
+
+/* 4. Smooth Modal Dialog Viewport Restraints */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.75rem, 2.5vw, 1.5rem);
+}
+
+.modal-dialog {
+  width: 100%;
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+}
+
+/* 6. Mobile Forms Stack 1-Column on Phones */
+@media (max-width: 640px) {
+  .mobile-form-grid,
+  .form-grid-responsive {
+    grid-template-columns: 1fr !important;
+  }
+  .card,
+  .glass-panel {
+    padding: 1.15rem !important;
+  }
+}
+
+/* 7. Mobile Table to Card List View Transformation */
+@media (max-width: 767px) {
+  .desktop-table-view {
+    display: none !important;
+  }
+  .mobile-cards-view {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .desktop-table-view {
+    display: block !important;
+  }
+  .mobile-cards-view {
+    display: none !important;
+  }
+}
+

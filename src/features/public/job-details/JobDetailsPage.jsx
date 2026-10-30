@@ -121,7 +121,7 @@ export default function JobDetailsPage() {
   }
 
   return (
-    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '4rem 1.5rem', background: '#FFFFFF' }}>
+    <div style={{ maxWidth: '960px', margin: '0 auto', padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 1.5rem)', background: '#FFFFFF' }}>
       <Link
         to="/careers"
         style={{
@@ -141,7 +141,7 @@ export default function JobDetailsPage() {
       <div
         className="card"
         style={{
-          padding: '2.5rem',
+          padding: 'clamp(1.5rem, 4vw, 2.5rem)',
           marginBottom: '2.5rem',
           background: '#FFFFFF',
           borderRadius: '20px',
@@ -158,7 +158,7 @@ export default function JobDetailsPage() {
           )}
         </div>
 
-        <h1 style={{ fontSize: '2.25rem', marginBottom: '1rem', color: '#0F172A', fontWeight: 800 }}>
+        <h1 style={{ fontSize: 'clamp(1.65rem, 4vw, 2.25rem)', marginBottom: '1rem', color: '#0F172A', fontWeight: 800 }}>
           {job.title}
         </h1>
 
@@ -313,7 +313,7 @@ export default function JobDetailsPage() {
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
               <Link to={`/login?redirect=/jobs/${job.id}`} className="btn btn-primary" style={{ padding: '0.8rem 2rem' }}>
                 <span>Sign In to Apply</span>
                 <ArrowRight size={18} />

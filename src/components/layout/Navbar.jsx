@@ -98,11 +98,11 @@ export default function Navbar() {
               <Phone size={13} color="#2563EB" />
               <span>{company?.phone || '+91 93904 66320 / +91 40 4855 2244'}</span>
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span className="contact-strip-email" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
               <Mail size={13} color="#06B6D4" />
               <span>{company?.email || 'info@nexoratech.com'}</span>
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span className="contact-strip-address" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
               <MapPin size={13} color="#059669" />
               <span>{company?.address || 'Madhapur, Hitec City, Hyderabad, India'}</span>
             </span>
@@ -111,6 +111,7 @@ export default function Navbar() {
           {/* Quick Portal Action & Trust Verification */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span
+              className="contact-strip-iso"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -441,6 +442,22 @@ export default function Navbar() {
 
       {/* Embedded Responsive Navigation Media Queries */}
       <style>{`
+        @media (max-width: 768px) {
+          .contact-strip-address {
+            display: none !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .contact-strip-email,
+          .contact-strip-iso {
+            display: none !important;
+          }
+        }
+        @media (min-width: 860px) and (max-width: 1024px) {
+          .desktop-nav {
+            gap: 1.15rem !important;
+          }
+        }
         @media (min-width: 860px) {
           .desktop-nav {
             display: flex !important;

@@ -27,7 +27,7 @@ export default function Footer() {
       style={{
         background: '#F8FAFC',
         borderTop: '1px solid #E2E8F0',
-        padding: '4.5rem 1.5rem 2.5rem',
+        padding: 'clamp(3rem, 5vw, 4.5rem) clamp(1rem, 3vw, 1.5rem) 2rem',
         marginTop: 'auto',
       }}
     >
@@ -36,8 +36,8 @@ export default function Footer() {
           maxWidth: '1280px',
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '3rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+          gap: 'clamp(1.75rem, 3vw, 3rem)',
           marginBottom: '3.5rem',
         }}
       >
@@ -265,7 +265,7 @@ export default function Footer() {
         <div>
           &copy; {currentYear} {company?.companyName || 'Nexora Technologies'}. All rights reserved.
         </div>
-        <div style={{ display: 'flex', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem 1.25rem', flexWrap: 'wrap' }}>
           <span>Enterprise Software Engineering</span>
           <span>&bull;</span>
           <span>Global Talent Sourcing</span>

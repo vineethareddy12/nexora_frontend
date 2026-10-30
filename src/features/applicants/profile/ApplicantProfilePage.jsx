@@ -244,42 +244,43 @@ export default function ApplicantProfilePage() {
       <div
         className="glass-panel"
         style={{
-          padding: '2rem 2.5rem',
+          padding: 'clamp(1.25rem, 3.5vw, 2rem) clamp(1rem, 3vw, 2.5rem)',
           marginBottom: '2rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '1.5rem',
+          gap: '1.25rem',
           background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.65) 100%)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
           <div
             style={{
-              width: '68px',
-              height: '68px',
+              width: '64px',
+              height: '64px',
               borderRadius: '50%',
               background: 'var(--gradient-brand)',
               color: '#fff',
-              fontSize: '1.85rem',
+              fontSize: '1.75rem',
               fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 8px 24px rgba(59, 130, 246, 0.35)',
+              flexShrink: 0,
             }}
           >
             {candidateInitial}
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem' }}>
-              <h1 style={{ fontSize: '1.85rem', margin: 0, fontWeight: 700 }}>{candidateName}</h1>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: 'clamp(1.35rem, 3.5vw, 1.85rem)', margin: 0, fontWeight: 700, wordBreak: 'break-word' }}>{candidateName}</h1>
               <span className="badge badge-info" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {user?.role || 'APPLICANT'}
               </span>
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0, wordBreak: 'break-all' }}>
               {candidateEmail} {profile.currentLocation && `• ${profile.currentLocation}`}
             </p>
           </div>
@@ -305,7 +306,9 @@ export default function ApplicantProfilePage() {
           gap: '0.5rem',
           borderBottom: '1px solid var(--border-subtle)',
           marginBottom: '2rem',
-          flexWrap: 'wrap',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: '0.25rem',
         }}
       >
         {tabs.map((tab) => {
@@ -388,7 +391,7 @@ export default function ApplicantProfilePage() {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.5rem' }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Full Legal Name</div>
                 <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>{profile.fullName || 'Not specified'}</div>
@@ -426,7 +429,7 @@ export default function ApplicantProfilePage() {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.5rem' }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Highest Qualification</div>
                 <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>{profile.highestQualification || 'Not provided'}</div>
@@ -511,7 +514,7 @@ export default function ApplicantProfilePage() {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1.25rem' }}>
               <div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>LinkedIn</div>
                 {profile.linkedinUrl ? (
@@ -562,7 +565,7 @@ export default function ApplicantProfilePage() {
               <h3 style={{ fontSize: '1.2rem', margin: 0, fontWeight: 600 }}>Personal Coordinates</h3>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            <div className="form-grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '1.5rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
                   Full Name (Legal / Preferred) *
@@ -664,7 +667,7 @@ export default function ApplicantProfilePage() {
               <h3 style={{ fontSize: '1.2rem', margin: 0, fontWeight: 600 }}>Education & Experience</h3>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            <div className="form-grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '1.5rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
                   Highest Qualification

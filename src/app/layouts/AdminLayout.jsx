@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink, Outlet, ScrollRestoration, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, ScrollRestoration, useNavigate, useLocation } from 'react-router-dom';
 import { 
   BarChart3, 
   Building2, 
@@ -15,6 +15,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 
 import ScrollToTop from '../../components/common/ScrollToTop';
@@ -24,8 +26,15 @@ import { useToast } from '../../components/toast/ToastContext';
 export default function AdminLayout() {
   const { user, accessToken, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const [logoUrl, setLogoUrl] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     // 1. Route guard: check admin authorization
@@ -80,8 +89,17 @@ export default function AdminLayout() {
       <ScrollRestoration />
       <ScrollToTop />
 
+      {/* Mobile Sidebar Backdrop Overlay */}
+      {sidebarOpen && (
+        <div
+          className="admin-sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Admin Light Sidebar */}
       <aside
+        className={`admin-sidebar ${sidebarOpen ? 'admin-sidebar-open' : ''}`}
         style={{
           width: '270px',
           background: '#FFFFFF',
@@ -91,7 +109,6 @@ export default function AdminLayout() {
           position: 'sticky',
           top: 0,
           height: '100vh',
-          zIndex: 50,
         }}
       >
         {/* Brand & Security Chip */}
@@ -125,9 +142,32 @@ export default function AdminLayout() {
                 Nexora<span style={{ color: '#2563EB' }}>.</span>
               </span>
             </Link>
-            <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '0.15rem 0.5rem' }}>
-              Admin
-            </span>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '0.15rem 0.5rem' }}>
+                Admin
+              </span>
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                className="admin-sidebar-close"
+                style={{
+                  background: '#F1F5F9',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  padding: '0.35rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#475569',
+                  transition: 'all 0.15s ease',
+                }}
+                aria-label="Close Sidebar"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
           <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500 }}>
             Recruitment & Company Ops
@@ -142,6 +182,7 @@ export default function AdminLayout() {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={() => setSidebarOpen(false)}
                 style={({ isActive }) => ({
                   display: 'flex',
                   alignItems: 'center',
@@ -176,6 +217,7 @@ export default function AdminLayout() {
         >
           <Link
             to="/"
+            onClick={() => setSidebarOpen(false)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -191,7 +233,10 @@ export default function AdminLayout() {
 
           <button
             type="button"
-            onClick={handleSignOut}
+            onClick={() => {
+              setSidebarOpen(false);
+              handleSignOut();
+            }}
             title="Sign Out"
             style={{
               background: 'transparent',
@@ -210,7 +255,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div className="admin-main-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top Header */}
         <header
           style={{
@@ -219,20 +264,43 @@ export default function AdminLayout() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0 2rem',
+            padding: '0 clamp(1rem, 2.5vw, 2rem)',
             background: '#FFFFFF',
             boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShieldAlert size={16} color="#2563EB" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0F172A' }}>
-              Secure Administrator Console
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="admin-menu-toggle"
+              style={{
+                display: 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.45rem',
+                borderRadius: '8px',
+                border: '1px solid #E2E8F0',
+                background: '#FFFFFF',
+                color: '#0F172A',
+                cursor: 'pointer',
+              }}
+              aria-label="Open Admin Menu"
+            >
+              <Menu size={18} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ShieldAlert size={16} color="#2563EB" />
+              <span className="admin-header-title-text" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0F172A', whiteSpace: 'nowrap' }}>
+                Secure Admin Console
+              </span>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div
+              className="admin-header-email"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -246,6 +314,7 @@ export default function AdminLayout() {
             </div>
 
             <div
+              className="admin-header-badge"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -274,10 +343,77 @@ export default function AdminLayout() {
         </header>
 
         {/* Sub-view Content */}
-        <main style={{ padding: '2rem', flex: 1, minWidth: 0, background: '#F8FAFC' }}>
+        <main style={{ padding: 'clamp(1rem, 2.5vw, 2rem) clamp(0.75rem, 2vw, 1.5rem)', flex: 1, minWidth: 0, background: '#F8FAFC' }}>
           <Outlet />
         </main>
       </div>
+
+      {/* Responsive Styles for Admin Sidebar Drawer & Controls */}
+      <style>{`
+        @media (max-width: 1023px) {
+          .admin-sidebar {
+            position: fixed !important;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: min(280px, 84vw) !important;
+            background: #FFFFFF !important;
+            z-index: 2000 !important;
+            transform: translateX(-100%);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.35);
+            visibility: hidden;
+            pointer-events: none;
+          }
+          .admin-sidebar-open {
+            transform: translateX(0) !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            z-index: 2000 !important;
+          }
+          .admin-sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(2px);
+            z-index: 1800 !important;
+            cursor: pointer;
+          }
+          .admin-menu-toggle {
+            display: inline-flex !important;
+          }
+          .admin-main-container {
+            width: 100% !important;
+          }
+        }
+        @media (min-width: 1024px) {
+          .admin-sidebar {
+            visibility: visible !important;
+            pointer-events: auto !important;
+            transform: none !important;
+          }
+          .admin-menu-toggle,
+          .admin-sidebar-close,
+          .admin-sidebar-backdrop {
+            display: none !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .admin-header-email {
+            display: none !important;
+          }
+        }
+        @media (max-width: 500px) {
+          .admin-header-badge {
+            display: none !important;
+          }
+        }
+        @media (max-width: 420px) {
+          .admin-header-title-text {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

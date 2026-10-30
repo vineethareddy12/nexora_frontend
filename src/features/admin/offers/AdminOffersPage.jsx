@@ -16,7 +16,7 @@ export default function AdminOffersPage() {
       </div>
 
       {offers.length === 0 ? (
-        <div className="glass-panel" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+        <div className="glass-panel" style={{ padding: 'clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', textAlign: 'center' }}>
           <div
             style={{
               width: '64px',
@@ -38,40 +38,42 @@ export default function AdminOffersPage() {
           </p>
         </div>
       ) : (
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Offer Ref</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Candidate</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Designation</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Version</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {offers.map((item) => (
-                <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td style={{ padding: '1rem', fontWeight: 600 }}>{item.ref}</td>
-                  <td style={{ padding: '1rem' }}>{item.candidate}</td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{item.role}</td>
-                  <td style={{ padding: '1rem' }}><span className="badge badge-info">{item.version}</span></td>
-                  <td style={{ padding: '1rem' }}><span className="badge badge-success">{item.status}</span></td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <button className="btn btn-secondary" style={{ padding: '0.35rem 0.65rem', marginRight: '0.5rem', fontSize: '0.8rem' }}>
-                      <Download size={14} />
-                      <span style={{ marginLeft: '0.3rem' }}>Preview PDF</span>
-                    </button>
-                    <button className="btn btn-secondary" style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}>
-                      <RefreshCw size={14} />
-                      <span style={{ marginLeft: '0.3rem' }}>Revise</span>
-                    </button>
-                  </td>
+        <div className="glass-panel" style={{ padding: 'clamp(1rem, 2vw, 1.5rem)' }}>
+          <div className="table-responsive">
+            <table style={{ width: '100%', minWidth: '650px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>Offer Ref</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Candidate</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Designation</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Version</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {offers.map((item) => (
+                  <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '1rem', fontWeight: 600 }}>{item.ref}</td>
+                    <td style={{ padding: '1rem' }}>{item.candidate}</td>
+                    <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{item.role}</td>
+                    <td style={{ padding: '1rem' }}><span className="badge badge-info">{item.version}</span></td>
+                    <td style={{ padding: '1rem' }}><span className="badge badge-success">{item.status}</span></td>
+                    <td style={{ padding: '1rem', textAlign: 'right' }}>
+                      <button className="btn btn-secondary" style={{ padding: '0.35rem 0.65rem', marginRight: '0.5rem', fontSize: '0.8rem' }}>
+                        <Download size={14} />
+                        <span style={{ marginLeft: '0.3rem' }}>Preview PDF</span>
+                      </button>
+                      <button className="btn btn-secondary" style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}>
+                        <RefreshCw size={14} />
+                        <span style={{ marginLeft: '0.3rem' }}>Revise</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

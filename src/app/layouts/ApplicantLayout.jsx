@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, NavLink, Outlet, useNavigate, ScrollRestoration } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate, useLocation, ScrollRestoration } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   User, 
@@ -13,7 +13,10 @@ import {
   ChevronDown,
   LogOut,
   ExternalLink,
-  Lock
+  Lock,
+  Menu,
+  X,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import ScrollToTop from '../../components/common/ScrollToTop';
@@ -21,8 +24,16 @@ import ScrollToTop from '../../components/common/ScrollToTop';
 export default function ApplicantLayout() {
   const { user, accessToken, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Close menus on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setDropdownOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!loading && (!accessToken || !user)) {
@@ -145,7 +156,7 @@ export default function ApplicantLayout() {
             </Link>
 
             {/* Top Navigation Tabs */}
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <nav className="applicant-desktop-nav" style={{ alignItems: 'center', gap: '0.5rem' }}>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -176,9 +187,10 @@ export default function ApplicantLayout() {
           </div>
 
           {/* Right: Actions, Public Link & Real Profile Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Link
               to="/careers"
+              className="hide-mobile"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -376,14 +388,177 @@ export default function ApplicantLayout() {
                 </div>
               )}
             </div>
+
+            {/* Mobile Hamburger Toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="applicant-mobile-menu-btn"
+              style={{
+                display: 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.45rem',
+                borderRadius: '8px',
+                border: '1px solid #E2E8F0',
+                background: '#FFFFFF',
+                color: '#0F172A',
+                cursor: 'pointer',
+              }}
+              aria-label="Toggle Applicant Navigation"
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div
+            className="applicant-mobile-drawer"
+            style={{
+              background: '#FFFFFF',
+              borderTop: '1px solid #E2E8F0',
+              padding: '1rem 1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+              boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.08)',
+            }}
+          >
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={({ isActive }) => ({
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: isActive ? 600 : 500,
+                    color: isActive ? '#2563EB' : '#0F172A',
+                    background: isActive ? '#EFF6FF' : 'transparent',
+                    border: isActive ? '1px solid #BFDBFE' : '1px solid transparent',
+                    textDecoration: 'none',
+                  })}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                    <Icon size={17} />
+                    <span>{item.label}</span>
+                  </div>
+                  <ChevronRight size={15} color="#94A3B8" />
+                </NavLink>
+              );
+            })}
+
+            <div style={{ height: '1px', background: '#E2E8F0', margin: '0.35rem 0' }} />
+
+            <Link
+              to="/careers"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0.65rem 0.85rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: 500,
+                color: '#475569',
+                textDecoration: 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <ExternalLink size={16} />
+                <span>Explore Open Jobs</span>
+              </div>
+              <ChevronRight size={15} color="#94A3B8" />
+            </Link>
+
+            <Link
+              to="/app/profile"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0.65rem 0.85rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: 500,
+                color: '#475569',
+                textDecoration: 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <User size={16} />
+                <span>My Profile</span>
+              </div>
+              <ChevronRight size={15} color="#94A3B8" />
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleSignOut();
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.65rem',
+                padding: '0.65rem 0.85rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                color: '#DC2626',
+                background: '#FEF2F2',
+                border: '1px solid #FECACA',
+                cursor: 'pointer',
+                marginTop: '0.5rem',
+                width: '100%',
+                fontWeight: 600,
+              }}
+            >
+              <LogOut size={16} />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Main Content Workspace */}
-      <main style={{ flex: 1, width: '100%', maxWidth: '1360px', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
+      <main style={{ flex: 1, width: '100%', maxWidth: '1360px', margin: '0 auto', padding: 'clamp(1.25rem, 3vw, 2.5rem) clamp(0.75rem, 2.5vw, 1.5rem)' }}>
         <Outlet />
       </main>
+
+      {/* Embedded Responsive Media Queries */}
+      <style>{`
+        @media (max-width: 959px) {
+          .applicant-desktop-nav {
+            display: none !important;
+          }
+          .applicant-mobile-menu-btn {
+            display: inline-flex !important;
+          }
+        }
+        @media (min-width: 960px) {
+          .applicant-desktop-nav {
+            display: flex !important;
+          }
+          .applicant-mobile-menu-btn {
+            display: none !important;
+          }
+          .applicant-mobile-drawer {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

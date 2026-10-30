@@ -132,7 +132,7 @@ export default function ApplicantApplicationsPage() {
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.4rem' }}>
-            <span className="badge badge-primary">Phase 2</span>
+
             <h1 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
               My Job Applications
             </h1>
@@ -241,12 +241,12 @@ export default function ApplicantApplicationsPage() {
           <p style={{ color: '#64748B', fontSize: '0.9rem', maxWidth: '460px', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
             Browse our open engineering, cloud architecture, and AI engineering positions to launch your next career opportunity.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <Link to="/careers" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/careers" className="btn btn-primary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem' }}>
               <span>View Open Roles</span>
               <ArrowRight size={15} />
             </Link>
-            <Link to="/app/documents" className="btn btn-secondary" style={{ padding: '0.75rem 1.5rem' }}>
+            <Link to="/app/documents" className="btn btn-secondary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem' }}>
               <span>Manage Resumes Vault</span>
             </Link>
           </div>
@@ -263,7 +263,7 @@ export default function ApplicantApplicationsPage() {
                 key={app.id}
                 className="card"
                 style={{
-                  padding: '1.75rem 2rem',
+                  padding: 'clamp(1.25rem, 3.5vw, 2rem)',
                   background: '#FFFFFF',
                   borderRadius: '16px',
                   border: '1px solid #E2E8F0',
@@ -322,7 +322,7 @@ export default function ApplicantApplicationsPage() {
                 </div>
 
                 {/* Right: Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', alignSelf: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', alignSelf: 'center', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     onClick={() => openDetailsModal(app)}
@@ -382,7 +382,7 @@ export default function ApplicantApplicationsPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1.25rem',
+            padding: 'clamp(0.5rem, 2.5vw, 1.25rem)',
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setSelectedApp(null);
@@ -397,7 +397,7 @@ export default function ApplicantApplicationsPage() {
               width: '100%',
               maxHeight: '90vh',
               overflowY: 'auto',
-              padding: '2rem',
+              padding: 'clamp(1.25rem, 4vw, 2rem)',
               boxShadow: 'var(--shadow-xl)',
               border: '1px solid #E2E8F0',
             }}
@@ -553,7 +553,7 @@ export default function ApplicantApplicationsPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1.25rem',
+            padding: 'clamp(0.5rem, 2.5vw, 1.25rem)',
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget && !withdrawing) setWithdrawTargetApp(null);
@@ -566,7 +566,9 @@ export default function ApplicantApplicationsPage() {
               borderRadius: '20px',
               maxWidth: '480px',
               width: '100%',
-              padding: '2rem',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: 'clamp(1.25rem, 4vw, 2rem)',
               boxShadow: 'var(--shadow-xl)',
               border: '1px solid #E2E8F0',
             }}

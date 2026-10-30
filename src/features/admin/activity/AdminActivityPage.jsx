@@ -36,27 +36,29 @@ export default function AdminActivityPage() {
           </p>
         </div>
       ) : (
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Timestamp</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Action Event</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Initiated By</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Target Entity / Context</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((item) => (
-                <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{item.time}</td>
-                  <td style={{ padding: '1rem' }}><span className="badge badge-primary">{item.action}</span></td>
-                  <td style={{ padding: '1rem', fontWeight: 600 }}>{item.user}</td>
-                  <td style={{ padding: '1rem', color: 'var(--text-main)' }}>{item.target}</td>
+        <div className="glass-panel" style={{ padding: 'clamp(1rem, 2vw, 1.5rem)' }}>
+          <div className="table-responsive">
+            <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>Timestamp</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Action Event</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Initiated By</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Target Entity / Context</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {logs.map((item) => (
+                  <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{item.time}</td>
+                    <td style={{ padding: '1rem' }}><span className="badge badge-primary">{item.action}</span></td>
+                    <td style={{ padding: '1rem', fontWeight: 600 }}>{item.user}</td>
+                    <td style={{ padding: '1rem', color: 'var(--text-main)' }}>{item.target}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

@@ -133,7 +133,7 @@ export default function AdminEnquiriesPage() {
       </div>
 
       {/* Enquiries Table */}
-      <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto' }}>
+      <div className="glass-panel table-responsive" style={{ padding: 'clamp(1rem, 3vw, 1.5rem)' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem' }}>
             <RefreshCw className="animate-spin" size={28} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
@@ -153,66 +153,127 @@ export default function AdminEnquiriesPage() {
             </p>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Sender</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Subject</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Received Date</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Desktop / Tablet Table View */}
+            <div className="desktop-table-view table-responsive">
+              <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                    <th style={{ padding: '0.75rem 1rem' }}>Sender</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Subject</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Received Date</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                    <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {enquiries.map((item) => (
+                    <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '1rem' }}>
+                        <div style={{ fontWeight: 600 }}>{item.fullName}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.email}</div>
+                        {item.phone && <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{item.phone}</div>}
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <div style={{ fontWeight: 500 }}>{item.subject}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.message}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        {item.status === 'NEW' && <span className="badge badge-warning">New</span>}
+                        {item.status === 'IN_PROGRESS' && <span className="badge badge-info">In Progress</span>}
+                        {item.status === 'RESOLVED' && <span className="badge badge-success">Resolved</span>}
+                      </td>
+                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => handleOpenDetails(item)}
+                          style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', marginRight: '0.5rem' }}
+                        >
+                          <Eye size={14} />
+                          <span style={{ marginLeft: '0.35rem' }}>View</span>
+                        </button>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => handleDelete(item)}
+                          style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Vertical Cards View */}
+            <div className="mobile-cards-view">
               {enquiries.map((item) => (
-                <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ fontWeight: 600 }}>{item.fullName}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.email}</div>
-                    {item.phone && <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{item.phone}</div>}
-                  </td>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ fontWeight: 500 }}>{item.subject}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.message}
+                <div
+                  key={`card-${item.id}`}
+                  className="card"
+                  style={{
+                    padding: '1.15rem',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F172A' }}>{item.fullName}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', wordBreak: 'break-all' }}>{item.email}</div>
+                      {item.phone && <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{item.phone}</div>}
                     </div>
-                  </td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    {new Date(item.createdAt).toLocaleDateString()}
-                  </td>
-                  <td style={{ padding: '1rem' }}>
                     {item.status === 'NEW' && <span className="badge badge-warning">New</span>}
                     {item.status === 'IN_PROGRESS' && <span className="badge badge-info">In Progress</span>}
                     {item.status === 'RESOLVED' && <span className="badge badge-success">Resolved</span>}
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleOpenDetails(item)}
-                      style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', marginRight: '0.5rem' }}
-                    >
-                      <Eye size={14} />
-                      <span style={{ marginLeft: '0.35rem' }}>View</span>
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleDelete(item)}
-                      style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </td>
-                </tr>
+                  </div>
+
+                  <div style={{ padding: '0.65rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0F172A', marginBottom: '0.2rem' }}>{item.subject}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{item.message}</div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-dim)', borderTop: '1px solid #F1F5F9', paddingTop: '0.6rem' }}>
+                    <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => handleOpenDetails(item)}
+                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                      >
+                        <Eye size={14} />
+                        <span>View Details</span>
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => handleDelete(item)}
+                        style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
 
       {/* View Message & Update Status Modal */}
       {modalOpen && selectedEnquiry && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '620px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)', padding: '2rem', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(0.5rem, 2.5vw, 1.5rem)' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '620px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)', padding: 'clamp(1.25rem, 4vw, 2rem)', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
             <button
               onClick={() => setModalOpen(false)}
               style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
@@ -285,7 +346,7 @@ export default function AdminEnquiriesPage() {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>
                   Close
                 </button>

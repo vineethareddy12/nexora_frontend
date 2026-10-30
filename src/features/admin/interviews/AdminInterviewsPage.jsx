@@ -16,7 +16,7 @@ export default function AdminInterviewsPage() {
       </div>
 
       {interviews.length === 0 ? (
-        <div className="glass-panel" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+        <div className="glass-panel" style={{ padding: 'clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', textAlign: 'center' }}>
           <div
             style={{
               width: '64px',
@@ -38,33 +38,35 @@ export default function AdminInterviewsPage() {
           </p>
         </div>
       ) : (
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Candidate</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Position</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Round</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Date & Time</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {interviews.map((item) => (
-                <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td style={{ padding: '1rem', fontWeight: 600 }}>{item.candidate}</td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{item.role}</td>
-                  <td style={{ padding: '1rem' }}><span className="badge badge-primary">{item.round}</span></td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{item.date}</td>
-                  <td style={{ padding: '1rem' }}><span className="badge badge-success">{item.status}</span></td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <button className="btn btn-secondary" style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}>Record Feedback</button>
-                  </td>
+        <div className="glass-panel" style={{ padding: 'clamp(1rem, 2vw, 1.5rem)' }}>
+          <div className="table-responsive">
+            <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>Candidate</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Position</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Round</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Date & Time</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {interviews.map((item) => (
+                  <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '1rem', fontWeight: 600 }}>{item.candidate}</td>
+                    <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{item.role}</td>
+                    <td style={{ padding: '1rem' }}><span className="badge badge-primary">{item.round}</span></td>
+                    <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{item.date}</td>
+                    <td style={{ padding: '1rem' }}><span className="badge badge-success">{item.status}</span></td>
+                    <td style={{ padding: '1rem', textAlign: 'right' }}>
+                      <button className="btn btn-secondary" style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}>Record Feedback</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

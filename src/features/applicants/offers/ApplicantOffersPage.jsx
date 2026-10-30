@@ -17,7 +17,7 @@ export default function ApplicantOffersPage() {
       </div>
 
       {offers.length === 0 ? (
-        <div className="glass-panel" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+        <div className="card" style={{ padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', textAlign: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
           <div
             style={{
               width: '64px',

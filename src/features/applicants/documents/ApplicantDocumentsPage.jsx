@@ -349,7 +349,7 @@ export default function ApplicantDocumentsPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
           gap: '1.25rem',
           marginBottom: '2rem',
         }}
@@ -609,195 +609,331 @@ export default function ApplicantDocumentsPage() {
             </button>
           </div>
         ) : (
-          /* Documents Table */
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
-                    Document Name
-                  </th>
-                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
-                    Type
-                  </th>
-                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
-                    File Size
-                  </th>
-                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
-                    Uploaded Date
-                  </th>
-                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
-                    Application Status
-                  </th>
-                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', textAlign: 'right' }}>
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {documents.map((doc) => {
-                  const typeConfig = DOCUMENT_TYPE_CONFIG[doc.type] || DOCUMENT_TYPE_CONFIG.OTHER;
-                  const TypeIcon = typeConfig.icon;
-                  const isDownloading = downloadingId === doc.id;
+          <>
+            {/* Desktop / Tablet Documents Table */}
+            <div className="desktop-table-view table-responsive">
+              <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                    <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
+                      Document Name
+                    </th>
+                    <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
+                      Type
+                    </th>
+                    <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
+                      File Size
+                    </th>
+                    <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
+                      Uploaded Date
+                    </th>
+                    <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>
+                      Application Status
+                    </th>
+                    <th style={{ padding: '1rem 1.5rem', fontSize: '0.78rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', textAlign: 'right' }}>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {documents.map((doc) => {
+                    const typeConfig = DOCUMENT_TYPE_CONFIG[doc.type] || DOCUMENT_TYPE_CONFIG.OTHER;
+                    const TypeIcon = typeConfig.icon;
+                    const isDownloading = downloadingId === doc.id;
 
-                  return (
-                    <tr
-                      key={doc.id}
-                      style={{
-                        borderBottom: '1px solid #F1F5F9',
-                        transition: 'background-color 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      {/* Name & File Details */}
-                      <td style={{ padding: '1.15rem 1.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                          <div
-                            style={{
-                              width: '38px',
-                              height: '38px',
-                              borderRadius: '10px',
-                              background: '#EFF6FF',
-                              border: '1px solid #DBEAFE',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#2563EB',
-                              flexShrink: 0,
-                            }}
-                          >
-                            <TypeIcon size={19} />
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 600, fontSize: '0.925rem', color: '#0F172A', wordBreak: 'break-word' }}>
-                              {doc.originalFilename}
+                    return (
+                      <tr
+                        key={doc.id}
+                        style={{
+                          borderBottom: '1px solid #F1F5F9',
+                          transition: 'background-color 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      >
+                        {/* Name & File Details */}
+                        <td style={{ padding: '1.15rem 1.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                            <div
+                              style={{
+                                width: '38px',
+                                height: '38px',
+                                borderRadius: '10px',
+                                background: '#EFF6FF',
+                                border: '1px solid #DBEAFE',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#2563EB',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <TypeIcon size={19} />
                             </div>
-                            {doc.metadata?.description && (
-                              <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.15rem' }}>
-                                {doc.metadata.description}
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: '0.925rem', color: '#0F172A', wordBreak: 'break-word' }}>
+                                {doc.originalFilename}
                               </div>
-                            )}
+                              {doc.metadata?.description && (
+                                <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.15rem' }}>
+                                  {doc.metadata.description}
+                                </div>
+                              )}
+                            </div>
                           </div>
+                        </td>
+
+                        {/* Type Badge */}
+                        <td style={{ padding: '1.15rem 1.5rem' }}>
+                          <span className={`badge ${typeConfig.badgeClass}`} style={{ fontSize: '0.72rem' }}>
+                            {typeConfig.label}
+                          </span>
+                        </td>
+
+                        {/* File Size */}
+                        <td style={{ padding: '1.15rem 1.5rem', fontSize: '0.875rem', color: '#475569' }}>
+                          {formatBytes(doc.fileSizeBytes)}
+                        </td>
+
+                        {/* Upload Date */}
+                        <td style={{ padding: '1.15rem 1.5rem', fontSize: '0.875rem', color: '#475569' }}>
+                          {formatDate(doc.createdAt)}
+                        </td>
+
+                        {/* Application Reference Status */}
+                        <td style={{ padding: '1.15rem 1.5rem' }}>
+                          {doc.applicationCount > 0 ? (
+                            <span
+                              className="badge badge-success"
+                              style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                              title="Attached to active or historical job applications. Replacing or deleting will preserve historical versions safely."
+                            >
+                              <ShieldCheck size={12} />
+                              <span>In {doc.applicationCount} Application{doc.applicationCount > 1 ? 's' : ''}</span>
+                            </span>
+                          ) : (
+                            <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>
+                              Ready to Attach
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Action Buttons */}
+                        <td style={{ padding: '1.15rem 1.5rem', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleDownload(doc)}
+                              disabled={isDownloading}
+                              title="Download document"
+                              style={{
+                                padding: '0.45rem 0.65rem',
+                                borderRadius: '8px',
+                                background: '#FFFFFF',
+                                border: '1px solid #E2E8F0',
+                                color: '#2563EB',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                fontSize: '0.8rem',
+                                fontWeight: 500,
+                              }}
+                            >
+                              {isDownloading ? (
+                                <Loader2 size={14} className="spin" />
+                              ) : (
+                                <Download size={14} />
+                              )}
+                              <span>Download</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openReplaceModal(doc)}
+                              title="Replace with new file"
+                              style={{
+                                padding: '0.45rem 0.65rem',
+                                borderRadius: '8px',
+                                background: '#FFFFFF',
+                                border: '1px solid #E2E8F0',
+                                color: '#475569',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                fontSize: '0.8rem',
+                                fontWeight: 500,
+                              }}
+                            >
+                              <RefreshCw size={14} />
+                              <span>Replace</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openDeleteModal(doc)}
+                              title="Delete document"
+                              style={{
+                                padding: '0.45rem 0.65rem',
+                                borderRadius: '8px',
+                                background: '#FFFFFF',
+                                border: '1px solid #FEE2E2',
+                                color: '#EF4444',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                fontSize: '0.8rem',
+                              }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Vertical Cards View (Clean vertical scroll, 100% visible) */}
+            <div className="mobile-cards-view" style={{ padding: '1rem' }}>
+              {documents.map((doc) => {
+                const typeConfig = DOCUMENT_TYPE_CONFIG[doc.type] || DOCUMENT_TYPE_CONFIG.OTHER;
+                const TypeIcon = typeConfig.icon;
+                const isDownloading = downloadingId === doc.id;
+
+                return (
+                  <div
+                    key={`card-${doc.id}`}
+                    className="card"
+                    style={{
+                      padding: '1.15rem',
+                      background: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          background: '#EFF6FF',
+                          border: '1px solid #DBEAFE',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#2563EB',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <TypeIcon size={18} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.925rem', color: '#0F172A', wordBreak: 'break-word' }}>
+                          {doc.originalFilename}
                         </div>
-                      </td>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.35rem', alignItems: 'center' }}>
+                          <span className={`badge ${typeConfig.badgeClass}`} style={{ fontSize: '0.7rem' }}>
+                            {typeConfig.label}
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                            {formatBytes(doc.fileSizeBytes)}
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>•</span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                            {formatDate(doc.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
-                      {/* Type Badge */}
-                      <td style={{ padding: '1.15rem 1.5rem' }}>
-                        <span className={`badge ${typeConfig.badgeClass}`} style={{ fontSize: '0.72rem' }}>
-                          {typeConfig.label}
-                        </span>
-                      </td>
-
-                      {/* File Size */}
-                      <td style={{ padding: '1.15rem 1.5rem', fontSize: '0.875rem', color: '#475569' }}>
-                        {formatBytes(doc.fileSizeBytes)}
-                      </td>
-
-                      {/* Upload Date */}
-                      <td style={{ padding: '1.15rem 1.5rem', fontSize: '0.875rem', color: '#475569' }}>
-                        {formatDate(doc.createdAt)}
-                      </td>
-
-                      {/* Application Reference Status */}
-                      <td style={{ padding: '1.15rem 1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.65rem', borderTop: '1px solid #F1F5F9', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div>
                         {doc.applicationCount > 0 ? (
-                          <span
-                            className="badge badge-success"
-                            style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-                            title="Attached to active or historical job applications. Replacing or deleting will preserve historical versions safely."
-                          >
-                            <ShieldCheck size={12} />
-                            <span>In {doc.applicationCount} Application{doc.applicationCount > 1 ? 's' : ''}</span>
+                          <span className="badge badge-success" style={{ fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <ShieldCheck size={11} />
+                            <span>In {doc.applicationCount} App{doc.applicationCount > 1 ? 's' : ''}</span>
                           </span>
                         ) : (
                           <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>
                             Ready to Attach
                           </span>
                         )}
-                      </td>
+                      </div>
 
-                      {/* Action Buttons */}
-                      <td style={{ padding: '1.15rem 1.5rem', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                          {/* Download Button */}
-                          <button
-                            type="button"
-                            onClick={() => handleDownload(doc)}
-                            disabled={isDownloading}
-                            title="Download document"
-                            style={{
-                              padding: '0.45rem 0.65rem',
-                              borderRadius: '8px',
-                              background: '#FFFFFF',
-                              border: '1px solid #E2E8F0',
-                              color: '#2563EB',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.35rem',
-                              fontSize: '0.8rem',
-                              fontWeight: 500,
-                            }}
-                          >
-                            {isDownloading ? (
-                              <Loader2 size={14} className="spin" />
-                            ) : (
-                              <Download size={14} />
-                            )}
-                            <span className="hide-mobile">Download</span>
-                          </button>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(doc)}
+                          disabled={isDownloading}
+                          style={{
+                            padding: '0.45rem 0.65rem',
+                            borderRadius: '6px',
+                            background: '#EFF6FF',
+                            border: '1px solid #DBEAFE',
+                            color: '#2563EB',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {isDownloading ? <Loader2 size={13} className="spin" /> : <Download size={13} />}
+                          <span>Download</span>
+                        </button>
 
-                          {/* Replace Button */}
-                          <button
-                            type="button"
-                            onClick={() => openReplaceModal(doc)}
-                            title="Replace with new file"
-                            style={{
-                              padding: '0.45rem 0.65rem',
-                              borderRadius: '8px',
-                              background: '#FFFFFF',
-                              border: '1px solid #E2E8F0',
-                              color: '#475569',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.35rem',
-                              fontSize: '0.8rem',
-                              fontWeight: 500,
-                            }}
-                          >
-                            <RefreshCw size={14} />
-                            <span className="hide-mobile">Replace</span>
-                          </button>
+                        <button
+                          type="button"
+                          onClick={() => openReplaceModal(doc)}
+                          style={{
+                            padding: '0.45rem 0.65rem',
+                            borderRadius: '6px',
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            color: '#475569',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            fontSize: '0.8rem',
+                          }}
+                        >
+                          <RefreshCw size={13} />
+                          <span>Replace</span>
+                        </button>
 
-                          {/* Delete Button */}
-                          <button
-                            type="button"
-                            onClick={() => openDeleteModal(doc)}
-                            title="Delete document"
-                            style={{
-                              padding: '0.45rem 0.65rem',
-                              borderRadius: '8px',
-                              background: '#FFFFFF',
-                              border: '1px solid #FEE2E2',
-                              color: '#EF4444',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              fontSize: '0.8rem',
-                            }}
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <button
+                          type="button"
+                          onClick={() => openDeleteModal(doc)}
+                          style={{
+                            padding: '0.45rem 0.55rem',
+                            borderRadius: '6px',
+                            background: '#FEF2F2',
+                            border: '1px solid #FEE2E2',
+                            color: '#EF4444',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
@@ -815,7 +951,7 @@ export default function ApplicantDocumentsPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1.5rem',
+            padding: 'clamp(0.5rem, 2.5vw, 1.5rem)',
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget && !submitting) setIsUploadModalOpen(false);
@@ -828,7 +964,9 @@ export default function ApplicantDocumentsPage() {
               borderRadius: '20px',
               maxWidth: '540px',
               width: '100%',
-              padding: '2rem',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              padding: 'clamp(1.25rem, 4vw, 2rem)',
               boxShadow: 'var(--shadow-xl)',
               border: '1px solid #E2E8F0',
             }}
@@ -998,7 +1136,7 @@ export default function ApplicantDocumentsPage() {
               </div>
 
               {/* Modal Buttons */}
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => setIsUploadModalOpen(false)}
@@ -1046,7 +1184,7 @@ export default function ApplicantDocumentsPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1.5rem',
+            padding: 'clamp(0.5rem, 2.5vw, 1.5rem)',
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget && !submitting) setIsReplaceModalOpen(false);
@@ -1059,7 +1197,9 @@ export default function ApplicantDocumentsPage() {
               borderRadius: '20px',
               maxWidth: '520px',
               width: '100%',
-              padding: '2rem',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              padding: 'clamp(1.25rem, 4vw, 2rem)',
               boxShadow: 'var(--shadow-xl)',
               border: '1px solid #E2E8F0',
             }}
@@ -1204,7 +1344,7 @@ export default function ApplicantDocumentsPage() {
               </div>
 
               {/* Modal Buttons */}
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => setIsReplaceModalOpen(false)}
@@ -1252,7 +1392,7 @@ export default function ApplicantDocumentsPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1.5rem',
+            padding: 'clamp(0.5rem, 2.5vw, 1.5rem)',
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget && !submitting) setIsDeleteModalOpen(false);
@@ -1265,7 +1405,9 @@ export default function ApplicantDocumentsPage() {
               borderRadius: '20px',
               maxWidth: '480px',
               width: '100%',
-              padding: '2rem',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              padding: 'clamp(1.25rem, 4vw, 2rem)',
               boxShadow: 'var(--shadow-xl)',
               border: '1px solid #E2E8F0',
             }}
@@ -1316,7 +1458,7 @@ export default function ApplicantDocumentsPage() {
               </p>
             )}
 
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}

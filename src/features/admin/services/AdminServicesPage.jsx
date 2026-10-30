@@ -197,7 +197,7 @@ export default function AdminServicesPage() {
 
       {/* Filter and Search Bar */}
       <div className="glass-panel" style={{ padding: '1.25rem', marginBottom: '1.75rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
           <div style={{ position: 'relative' }}>
             <Search size={16} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
             <input
@@ -235,7 +235,7 @@ export default function AdminServicesPage() {
       </div>
 
       {/* Services Table */}
-      <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto' }}>
+      <div className="glass-panel table-responsive" style={{ padding: 'clamp(1rem, 3vw, 1.5rem)' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem' }}>
             <RefreshCw className="animate-spin" size={28} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
@@ -255,69 +255,137 @@ export default function AdminServicesPage() {
             </p>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                <th style={{ padding: '0.75rem 1rem', width: '70px' }}>Order</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Service Title</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Category</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Desktop / Tablet Table View */}
+            <div className="desktop-table-view">
+              <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                    <th style={{ padding: '0.75rem 1rem', width: '70px' }}>Order</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Service Title</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Category</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                    <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {services.map((item) => (
+                    <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '1rem', color: 'var(--text-dim)', fontWeight: 600 }}>{item.displayOrder}</td>
+                      <td style={{ padding: '1rem' }}>
+                        <div style={{ fontWeight: 600 }}>{item.title}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>/{item.slug}</div>
+                      </td>
+                      <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{item.category}</td>
+                      <td style={{ padding: '1rem' }}>
+                        {item.isPublished ? (
+                          <span className="badge badge-success">Published</span>
+                        ) : (
+                          <span className="badge badge-warning">Unpublished</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                        <button
+                          className="btn btn-secondary"
+                          title={item.isPublished ? 'Unpublish' : 'Publish'}
+                          onClick={() => handleToggleStatus(item)}
+                          style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', fontSize: '0.8rem' }}
+                        >
+                          {item.isPublished ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                        <button
+                          className="btn btn-secondary"
+                          title="Edit Service"
+                          onClick={() => handleOpenEdit(item)}
+                          style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', fontSize: '0.8rem' }}
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          className="btn btn-secondary"
+                          title="Delete Service"
+                          onClick={() => handleDelete(item)}
+                          style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Vertical Cards View */}
+            <div className="mobile-cards-view">
               {services.map((item) => (
-                <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td style={{ padding: '1rem', color: 'var(--text-dim)', fontWeight: 600 }}>{item.displayOrder}</td>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ fontWeight: 600 }}>{item.title}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>/{item.slug}</div>
-                  </td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{item.category}</td>
-                  <td style={{ padding: '1rem' }}>
+                <div
+                  key={`card-${item.id}`}
+                  className="card"
+                  style={{
+                    padding: '1.15rem',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 600 }}>Order: #{item.displayOrder}</div>
+                      <h4 style={{ margin: '0.2rem 0 0', fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>{item.title}</h4>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>/{item.slug}</div>
+                    </div>
                     {item.isPublished ? (
                       <span className="badge badge-success">Published</span>
                     ) : (
                       <span className="badge badge-warning">Unpublished</span>
                     )}
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
+                  </div>
+
+                  <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                    <span className="badge badge-info">{item.category}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.65rem', borderTop: '1px solid #F1F5F9' }}>
                     <button
                       className="btn btn-secondary"
-                      title={item.isPublished ? 'Unpublish' : 'Publish'}
                       onClick={() => handleToggleStatus(item)}
-                      style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', fontSize: '0.8rem' }}
+                      style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                     >
                       {item.isPublished ? <EyeOff size={14} /> : <Eye size={14} />}
+                      <span>{item.isPublished ? 'Unpublish' : 'Publish'}</span>
                     </button>
                     <button
                       className="btn btn-secondary"
-                      title="Edit Service"
                       onClick={() => handleOpenEdit(item)}
-                      style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', fontSize: '0.8rem' }}
+                      style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                     >
                       <Edit size={14} />
+                      <span>Edit</span>
                     </button>
                     <button
                       className="btn btn-secondary"
-                      title="Delete Service"
                       onClick={() => handleDelete(item)}
-                      style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
+                      style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', color: 'var(--status-danger)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                     >
                       <Trash2 size={14} />
+                      <span>Delete</span>
                     </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
 
       {/* Add / Edit Service Modal */}
       {modalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)', padding: '2rem', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(0.5rem, 2.5vw, 1.5rem)' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)', padding: 'clamp(1.25rem, 4vw, 2rem)', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
             <button
               onClick={() => setModalOpen(false)}
               style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
@@ -350,7 +418,7 @@ export default function AdminServicesPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
                     Slug (URL Key) *
@@ -417,7 +485,7 @@ export default function AdminServicesPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '1rem', alignItems: 'center' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
                     Display Order
@@ -444,7 +512,7 @@ export default function AdminServicesPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>
                   Cancel
                 </button>

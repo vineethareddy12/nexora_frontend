@@ -63,7 +63,7 @@ export default function CareersPage() {
   };
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '5rem 1.5rem', background: '#FFFFFF' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: 'clamp(3rem, 5vw, 5rem) clamp(1rem, 3vw, 1.5rem)', background: '#FFFFFF' }}>
       <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
         <span className="badge badge-primary" style={{ marginBottom: '0.85rem' }}>
           Open Roles
@@ -88,14 +88,14 @@ export default function CareersPage() {
       <div
         className="card"
         style={{
-          padding: '1.75rem',
+          padding: 'clamp(1rem, 3vw, 1.75rem)',
           marginBottom: '2.5rem',
           background: '#F8FAFC',
           borderRadius: '16px',
           border: '1px solid #E2E8F0',
         }}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
           <div style={{ position: 'relative' }}>
             <Search
               size={18}
@@ -261,7 +261,7 @@ export default function CareersPage() {
               key={job.id}
               className="card card-hover"
               style={{
-                padding: '2rem',
+                padding: 'clamp(1.25rem, 3.5vw, 2rem)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -272,7 +272,7 @@ export default function CareersPage() {
                 border: '1px solid #E2E8F0',
               }}
             >
-              <div style={{ flex: '1 1 500px' }}>
+              <div style={{ flex: '1 1 280px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.65rem', flexWrap: 'wrap' }}>
                   <span className="badge badge-info">{job.department}</span>
                   <span className="badge badge-primary">{formatWorkMode(job.workMode)}</span>
@@ -317,7 +317,7 @@ export default function CareersPage() {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                 <Link to={`/jobs/${job.id}`} className="btn btn-secondary">
                   <span>View Details</span>
                 </Link>

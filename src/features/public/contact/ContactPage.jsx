@@ -68,7 +68,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '5rem 1.5rem', background: '#FFFFFF' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: 'clamp(3rem, 5vw, 5rem) clamp(1rem, 3vw, 1.5rem)', background: '#FFFFFF' }}>
       {/* 1. Header Banner */}
       <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
         <span className="badge badge-primary" style={{ marginBottom: '0.85rem' }}>
@@ -101,8 +101,8 @@ export default function ContactPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-          gap: '3rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+          gap: 'clamp(1.5rem, 3.5vw, 3rem)',
           alignItems: 'start',
         }}
       >
@@ -277,7 +277,7 @@ export default function ContactPage() {
         <div
           className="card"
           style={{
-            padding: '2.5rem',
+            padding: 'clamp(1.25rem, 4vw, 2.5rem)',
             background: '#FFFFFF',
             borderRadius: '20px',
             border: '1px solid #E2E8F0',
@@ -408,7 +408,7 @@ export default function ContactPage() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
                   gap: '1.25rem',
                 }}
               >

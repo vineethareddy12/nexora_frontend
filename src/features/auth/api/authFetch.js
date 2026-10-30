@@ -52,6 +52,13 @@ async function performSilentRefresh(refreshToken) {
         if (newRefreshToken) {
           localStorage.setItem('nexora_refresh_token', newRefreshToken);
         }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('nexora:token-refreshed', {
+              detail: { accessToken: newAccessToken, refreshToken: newRefreshToken },
+            })
+          );
+        }
         return newAccessToken;
       }
 

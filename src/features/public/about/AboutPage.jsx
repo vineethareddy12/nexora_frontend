@@ -52,7 +52,7 @@ export default function AboutPage() {
   ];
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '5rem 1.5rem', background: '#FFFFFF' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: 'clamp(3rem, 5vw, 5rem) clamp(1rem, 3vw, 1.5rem)', background: '#FFFFFF' }}>
       {/* 1. Header Banner */}
       <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
         <span className="badge badge-primary" style={{ marginBottom: '0.85rem' }}>
@@ -86,15 +86,15 @@ export default function AboutPage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '2rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+          gap: 'clamp(1.25rem, 3vw, 2rem)',
           marginBottom: '4.5rem',
         }}
       >
         <div
           className="card"
           style={{
-            padding: '2.5rem',
+            padding: 'clamp(1.5rem, 4vw, 2.5rem)',
             background: '#FFFFFF',
             borderRadius: '16px',
             border: '1px solid #E2E8F0',
@@ -128,7 +128,7 @@ export default function AboutPage() {
         <div
           className="card"
           style={{
-            padding: '2.5rem',
+            padding: 'clamp(1.5rem, 4vw, 2.5rem)',
             background: '#FFFFFF',
             borderRadius: '16px',
             border: '1px solid #E2E8F0',
@@ -165,7 +165,7 @@ export default function AboutPage() {
         <div
           className="card"
           style={{
-            padding: '3rem 2.5rem',
+            padding: 'clamp(1.75rem, 4vw, 3rem) clamp(1.25rem, 3.5vw, 2.5rem)',
             marginBottom: '4.5rem',
             background: '#F8FAFC',
             borderRadius: '20px',
@@ -187,8 +187,8 @@ export default function AboutPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: '2.5rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+              gap: 'clamp(1.5rem, 3vw, 2.5rem)',
             }}
           >
             {company?.areasOfExpertise?.length > 0 && (
@@ -268,7 +268,7 @@ export default function AboutPage() {
       <div
         className="card"
         style={{
-          padding: '3.5rem 2.5rem',
+          padding: 'clamp(1.75rem, 4vw, 3.5rem) clamp(1.25rem, 3.5vw, 2.5rem)',
           marginBottom: '4.5rem',
           background: '#FFFFFF',
           borderRadius: '20px',
@@ -291,8 +291,8 @@ export default function AboutPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '2rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
+            gap: 'clamp(1.25rem, 3vw, 2rem)',
           }}
         >
           <div
@@ -365,8 +365,8 @@ export default function AboutPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '1.75rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+            gap: 'clamp(1rem, 2.5vw, 1.75rem)',
           }}
         >
           {values.map((v, i) => {
@@ -376,7 +376,7 @@ export default function AboutPage() {
                 key={i}
                 className="card card-hover"
                 style={{
-                  padding: '2rem',
+                  padding: 'clamp(1.25rem, 3.5vw, 2rem)',
                   background: '#FFFFFF',
                   borderRadius: '16px',
                   border: '1px solid #E2E8F0',
@@ -414,7 +414,7 @@ export default function AboutPage() {
       <div
         className="card"
         style={{
-          padding: '3.5rem 2.5rem',
+          padding: 'clamp(1.75rem, 4vw, 3.5rem) clamp(1.25rem, 3.5vw, 2.5rem)',
           background: '#F8FAFC',
           borderRadius: '20px',
           border: '1px solid #E2E8F0',
@@ -426,8 +426,8 @@ export default function AboutPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '2.5rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+            gap: 'clamp(1.5rem, 3vw, 2.5rem)',
           }}
         >
           {milestones.map((m, idx) => (

@@ -289,7 +289,7 @@ export default function AdminJobsPage() {
                 <p style={{ color: '#475569', fontSize: '0.95rem', maxWidth: '460px', margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
                   Your secure administrator session has timed out (sessions expire after 15 minutes of inactivity for security). Please sign in again to continue managing jobs.
                 </p>
-                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                   <a
                     href="/login?redirect=/admin/jobs"
                     className="btn btn-primary"
@@ -325,92 +325,186 @@ export default function AdminJobsPage() {
             </p>
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Code</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Job Title</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Department</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Work Mode</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Deadline</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Desktop / Tablet Table View */}
+            <div className="desktop-table-view table-responsive">
+              <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+                    <th style={{ padding: '0.75rem 1rem' }}>Code</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Job Title</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Department</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Work Mode</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Deadline</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                    <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobs.map((job) => (
+                    <tr key={job.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 600 }}>{job.jobCode}</td>
+                      <td style={{ padding: '1rem', fontWeight: 600 }}>{job.title}</td>
+                      <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{job.department}</td>
+                      <td style={{ padding: '1rem' }}><span className="badge badge-info">{job.workMode}</span></td>
+                      <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        {job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString() : 'None'}
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        {job.status === 'PUBLISHED' && <span className="badge badge-success">Published</span>}
+                        {job.status === 'DRAFT' && <span className="badge badge-warning">Draft</span>}
+                        {job.status === 'CLOSED' && <span className="badge badge-danger">Closed</span>}
+                      </td>
+                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                        {job.status === 'DRAFT' && (
+                          <button
+                            className="btn btn-secondary"
+                            title="Publish Vacancy"
+                            onClick={() => handleStatusChange(job, 'PUBLISHED')}
+                            style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--status-success)', fontSize: '0.8rem' }}
+                          >
+                            <Play size={14} />
+                          </button>
+                        )}
+                        {job.status === 'PUBLISHED' && (
+                          <button
+                            className="btn btn-secondary"
+                            title="Close Vacancy"
+                            onClick={() => handleStatusChange(job, 'CLOSED')}
+                            style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--status-warning)', fontSize: '0.8rem' }}
+                          >
+                            <StopCircle size={14} />
+                          </button>
+                        )}
+                        {job.status === 'CLOSED' && (
+                          <button
+                            className="btn btn-secondary"
+                            title="Reopen Vacancy"
+                            onClick={() => handleStatusChange(job, 'PUBLISHED')}
+                            style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--primary)', fontSize: '0.8rem' }}
+                          >
+                            <RotateCcw size={14} />
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-secondary"
+                          title="Edit Job"
+                          onClick={() => handleOpenEdit(job)}
+                          style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', fontSize: '0.8rem' }}
+                        >
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          className="btn btn-secondary"
+                          title="Delete Job"
+                          onClick={() => handleDelete(job)}
+                          style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Vertical Cards View (Clean vertical scroll, zero horizontal cutoff) */}
+            <div className="mobile-cards-view">
               {jobs.map((job) => (
-                <tr key={job.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 600 }}>{job.jobCode}</td>
-                  <td style={{ padding: '1rem', fontWeight: 600 }}>{job.title}</td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{job.department}</td>
-                  <td style={{ padding: '1rem' }}><span className="badge badge-info">{job.workMode}</span></td>
-                  <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    {job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString() : 'None'}
-                  </td>
-                  <td style={{ padding: '1rem' }}>
+                <div
+                  key={`card-${job.id}`}
+                  className="card"
+                  style={{
+                    padding: '1.15rem',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 700 }}>
+                        {job.jobCode}
+                      </span>
+                      <h4 style={{ margin: '0.2rem 0 0', fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
+                        {job.title}
+                      </h4>
+                    </div>
                     {job.status === 'PUBLISHED' && <span className="badge badge-success">Published</span>}
                     {job.status === 'DRAFT' && <span className="badge badge-warning">Draft</span>}
                     {job.status === 'CLOSED' && <span className="badge badge-danger">Closed</span>}
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.8rem', color: '#64748B' }}>
+                    <span className="badge badge-info">{job.workMode}</span>
+                    <span>{job.department}</span>
+                    <span>•</span>
+                    <span>Deadline: {job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString() : 'None'}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem', paddingTop: '0.65rem', borderTop: '1px solid #F1F5F9' }}>
                     {job.status === 'DRAFT' && (
                       <button
                         className="btn btn-secondary"
-                        title="Publish Vacancy"
                         onClick={() => handleStatusChange(job, 'PUBLISHED')}
-                        style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--status-success)', fontSize: '0.8rem' }}
+                        style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', color: 'var(--status-success)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                       >
                         <Play size={14} />
+                        <span>Publish</span>
                       </button>
                     )}
                     {job.status === 'PUBLISHED' && (
                       <button
                         className="btn btn-secondary"
-                        title="Close Vacancy"
                         onClick={() => handleStatusChange(job, 'CLOSED')}
-                        style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--status-warning)', fontSize: '0.8rem' }}
+                        style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', color: 'var(--status-warning)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                       >
                         <StopCircle size={14} />
+                        <span>Close</span>
                       </button>
                     )}
                     {job.status === 'CLOSED' && (
                       <button
                         className="btn btn-secondary"
-                        title="Reopen Vacancy"
                         onClick={() => handleStatusChange(job, 'PUBLISHED')}
-                        style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--primary)', fontSize: '0.8rem' }}
+                        style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                       >
                         <RotateCcw size={14} />
+                        <span>Reopen</span>
                       </button>
                     )}
                     <button
                       className="btn btn-secondary"
-                      title="Edit Job"
                       onClick={() => handleOpenEdit(job)}
-                      style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', fontSize: '0.8rem' }}
+                      style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                     >
                       <Edit size={14} />
+                      <span>Edit</span>
                     </button>
                     <button
                       className="btn btn-secondary"
-                      title="Delete Job"
                       onClick={() => handleDelete(job)}
-                      style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
+                      style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', color: 'var(--status-danger)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                     >
                       <Trash2 size={14} />
+                      <span>Delete</span>
                     </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
-      </div>
+    </div>
 
-      {/* Add / Edit Job Modal */}
-      {modalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '720px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)', padding: '2rem', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
+    {/* Add / Edit Job Modal */}
+    {modalOpen && (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(0.5rem, 2.5vw, 1.5rem)' }}>
+        <div className="glass-panel" style={{ width: '100%', maxWidth: '720px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)', padding: 'clamp(1.25rem, 4vw, 2rem)', borderRadius: 'var(--radius-lg)', position: 'relative' }}>
             <button
               onClick={() => setModalOpen(false)}
               style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
@@ -430,7 +524,7 @@ export default function AdminJobsPage() {
             )}
 
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
                     Job Code *
@@ -459,7 +553,7 @@ export default function AdminJobsPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
                     Department *
@@ -488,7 +582,7 @@ export default function AdminJobsPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
                     Employment Type
@@ -536,7 +630,7 @@ export default function AdminJobsPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
                     Experience Req. *
@@ -616,7 +710,7 @@ export default function AdminJobsPage() {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>
                   Cancel
                 </button>

@@ -73,7 +73,7 @@ export default function HomePage() {
         style={{
           background: 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 55%, #ECFEFF 100%)',
           borderBottom: '1px solid #E2E8F0',
-          padding: '5rem 1.5rem 6rem',
+          padding: 'clamp(3rem, 6vw, 5.5rem) clamp(1rem, 3vw, 1.5rem)',
           position: 'relative',
         }}
       >
@@ -82,8 +82,8 @@ export default function HomePage() {
             maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-            gap: '4rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+            gap: 'clamp(2rem, 4vw, 4rem)',
             alignItems: 'center',
           }}
         >
@@ -113,7 +113,7 @@ export default function HomePage() {
 
             <h1
               style={{
-                fontSize: 'clamp(2.5rem, 4.5vw, 3.75rem)',
+                fontSize: 'clamp(2rem, 5vw, 3.75rem)',
                 lineHeight: 1.15,
                 color: '#0F172A',
                 fontWeight: 800,
@@ -237,7 +237,7 @@ export default function HomePage() {
                 zIndex: 1,
                 width: '100%',
                 maxWidth: '480px',
-                padding: '2rem',
+                padding: 'clamp(1.25rem, 3.5vw, 2rem)',
                 background: '#FFFFFF',
                 border: '1px solid #E2E8F0',
                 borderRadius: '20px',
@@ -423,7 +423,7 @@ export default function HomePage() {
           ==================================================================== */}
       <section
         style={{
-          padding: '6rem 1.5rem',
+          padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 1.5rem)',
           maxWidth: '1280px',
           margin: '0 auto',
           background: '#FFFFFF',
@@ -461,7 +461,7 @@ export default function HomePage() {
         {servicesError && !loading && (
           <div
             style={{
-              padding: '2rem',
+              padding: 'clamp(1.25rem, 3vw, 2rem)',
               borderRadius: '14px',
               background: '#FEF2F2',
               border: '1px solid #FECACA',
@@ -485,8 +485,8 @@ export default function HomePage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '2rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+              gap: 'clamp(1.25rem, 3vw, 2rem)',
             }}
           >
             {services.map((service) => (
@@ -494,7 +494,7 @@ export default function HomePage() {
                 key={service.id}
                 className="card card-hover"
                 style={{
-                  padding: '2.25rem',
+                  padding: 'clamp(1.5rem, 4vw, 2.25rem)',
                   display: 'flex',
                   flexDirection: 'column',
                   background: '#FFFFFF',
@@ -604,7 +604,7 @@ export default function HomePage() {
           ==================================================================== */}
       <section
         style={{
-          padding: '6rem 1.5rem',
+          padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 1.5rem)',
           background: '#F8FAFC',
           borderTop: '1px solid #E2E8F0',
           borderBottom: '1px solid #E2E8F0',
@@ -615,8 +615,8 @@ export default function HomePage() {
             maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-            gap: '4rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+            gap: 'clamp(2rem, 4vw, 4rem)',
             alignItems: 'center',
           }}
         >
@@ -701,7 +701,7 @@ export default function HomePage() {
           <div
             className="card"
             style={{
-              padding: '2.5rem',
+              padding: 'clamp(1.25rem, 4vw, 2.5rem)',
               background: '#FFFFFF',
               borderRadius: '20px',
               border: '1px solid #E2E8F0',
@@ -715,7 +715,7 @@ export default function HomePage() {
               Modern, battle-tested enterprise frameworks and cloud infrastructure.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '1rem' }}>
               {[
                 { name: 'JavaScript & React', role: 'Full-Stack Ecosystem' },
                 { name: 'Node.js & Express', role: 'Resilient Microservices' },
@@ -752,7 +752,7 @@ export default function HomePage() {
       {jobs.length > 0 && (
         <section
           style={{
-            padding: '6rem 1.5rem',
+            padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 1.5rem)',
             maxWidth: '1280px',
             margin: '0 auto',
             background: '#FFFFFF',
@@ -788,8 +788,8 @@ export default function HomePage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '1.5rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+              gap: 'clamp(1rem, 2.5vw, 1.5rem)',
             }}
           >
             {jobs.map((job) => (
@@ -797,7 +797,7 @@ export default function HomePage() {
                 key={job.id}
                 className="card card-hover"
                 style={{
-                  padding: '2rem',
+                  padding: 'clamp(1.5rem, 3.5vw, 2rem)',
                   display: 'flex',
                   flexDirection: 'column',
                   background: '#FFFFFF',
@@ -877,7 +877,7 @@ export default function HomePage() {
           ==================================================================== */}
       <section
         style={{
-          padding: '5rem 1.5rem',
+          padding: 'clamp(3rem, 6vw, 5rem) clamp(1rem, 3vw, 1.5rem)',
           background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)',
           borderTop: '1px solid #E2E8F0',
         }}

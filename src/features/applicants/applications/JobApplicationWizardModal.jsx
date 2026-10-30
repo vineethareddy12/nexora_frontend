@@ -280,7 +280,7 @@ export default function JobApplicationWizardModal({ job, isOpen, onClose, onAppl
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1.25rem',
+        padding: 'clamp(0.5rem, 2.5vw, 1.25rem)',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget && !submitting && currentStep !== 8) onClose();
@@ -305,7 +305,7 @@ export default function JobApplicationWizardModal({ job, isOpen, onClose, onAppl
         {/* Header with Title & Step Indicator */}
         <div
           style={{
-            padding: '1.5rem 2rem 1.25rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem) clamp(1rem, 3.5vw, 2rem) clamp(0.75rem, 2.5vw, 1.25rem)',
             borderBottom: '1px solid #E2E8F0',
             background: '#F8FAFC',
           }}
@@ -357,6 +357,7 @@ export default function JobApplicationWizardModal({ job, isOpen, onClose, onAppl
                   }}
                 >
                   <div
+                    className="wizard-step-dot"
                     style={{
                       width: '32px',
                       height: '32px',
@@ -394,7 +395,7 @@ export default function JobApplicationWizardModal({ job, isOpen, onClose, onAppl
         </div>
 
         {/* Scrollable Content Area */}
-        <div style={{ padding: '2rem', overflowY: 'auto', flex: 1 }}>
+        <div style={{ padding: 'clamp(1.25rem, 4vw, 2rem)', overflowY: 'auto', flex: 1 }}>
           {stepError && (
             <div
               style={{
@@ -628,7 +629,7 @@ export default function JobApplicationWizardModal({ job, isOpen, onClose, onAppl
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#EFF6FF', padding: '0.85rem 1.25rem', borderRadius: '12px', border: '1px solid #BFDBFE' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#EFF6FF', padding: '0.85rem 1.25rem', borderRadius: '12px', border: '1px solid #BFDBFE', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <div style={{ fontSize: '0.85rem', color: '#1E40AF' }}>
                       Need to update your contact coordinates or resume details?
                     </div>
@@ -1188,12 +1189,14 @@ export default function JobApplicationWizardModal({ job, isOpen, onClose, onAppl
         {currentStep !== 8 && (
           <div
             style={{
-              padding: '1.25rem 2rem',
+              padding: 'clamp(0.85rem, 2.5vw, 1.25rem) clamp(1rem, 3.5vw, 2rem)',
               borderTop: '1px solid #E2E8F0',
               background: '#FFFFFF',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
             }}
           >
             {currentStep > 1 ? (
@@ -1250,6 +1253,16 @@ export default function JobApplicationWizardModal({ job, isOpen, onClose, onAppl
           </div>
         )}
       </div>
+
+      <style>{`
+        @media (max-width: 420px) {
+          .wizard-step-dot {
+            width: 26px !important;
+            height: 26px !important;
+            font-size: 0.72rem !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

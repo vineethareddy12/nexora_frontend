@@ -37,6 +37,18 @@ export function AuthProvider({ children }) {
     }
 
     initAuth();
+
+    const handleTokenRefreshed = (e) => {
+      if (e.detail?.accessToken) {
+        setAccessToken(e.detail.accessToken);
+      }
+      if (e.detail?.refreshToken) {
+        setRefreshToken(e.detail.refreshToken);
+      }
+    };
+
+    window.addEventListener('nexora:token-refreshed', handleTokenRefreshed);
+    return () => window.removeEventListener('nexora:token-refreshed', handleTokenRefreshed);
   }, []);
 
   const login = (userData, tokens) => {

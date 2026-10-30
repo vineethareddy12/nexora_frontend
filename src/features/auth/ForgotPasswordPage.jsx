@@ -44,11 +44,11 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div style={{ maxWidth: '440px', margin: '4rem auto', padding: '0 1.5rem', background: '#FFFFFF' }}>
+    <div style={{ maxWidth: '440px', margin: 'clamp(2rem, 5vw, 4rem) auto', padding: '0 clamp(1rem, 3vw, 1.5rem)', background: '#FFFFFF' }}>
       <div
         className="card"
         style={{
-          padding: '2.5rem',
+          padding: 'clamp(1.5rem, 4vw, 2.5rem)',
           background: '#FFFFFF',
           borderRadius: '20px',
           border: '1px solid #E2E8F0',

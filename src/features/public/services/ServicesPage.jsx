@@ -47,7 +47,7 @@ export default function ServicesPage() {
   }, []);
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '5rem 1.5rem', background: '#FFFFFF' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: 'clamp(3rem, 5vw, 5rem) clamp(1rem, 3vw, 1.5rem)', background: '#FFFFFF' }}>
       {/* 1. Header Banner */}
       <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
         <span className="badge badge-primary" style={{ marginBottom: '0.85rem' }}>
@@ -135,8 +135,8 @@ export default function ServicesPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-            gap: '2.5rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+            gap: 'clamp(1.5rem, 3vw, 2.5rem)',
             marginBottom: '5rem',
           }}
         >
@@ -147,7 +147,7 @@ export default function ServicesPage() {
                 key={service.id}
                 className="card card-hover"
                 style={{
-                  padding: '2.5rem',
+                  padding: 'clamp(1.5rem, 4vw, 2.5rem)',
                   display: 'flex',
                   flexDirection: 'column',
                   background: '#FFFFFF',
