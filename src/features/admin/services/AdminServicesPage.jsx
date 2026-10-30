@@ -178,41 +178,41 @@ export default function AdminServicesPage() {
   const categories = Array.from(new Set(services.map((s) => s.category).filter(Boolean)));
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+      {/* Standard Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem' }}>
-            <Layers size={24} color="var(--primary)" />
-            <h1 style={{ fontSize: '1.85rem', margin: 0 }}>Services Management</h1>
-          </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-            Publish, update, reorder, or unpublish public service offerings.
+          <h1 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 1.9rem)', fontWeight: 800, color: '#0F172A', margin: 0, marginBottom: '0.35rem' }}>
+            Service Offerings Catalog
+          </h1>
+          <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
+            Maintain enterprise technology services, capabilities, and solutions visible on the public portal.
           </p>
         </div>
-        <button className="btn btn-primary" onClick={handleOpenAdd}>
+        <button className="btn btn-primary" onClick={handleOpenAdd} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.15rem' }}>
           <Plus size={16} />
           <span>Add New Service</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="glass-panel" style={{ padding: '1.25rem', marginBottom: '1.75rem' }}>
+      <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
           <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
+            <Search size={16} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
             <input
               type="text"
               placeholder="Search services..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: '100%', padding: '0.65rem 0.85rem 0.65rem 2.5rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none' }}
+              style={{ width: '100%', padding: '0.65rem 0.85rem 0.65rem 2.5rem', borderRadius: '8px', background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#0F172A', fontSize: '0.875rem', outline: 'none' }}
             />
           </div>
 
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none' }}
+            style={{ padding: '0.65rem 0.85rem', borderRadius: '8px', background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#0F172A', fontSize: '0.875rem', outline: 'none' }}
           >
             <option value="ALL">All Publication States</option>
             <option value="true">Published</option>
@@ -223,7 +223,7 @@ export default function AdminServicesPage() {
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none' }}
+              style={{ padding: '0.65rem 0.85rem', borderRadius: '8px', background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#0F172A', fontSize: '0.875rem', outline: 'none' }}
             >
               <option value="ALL">All Categories</option>
               {categories.map((c) => (
@@ -235,7 +235,7 @@ export default function AdminServicesPage() {
       </div>
 
       {/* Services Table */}
-      <div className="glass-panel table-responsive" style={{ padding: 'clamp(1rem, 3vw, 1.5rem)' }}>
+      <div className="card" style={{ padding: 0, overflow: 'hidden', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem' }}>
             <RefreshCw className="animate-spin" size={28} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />

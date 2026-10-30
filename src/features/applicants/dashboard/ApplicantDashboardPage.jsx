@@ -25,7 +25,8 @@ const STATUS_CONFIG = {
   UNDER_REVIEW: { label: 'Under Review', badgeClass: 'badge-warning', color: '#D97706' },
   SHORTLISTED: { label: 'Shortlisted', badgeClass: 'badge-info', color: '#06B6D4' },
   INTERVIEW_SCHEDULED: { label: 'Interview Scheduled', badgeClass: 'badge-info', color: '#7C3AED' },
-  OFFER_EXTENDED: { label: 'Offer Extended', badgeClass: 'badge-success', color: '#059669' },
+  SELECTED: { label: 'Selected', badgeClass: 'badge-success', color: '#059669' },
+  OFFER_EXTENDED: { label: 'Selected', badgeClass: 'badge-success', color: '#059669' },
   HIRED: { label: 'Hired', badgeClass: 'badge-success', color: '#059669' },
   REJECTED: { label: 'Rejected', badgeClass: 'badge-danger', color: '#DC2626' },
   WITHDRAWN: { label: 'Withdrawn', badgeClass: 'badge-neutral', color: '#64748B' },
@@ -65,9 +66,31 @@ export default function ApplicantDashboardPage() {
   };
 
   useEffect(() => {
-    if (accessToken) {
-      loadDashboard();
-    }
+    if (!accessToken) return;
+    loadDashboard();
+
+    const handleFocus = () => loadDashboard();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        loadDashboard();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Auto-sync dashboard every 12 seconds when active
+    const syncInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadDashboard();
+      }
+    }, 12000);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      clearInterval(syncInterval);
+    };
   }, [accessToken]);
 
   const candidateName = dashboardData.applicant?.fullName || user?.fullName || 'Candidate';
@@ -131,15 +154,15 @@ export default function ApplicantDashboardPage() {
       description: 'View scheduled interview stages',
     },
     {
-      label: 'Offer Extended',
-      count: summary.offered || 0,
+      label: 'Selected',
+      count: summary.selected || summary.offered || 0,
       icon: Award,
       color: '#059669',
       bg: '#ECFDF5',
       border: '#A7F3D0',
-      status: 'OFFER_EXTENDED',
-      path: '/app/applications?status=OFFER_EXTENDED',
-      description: 'View official offer extensions',
+      status: 'SELECTED',
+      path: '/app/applications?status=SELECTED',
+      description: 'View selected applications',
     },
     {
       label: 'Rejected',
@@ -196,7 +219,7 @@ export default function ApplicantDashboardPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="btn-group-responsive" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Link to="/careers" className="btn btn-secondary" style={{ padding: '0.65rem 1.25rem', fontSize: '0.875rem' }}>
             <span>Browse Jobs</span>
           </Link>
@@ -232,21 +255,40 @@ export default function ApplicantDashboardPage() {
               Click any metric card below to view matching filtered applications.
             </p>
           </div>
-          <Link
-            to="/app/applications"
-            style={{
-              fontSize: '0.85rem',
-              color: '#2563EB',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              textDecoration: 'none',
-            }}
-          >
-            <span>View all</span>
-            <ArrowRight size={14} />
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={loadDashboard}
+              disabled={loading}
+              className="btn btn-secondary"
+              style={{
+                fontSize: '0.8rem',
+                padding: '0.35rem 0.75rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+              }}
+              title="Refresh live metrics from server"
+            >
+              <RefreshCw size={13} className={loading ? 'spin' : ''} />
+              <span>{loading ? 'Refreshing...' : 'Refresh Metrics'}</span>
+            </button>
+            <Link
+              to="/app/applications"
+              style={{
+                fontSize: '0.85rem',
+                color: '#2563EB',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                textDecoration: 'none',
+              }}
+            >
+              <span>View all</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
 
         <div

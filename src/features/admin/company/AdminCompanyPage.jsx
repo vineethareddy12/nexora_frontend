@@ -184,26 +184,28 @@ export default function AdminCompanyPage() {
   }
 
   return (
-    <div style={{ maxWidth: '960px' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem' }}>
-          <Building2 size={24} color="var(--primary)" />
-          <h1 style={{ fontSize: '1.85rem', margin: 0 }}>Company Information Management</h1>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+      {/* Standard Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 1.9rem)', fontWeight: 800, color: '#0F172A', margin: 0, marginBottom: '0.35rem' }}>
+            Company Profile & Identity
+          </h1>
+          <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
+            Configure corporate legal identity, address, contact coordinates, mission/vision, and public website CMS content.
+          </p>
         </div>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-          Configure corporate legal identity, address, contact coordinates, mission/vision, and public website CMS content.
-        </p>
       </div>
 
       {statusMessage && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 'var(--radius-md)', color: '#6ee7b7', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.25rem', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px', color: '#15803D', marginBottom: '1.5rem', fontWeight: 600 }}>
           <CheckCircle2 size={18} />
           <span>{statusMessage}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-md)', color: '#fca5a5', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.25rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', color: '#B91C1C', marginBottom: '1.5rem', fontWeight: 600 }}>
           <AlertCircle size={18} style={{ flexShrink: 0 }} />
           <span>{errorMessage}</span>
         </div>
@@ -211,8 +213,8 @@ export default function AdminCompanyPage() {
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
         {/* Section 1: Corporate Legal Identity */}
-        <div className="glass-panel" style={{ padding: 'clamp(1rem, 2.5vw, 1.75rem)' }}>
-          <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
+        <div className="card" style={{ padding: 'clamp(1.25rem, 2.5vw, 2rem)', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', marginBottom: '1.25rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '0.75rem' }}>
             Corporate Legal Identity
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.25rem' }}>
@@ -294,7 +296,7 @@ export default function AdminCompanyPage() {
 
                 {/* Upload action controls */}
                 <div style={{ flex: '1 1 min(100%, 250px)' }}>
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                  <div className="btn-group-responsive" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -347,8 +349,8 @@ export default function AdminCompanyPage() {
         </div>
 
         {/* Section 2: Contact & Location */}
-        <div className="glass-panel" style={{ padding: 'clamp(1rem, 2.5vw, 1.75rem)' }}>
-          <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
+        <div className="card" style={{ padding: 'clamp(1.25rem, 2.5vw, 2rem)', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', marginBottom: '1.25rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '0.75rem' }}>
             Official Coordinates, Phones & Operating Hours
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.25rem' }}>
@@ -442,8 +444,8 @@ export default function AdminCompanyPage() {
         </div>
 
         {/* Section 3: CMS Content & Mission/Vision */}
-        <div className="glass-panel" style={{ padding: 'clamp(1rem, 2.5vw, 1.75rem)' }}>
-          <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
+        <div className="card" style={{ padding: 'clamp(1.25rem, 2.5vw, 2rem)', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', marginBottom: '1.25rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '0.75rem' }}>
             Public CMS & Brand Narratives
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -534,7 +536,7 @@ export default function AdminCompanyPage() {
         <button
           type="submit"
           disabled={saving}
-          className="btn btn-primary"
+          className="btn btn-primary btn-submit-responsive"
           style={{ alignSelf: 'flex-start', padding: '0.85rem 2.25rem', fontSize: '1rem' }}
         >
           {saving ? (

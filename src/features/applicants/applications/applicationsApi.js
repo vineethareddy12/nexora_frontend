@@ -28,7 +28,12 @@ export const applicationsApi = {
     if (params.page) query.append('page', params.page);
     if (params.limit) query.append('limit', params.limit);
     if (params.search && params.search.trim() !== '') query.append('search', params.search.trim());
-    if (params.status && params.status !== 'ALL') query.append('status', params.status);
+    if (params.status && params.status !== 'ALL') {
+      let st = params.status.trim().toUpperCase();
+      if (st === 'OFFERED' || st === 'OFFER') st = 'OFFER_EXTENDED';
+      if (st === 'INTERVIEW') st = 'INTERVIEW_SCHEDULED';
+      query.append('status', st);
+    }
     if (params.fromDate) query.append('fromDate', params.fromDate);
     if (params.toDate) query.append('toDate', params.toDate);
     if (params.sortBy) query.append('sortBy', params.sortBy);

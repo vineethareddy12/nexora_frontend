@@ -6,7 +6,7 @@ import { API_BASE_URL } from './config/apiConfig'
 
 // Proactive backend wakeup probe (instantly initiates Render container spinup upon visit)
 try {
-  const healthEndpoint = API_BASE_URL ? `${API_BASE_URL}/health` : '/health';
+  const healthEndpoint = API_BASE_URL ? `${API_BASE_URL}/api/v1/health` : '/api/v1/health';
   fetch(healthEndpoint, { method: 'GET', cache: 'no-store' }).catch(() => {});
 } catch (_) {}
 

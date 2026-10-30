@@ -32,8 +32,9 @@ const STATUS_CONFIG = {
   UNDER_REVIEW: { label: 'Under Review', badgeClass: 'badge-warning' },
   SHORTLISTED: { label: 'Shortlisted', badgeClass: 'badge-info' },
   INTERVIEW_SCHEDULED: { label: 'Interview Scheduled', badgeClass: 'badge-primary' },
+  SELECTED: { label: 'Selected', badgeClass: 'badge-success' },
   REJECTED: { label: 'Not Selected', badgeClass: 'badge-danger' },
-  OFFER_EXTENDED: { label: 'Offer Extended', badgeClass: 'badge-success' },
+  OFFER_EXTENDED: { label: 'Selected', badgeClass: 'badge-success' },
   HIRED: { label: 'Hired', badgeClass: 'badge-success' },
   WITHDRAWN: { label: 'Withdrawn', badgeClass: 'badge-neutral' },
 };
@@ -43,12 +44,13 @@ function normalizeStatusParam(status) {
   const s = status.trim().toUpperCase();
   if (s === 'ALL') return 'ALL';
   if (s === 'INTERVIEW') return 'INTERVIEW_SCHEDULED';
-  if (s === 'OFFER' || s === 'OFFERED') return 'OFFER_EXTENDED';
+  if (s === 'OFFER' || s === 'OFFERED' || s === 'SELECTED') return 'SELECTED';
   const valid = [
     'SUBMITTED',
     'UNDER_REVIEW',
     'SHORTLISTED',
     'INTERVIEW_SCHEDULED',
+    'SELECTED',
     'OFFER_EXTENDED',
     'HIRED',
     'REJECTED',
@@ -165,6 +167,19 @@ export default function ApplicantApplicationsPage() {
 
   useEffect(() => {
     fetchApplications();
+
+    const handleFocus = () => fetchApplications();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') fetchApplications();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [debouncedSearch, statusFilter, fromDate, toDate, sortBy, sortOrder, page]);
 
   // Deep-linking: auto-open details modal if openId is in URL
@@ -245,8 +260,8 @@ export default function ApplicantApplicationsPage() {
     { key: 'UNDER_REVIEW', label: 'Under Review' },
     { key: 'SHORTLISTED', label: 'Shortlisted' },
     { key: 'INTERVIEW_SCHEDULED', label: 'Interview Scheduled' },
-    { key: 'OFFER_EXTENDED', label: 'Offer Extended' },
-    { key: 'REJECTED', label: 'Not Selected' },
+    { key: 'SELECTED', label: 'Selected' },
+    { key: 'REJECTED', label: 'Rejected' },
     { key: 'WITHDRAWN', label: 'Withdrawn' },
   ];
 
@@ -548,7 +563,8 @@ export default function ApplicantApplicationsPage() {
         <>
           {/* Desktop Table View (>= 768px) */}
           <div className="desktop-table-view card" style={{ padding: 0, overflow: 'hidden', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px', marginBottom: '1.5rem' }}>
-            <div className="table-responsive" style={{ margin: 0 }}>
+            {/* Desktop Table View */}
+            <div className="desktop-table-view table-responsive" style={{ margin: 0 }}>
               <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                 <thead>
                   <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 700 }}>
@@ -855,6 +871,126 @@ export default function ApplicantApplicationsPage() {
               >
                 <X size={20} />
               </button>
+            </div>
+
+            {/* Recruitment Status Timeline */}
+            <div style={{ marginBottom: '1.75rem', background: '#F8FAFC', padding: '1.25rem', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Recruitment Status Lifecycle
+                </h4>
+                <span className={`badge ${STATUS_CONFIG[selectedApp.status]?.badgeClass || 'badge-primary'}`}>
+                  {STATUS_CONFIG[selectedApp.status]?.label || selectedApp.status}
+                </span>
+              </div>
+
+              {/* Progress Stepper for Standard or Terminal Statuses */}
+              {selectedApp.status === 'WITHDRAWN' ? (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.85rem 1rem', background: '#F1F5F9', borderRadius: '10px', border: '1px solid #CBD5E1' }}>
+                  <RotateCcw size={18} color="#64748B" style={{ marginTop: '0.15rem', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#334155' }}>Application Withdrawn</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.15rem' }}>
+                      {selectedApp.withdrawnAt ? `Withdrawn on ${new Date(selectedApp.withdrawnAt).toLocaleString()}` : 'Withdrawn by candidate'}
+                    </div>
+                    {selectedApp.withdrawalReason && (
+                      <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '0.35rem', fontStyle: 'italic' }}>
+                        Reason: "{selectedApp.withdrawalReason}"
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : selectedApp.status === 'REJECTED' ? (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.85rem 1rem', background: '#FEF2F2', borderRadius: '10px', border: '1px solid #FECACA' }}>
+                  <XCircle size={18} color="#DC2626" style={{ marginTop: '0.15rem', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#991B1B' }}>Application Not Selected</div>
+                    <div style={{ fontSize: '0.8rem', color: '#B91C1C', marginTop: '0.15rem' }}>
+                      Thank you for your interest in Nexora Technologies. Our recruitment team has reviewed your profile and decided to move forward with other applicants for this role.
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Stepper for active pipeline */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.5rem' }}>
+                    {[
+                      { key: 'SUBMITTED', label: '1. Submitted' },
+                      { key: 'UNDER_REVIEW', label: '2. Under Review' },
+                      { key: 'SHORTLISTED', label: '3. Shortlisted' },
+                      { key: 'INTERVIEW_SCHEDULED', label: '4. Interview' },
+                      { key: 'SELECTED', label: '5. Selected' },
+                    ].map((step, idx) => {
+                      const stages = ['SUBMITTED', 'UNDER_REVIEW', 'SHORTLISTED', 'INTERVIEW_SCHEDULED', 'SELECTED'];
+                      const currentIdx = stages.indexOf(selectedApp.status);
+                      const isComplete = currentIdx > idx;
+                      const isCurrent = currentIdx === idx;
+
+                      return (
+                          <div
+                            key={step.key}
+                            style={{
+                              padding: '0.65rem 0.5rem',
+                              borderRadius: '8px',
+                              background: isCurrent ? '#EFF6FF' : isComplete ? '#F0FDF4' : '#FFFFFF',
+                              border: `1px solid ${isCurrent ? '#3B82F6' : isComplete ? '#86EFAC' : '#E2E8F0'}`,
+                              textAlign: 'center',
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.25rem' }}>
+                              {isComplete ? (
+                                <CheckCircle2 size={16} color="#16A34A" />
+                              ) : isCurrent ? (
+                                <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: '#2563EB', border: '2px solid #BFDBFE' }} />
+                              ) : (
+                                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#CBD5E1' }} />
+                              )}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '0.75rem',
+                                fontWeight: isCurrent ? 800 : isComplete ? 700 : 500,
+                                color: isCurrent ? '#1D4ED8' : isComplete ? '#15803D' : '#64748B',
+                              }}
+                            >
+                              {step.label}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Status Activity Chronology */}
+                {selectedApp.statusHistory && selectedApp.statusHistory.length > 0 && (
+                  <div style={{ marginTop: '1rem', borderTop: '1px solid #E2E8F0', paddingTop: '0.85rem' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                      Timeline Updates
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {selectedApp.statusHistory.map((h) => (
+                      <div key={h.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.8rem' }}>
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563EB', marginTop: '0.45rem', flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontWeight: 600, color: '#0F172A' }}>
+                            Transitioned to {STATUS_CONFIG[h.newStatus]?.label || h.newStatus}
+                          </span>
+                          <span style={{ color: '#94A3B8', marginLeft: '0.4rem', fontSize: '0.75rem' }}>
+                            {new Date(h.createdAt).toLocaleDateString()} at {new Date(h.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {h.applicantVisibleRemarks && (
+                            <div style={{ color: '#475569', background: '#FFFFFF', border: '1px solid #E2E8F0', padding: '0.35rem 0.65rem', borderRadius: '6px', marginTop: '0.25rem', fontSize: '0.78rem' }}>
+                              "{h.applicantVisibleRemarks}"
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Preserved Applicant Snapshot */}

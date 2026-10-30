@@ -94,35 +94,37 @@ export default function AdminEnquiriesPage() {
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.35rem' }}>
-          <MessageSquare size={24} color="var(--primary)" />
-          <h1 style={{ fontSize: '1.85rem', margin: 0 }}>Contact Enquiry Management</h1>
+    <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+      {/* Standard Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 1.9rem)', fontWeight: 800, color: '#0F172A', margin: 0, marginBottom: '0.35rem' }}>
+            Client Inbound Enquiries
+          </h1>
+          <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
+            Review inbound client inquiries, manage response workflow, and record confidential admin remarks.
+          </p>
         </div>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-          Review inbound client inquiries, manage response workflow, and record confidential admin remarks.
-        </p>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="glass-panel" style={{ padding: '1.25rem', marginBottom: '1.75rem' }}>
+      <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '14px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
           <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
+            <Search size={16} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
             <input
               type="text"
               placeholder="Search by name, email, or subject..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: '100%', padding: '0.65rem 0.85rem 0.65rem 2.5rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none' }}
+              style={{ width: '100%', padding: '0.65rem 0.85rem 0.65rem 2.5rem', borderRadius: '8px', background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#0F172A', fontSize: '0.875rem', outline: 'none' }}
             />
           </div>
 
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none' }}
+            style={{ padding: '0.65rem 0.85rem', borderRadius: '8px', background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#0F172A', fontSize: '0.875rem', outline: 'none' }}
           >
             <option value="ALL">All Enquiry Statuses</option>
             <option value="NEW">New (Unreviewed)</option>
@@ -132,77 +134,70 @@ export default function AdminEnquiriesPage() {
         </div>
       </div>
 
-      {/* Enquiries Table */}
-      <div className="glass-panel table-responsive" style={{ padding: 'clamp(1rem, 3vw, 1.5rem)' }}>
+      {/* Enquiries Table & Mobile Cards */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem' }}>
-            <RefreshCw className="animate-spin" size={28} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
-            <p style={{ color: 'var(--text-muted)' }}>Loading enquiries...</p>
+          <div style={{ textAlign: 'center', padding: '4rem' }}>
+            <RefreshCw className="animate-spin" size={28} color="#2563EB" style={{ margin: '0 auto 1rem' }} />
+            <p style={{ color: '#64748B', margin: 0 }}>Loading enquiries...</p>
           </div>
         ) : error ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--status-danger)' }}>
+          <div style={{ textAlign: 'center', padding: '3rem', color: '#DC2626' }}>
             <AlertCircle size={32} style={{ margin: '0 auto 1rem' }} />
             <p>{error}</p>
           </div>
         ) : enquiries.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem' }}>
-            <MessageSquare size={36} color="var(--text-dim)" style={{ margin: '0 auto 1rem' }} />
-            <h3 style={{ fontSize: '1.15rem', marginBottom: '0.5rem' }}>No Enquiries Found</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+            <MessageSquare size={36} color="#94A3B8" style={{ margin: '0 auto 1rem' }} />
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.5rem' }}>No Enquiries Found</h3>
+            <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
               Inbound website contact messages will appear here.
             </p>
           </div>
         ) : (
           <>
             {/* Desktop / Tablet Table View */}
-            <div className="desktop-table-view table-responsive">
+            <div className="desktop-table-view table-responsive" style={{ margin: 0 }}>
               <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-dim)', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                    <th style={{ padding: '0.75rem 1rem' }}>Sender</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Subject</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Received Date</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#64748B', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 700 }}>
+                    <th style={{ padding: '0.85rem 1.25rem' }}>Sender</th>
+                    <th style={{ padding: '0.85rem 1.25rem' }}>Subject</th>
+                    <th style={{ padding: '0.85rem 1.25rem' }}>Received</th>
+                    <th style={{ padding: '0.85rem 1.25rem' }}>Status</th>
+                    <th style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {enquiries.map((item) => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ fontWeight: 600 }}>{item.fullName}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.email}</div>
-                        {item.phone && <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{item.phone}</div>}
+                    <tr key={item.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                      <td style={{ padding: '1rem 1.25rem', maxWidth: '220px' }}>
+                        <div style={{ fontWeight: 700, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.fullName}>{item.fullName}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.email}>{item.email}</div>
+                        {item.phone && <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{item.phone}</div>}
                       </td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ fontWeight: 500 }}>{item.subject}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '1rem 1.25rem' }}>
+                        <div style={{ fontWeight: 600, color: '#0F172A' }}>{item.subject}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748B', maxWidth: '320px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {item.message}
                         </div>
                       </td>
-                      <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                      <td style={{ padding: '1rem 1.25rem', color: '#64748B', fontSize: '0.85rem' }}>
                         {new Date(item.createdAt).toLocaleDateString()}
                       </td>
-                      <td style={{ padding: '1rem' }}>
+                      <td style={{ padding: '1rem 1.25rem' }}>
                         {item.status === 'NEW' && <span className="badge badge-warning">New</span>}
                         {item.status === 'IN_PROGRESS' && <span className="badge badge-info">In Progress</span>}
                         {item.status === 'RESOLVED' && <span className="badge badge-success">Resolved</span>}
                       </td>
-                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                      <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
                         <button
                           className="btn btn-secondary"
                           onClick={() => handleOpenDetails(item)}
-                          style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', marginRight: '0.5rem' }}
+                          style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                         >
                           <Eye size={14} />
-                          <span style={{ marginLeft: '0.35rem' }}>View</span>
-                        </button>
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handleDelete(item)}
-                          style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
-                        >
-                          <Trash2 size={14} />
+                          <span>Review</span>
                         </button>
                       </td>
                     </tr>
@@ -212,7 +207,7 @@ export default function AdminEnquiriesPage() {
             </div>
 
             {/* Mobile Vertical Cards View */}
-            <div className="mobile-cards-view">
+            <div className="mobile-cards-view" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               {enquiries.map((item) => (
                 <div
                   key={`card-${item.id}`}
@@ -229,39 +224,31 @@ export default function AdminEnquiriesPage() {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F172A' }}>{item.fullName}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', wordBreak: 'break-all' }}>{item.email}</div>
-                      {item.phone && <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{item.phone}</div>}
+                      <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>{item.fullName}</h4>
+                      <div style={{ fontSize: '0.8rem', color: '#64748B', wordBreak: 'break-all' }}>{item.email}</div>
                     </div>
                     {item.status === 'NEW' && <span className="badge badge-warning">New</span>}
                     {item.status === 'IN_PROGRESS' && <span className="badge badge-info">In Progress</span>}
                     {item.status === 'RESOLVED' && <span className="badge badge-success">Resolved</span>}
                   </div>
 
-                  <div style={{ padding: '0.65rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0F172A', marginBottom: '0.2rem' }}>{item.subject}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{item.message}</div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#0F172A' }}>{item.subject}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem', lineHeight: 1.4 }}>
+                      {item.message}
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-dim)', borderTop: '1px solid #F1F5F9', paddingTop: '0.6rem' }}>
-                    <span>{new Date(item.createdAt).toLocaleDateString()}</span>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => handleOpenDetails(item)}
-                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                      >
-                        <Eye size={14} />
-                        <span>View Details</span>
-                      </button>
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => handleDelete(item)}
-                        style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.6rem', borderTop: '1px solid #F1F5F9' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{new Date(item.createdAt).toLocaleDateString()}</span>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => handleOpenDetails(item)}
+                      style={{ padding: '0.4rem 0.85rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                    >
+                      <Eye size={13} />
+                      <span>Review</span>
+                    </button>
                   </div>
                 </div>
               ))}

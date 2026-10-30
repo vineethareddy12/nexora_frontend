@@ -301,6 +301,7 @@ export default function ApplicantProfilePage() {
 
       {/* 2. Interactive Navigation Tabs */}
       <div
+        className="profile-nav-tabs"
         style={{
           display: 'flex',
           gap: '0.5rem',
