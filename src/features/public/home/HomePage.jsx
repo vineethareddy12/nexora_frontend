@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ArrowRight, 
-  Sparkles, 
-  Code2, 
-  Smartphone, 
-  Cloud, 
-  ShieldCheck, 
-  Cpu, 
-  CheckCircle2, 
-  Users, 
-  Briefcase, 
-  Award, 
-  Zap, 
-  Globe2, 
+import {
+  ArrowRight,
+  Sparkles,
+  Code2,
+  Smartphone,
+  Cloud,
+  ShieldCheck,
+  Cpu,
+  CheckCircle2,
+  Users,
+  Briefcase,
+  Award,
+  Zap,
+  Globe2,
   ChevronRight,
   Layers,
   MapPin,
@@ -21,7 +21,16 @@ import {
   RefreshCw,
   Terminal,
   Activity,
-  Check
+  Check,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Server,
+  TrendingUp,
+  Compass,
+  Building2,
+  Lock
 } from 'lucide-react';
 import { companyApi } from '../company/companyApi';
 import { servicesApi } from '../services/api/servicesApi';
@@ -33,6 +42,28 @@ export default function HomePage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [servicesError, setServicesError] = useState(null);
+
+  // Hero Video Player controls
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef(null);
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play().catch(() => {});
+      setIsPlaying(true);
+    }
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !videoRef.current.muted;
+    setIsMuted(videoRef.current.muted);
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -67,7 +98,7 @@ export default function HomePage() {
   return (
     <div style={{ width: '100%', overflow: 'hidden', background: '#FFFFFF' }}>
       {/* ====================================================================
-          1. Hero Section — Premium Light SaaS Two-Column Layout
+          1. Hero Section — Two-Column Layout With High-Tech Video Showcase
           ==================================================================== */}
       <section
         style={{
@@ -82,8 +113,8 @@ export default function HomePage() {
             maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-            gap: 'clamp(2rem, 4vw, 4rem)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+            gap: 'clamp(2.5rem, 5vw, 4.5rem)',
             alignItems: 'center',
           }}
         >
@@ -107,13 +138,13 @@ export default function HomePage() {
                 }}
               >
                 <Sparkles size={14} color="#2563EB" />
-                <span>Technology &bull; Engineering &bull; Talent</span>
+                <span>Next-Gen Technology &bull; Engineering &bull; Talent</span>
               </span>
             </div>
 
             <h1
               style={{
-                fontSize: 'clamp(2rem, 5vw, 3.75rem)',
+                fontSize: 'clamp(2.15rem, 5vw, 3.65rem)',
                 lineHeight: 1.15,
                 color: '#0F172A',
                 fontWeight: 800,
@@ -143,17 +174,17 @@ export default function HomePage() {
               }}
             >
               {company?.shortDescription ||
-                'Nexora Technologies helps businesses build reliable digital products and connects talented professionals with opportunities to grow.'}
+                'Nexora Technologies builds enterprise-grade digital products, cloud architectures, and scalable web platforms while empowering businesses with verified engineering talent.'}
             </p>
 
             {/* CTAs */}
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.25rem' }}>
               <Link
                 to="/services"
                 className="btn btn-primary"
-                style={{ padding: '0.85rem 1.85rem', fontSize: '1rem' }}
+                style={{ padding: '0.85rem 1.85rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
               >
-                <span>Explore Our Services</span>
+                <span>Explore Services</span>
                 <ArrowRight size={18} />
               </Link>
               <Link
@@ -161,8 +192,41 @@ export default function HomePage() {
                 className="btn btn-secondary"
                 style={{ padding: '0.85rem 1.85rem', fontSize: '1rem' }}
               >
-                <span>Explore Careers</span>
+                <span>Browse Careers</span>
               </Link>
+              <Link
+                to="/contact"
+                className="btn btn-secondary"
+                style={{ padding: '0.85rem 1.5rem', fontSize: '1rem', color: '#475569' }}
+              >
+                <span>Contact Us</span>
+              </Link>
+            </div>
+
+            {/* Quick Metrics Strip */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '1rem',
+                padding: '1.25rem 0',
+                borderTop: '1px solid #E2E8F0',
+                borderBottom: '1px solid #E2E8F0',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#2563EB' }}>99.9%</div>
+                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Platform SLA Uptime</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#06B6D4' }}>24/7</div>
+                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Cloud Monitoring</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#059669' }}>100%</div>
+                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Verified Profiles</div>
+              </div>
             </div>
 
             {/* Feature Indicators Row */}
@@ -172,14 +236,12 @@ export default function HomePage() {
                 alignItems: 'center',
                 gap: '1.5rem',
                 flexWrap: 'wrap',
-                paddingTop: '1.5rem',
-                borderTop: '1px solid #E2E8F0',
               }}
             >
               {[
-                'Software Engineering',
-                'Cloud & DevOps',
-                'Talent & Recruitment',
+                'Full-Stack Software Engineering',
+                'Cloud Infrastructure & DevOps',
+                'Talent & Recruitment Hub',
               ].map((feature, idx) => (
                 <div
                   key={idx}
@@ -187,7 +249,7 @@ export default function HomePage() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.45rem',
-                    fontSize: '0.875rem',
+                    fontSize: '0.85rem',
                     color: '#0F172A',
                     fontWeight: 600,
                   }}
@@ -212,205 +274,238 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right Column: Beautiful Layered Interface Artwork */}
+          {/* Right Column: Hero Video Showcase in Modern Browser Window */}
           <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-            {/* Background Decorative Gradient Orbs */}
+            {/* Ambient Background Glow */}
             <div
               style={{
                 position: 'absolute',
-                top: '-20px',
-                right: '10px',
-                width: '320px',
-                height: '320px',
+                top: '-25px',
+                right: '-10px',
+                width: '420px',
+                height: '420px',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(191, 219, 254, 0.45) 0%, rgba(207, 250, 254, 0) 70%)',
-                filter: 'blur(30px)',
+                background: 'radial-gradient(circle, rgba(37, 99, 235, 0.22) 0%, rgba(6, 182, 212, 0.12) 40%, rgba(207, 250, 254, 0) 70%)',
+                filter: 'blur(35px)',
                 zIndex: 0,
+                pointerEvents: 'none',
               }}
             />
 
-            {/* Main Interactive System Preview Card */}
+            {/* Video Player Device Window Container */}
             <div
-              className="card"
               style={{
                 position: 'relative',
                 zIndex: 1,
                 width: '100%',
-                maxWidth: '480px',
-                padding: 'clamp(1.25rem, 3.5vw, 2rem)',
-                background: '#FFFFFF',
-                border: '1px solid #E2E8F0',
+                maxWidth: '560px',
+                background: '#0F172A',
                 borderRadius: '20px',
-                boxShadow: '0 20px 35px -5px rgba(15, 23, 42, 0.08), 0 10px 15px -5px rgba(37, 99, 235, 0.05)',
+                overflow: 'hidden',
+                boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(226, 232, 240, 0.8)',
+                border: '1px solid #CBD5E1',
               }}
             >
-              {/* Card Header */}
+              {/* Browser Window Chrome Top Header */}
               <div
                 style={{
+                  background: '#1E293B',
+                  padding: '0.75rem 1rem',
                   display: 'flex',
-                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  paddingBottom: '1.25rem',
-                  borderBottom: '1px solid #F1F5F9',
-                  marginBottom: '1.25rem',
+                  justifyContent: 'space-between',
+                  borderBottom: '1px solid #334155',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <div
-                    style={{
-                      width: '12px',
-                      height: '12px',
-                      borderRadius: '50%',
-                      background: '#10B981',
-                      boxShadow: '0 0 8px rgba(16, 185, 129, 0.5)',
-                    }}
-                  />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0F172A' }}>
-                    Enterprise Engineering Matrix
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} />
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} />
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+                  <span style={{ fontSize: '0.76rem', color: '#94A3B8', marginLeft: '0.5rem', fontWeight: 600 }}>
+                    Nexora Technology Showcase
                   </span>
                 </div>
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#2563EB',
-                    background: '#EFF6FF',
-                    padding: '0.2rem 0.6rem',
-                    borderRadius: '9999px',
-                    fontWeight: 600,
-                  }}
-                >
-                  Production Ready
-                </span>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontSize: '0.68rem',
+                      color: '#34D399',
+                      background: 'rgba(52, 211, 153, 0.15)',
+                      padding: '0.15rem 0.55rem',
+                      borderRadius: '9999px',
+                      fontWeight: 700,
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+                    LIVE PREVIEW
+                  </span>
+
+                  {/* Sound Toggle */}
+                  <button
+                    type="button"
+                    onClick={toggleMute}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: 'none',
+                      color: '#E2E8F0',
+                      cursor: 'pointer',
+                      padding: '0.3rem 0.45rem',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+                  >
+                    {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                  </button>
+
+                  {/* Play/Pause Toggle */}
+                  <button
+                    type="button"
+                    onClick={togglePlay}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      border: 'none',
+                      color: '#E2E8F0',
+                      cursor: 'pointer',
+                      padding: '0.3rem 0.45rem',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    title={isPlaying ? 'Pause Video' : 'Play Video'}
+                  >
+                    {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                  </button>
+                </div>
               </div>
 
-              {/* Status Metric Preview */}
+              {/* Video Element Screen */}
               <div
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '1rem',
-                  marginBottom: '1.25rem',
+                  position: 'relative',
+                  width: '100%',
+                  aspectRatio: '16/10',
+                  background: '#0F172A',
+                  overflow: 'hidden',
                 }}
               >
-                <div
+                <video
+                  ref={videoRef}
+                  src="/hero-video.mp4"
+                  autoPlay
+                  loop
+                  muted={isMuted}
+                  playsInline
+                  preload="auto"
                   style={{
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
-                    padding: '1rem',
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block',
                   }}
-                >
-                  <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.25rem' }}>
-                    System Reliability
-                  </div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A' }}>
-                    99.98%
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600, marginTop: '0.2rem' }}>
-                    &uarr; High Availability
-                  </div>
-                </div>
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                />
 
+                {/* Clickable Overlay to Pause/Play */}
                 <div
+                  onClick={togglePlay}
                   style={{
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
-                    padding: '1rem',
+                    position: 'absolute',
+                    inset: 0,
+                    cursor: 'pointer',
+                    background: isPlaying ? 'transparent' : 'rgba(15, 23, 42, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background 0.2s ease',
                   }}
                 >
-                  <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.25rem' }}>
-                    Architecture Quality
-                  </div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#2563EB' }}>
-                    ISO 9001
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 600, marginTop: '0.2rem' }}>
-                    Process Verified
-                  </div>
+                  {!isPlaying && (
+                    <div
+                      style={{
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '50%',
+                        background: 'rgba(37, 99, 235, 0.95)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#FFFFFF',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+                      }}
+                    >
+                      <Play size={28} style={{ marginLeft: '4px' }} />
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Active Pipeline List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem 0.95rem',
-                    background: '#EFF6FF',
-                    border: '1px solid #BFDBFE',
-                    borderRadius: '10px',
-                    fontSize: '0.85rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Code2 size={16} color="#2563EB" />
-                    <span style={{ fontWeight: 600, color: '#0F172A' }}>Cloud Microservices Mesh</span>
-                  </div>
-                  <span style={{ color: '#059669', fontSize: '0.75rem', fontWeight: 600 }}>Active</span>
+              {/* Chrome Bottom Footer Bar */}
+              <div
+                style={{
+                  background: '#0F172A',
+                  padding: '0.75rem 1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderTop: '1px solid #1E293B',
+                  fontSize: '0.78rem',
+                  color: '#94A3B8',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <Activity size={14} color="#06B6D4" />
+                  <span>Enterprise Engineering & Scalable Cloud Solutions</span>
                 </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem 0.95rem',
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '10px',
-                    fontSize: '0.85rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Users size={16} color="#06B6D4" />
-                    <span style={{ fontWeight: 600, color: '#0F172A' }}>Global Talent Pipeline</span>
-                  </div>
-                  <span style={{ color: '#2563EB', fontSize: '0.75rem', fontWeight: 600 }}>Connected</span>
-                </div>
+                <span style={{ color: '#60A5FA', fontWeight: 600 }}>Nexora Technologies</span>
               </div>
             </div>
 
-            {/* Floating Talent Badge Card */}
+            {/* Floating Glassmorphic Badge: Verified Hub */}
             <div
-              className="card"
               style={{
                 position: 'absolute',
-                bottom: '-25px',
-                left: '-20px',
+                bottom: '-20px',
+                left: '-15px',
                 zIndex: 2,
                 background: '#FFFFFF',
                 border: '1px solid #BFDBFE',
                 borderRadius: '14px',
-                padding: '0.85rem 1.15rem',
+                padding: '0.75rem 1rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
-                boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.15)',
+                boxShadow: '0 12px 25px -4px rgba(37, 99, 235, 0.16)',
               }}
             >
               <div
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '38px',
+                  height: '38px',
                   borderRadius: '10px',
                   background: 'linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#FFFFFF',
+                  flexShrink: 0,
                 }}
               >
-                <Award size={18} />
+                <Award size={19} />
               </div>
               <div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0F172A' }}>
                   Talent Matching Hub
                 </div>
-                <div style={{ fontSize: '0.725rem', color: '#64748B' }}>
-                  Verified Engineering Profiles
+                <div style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                  Verified Engineering Candidates
                 </div>
               </div>
             </div>
@@ -419,7 +514,70 @@ export default function HomePage() {
       </section>
 
       {/* ====================================================================
-          2. Services Section — Technology Services Built for What’s Next
+          2. Technology Excellence & Trust Strip
+          ==================================================================== */}
+      <section
+        style={{
+          background: '#F8FAFC',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '1.75rem 1.5rem',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1280px',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '1.25rem',
+          }}
+        >
+          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Enterprise Tech Stack:
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'clamp(1rem, 3vw, 2.25rem)',
+              flexWrap: 'wrap',
+            }}
+          >
+            {[
+              { label: 'React & Next.js', icon: Code2 },
+              { label: 'Node.js & Express', icon: Server },
+              { label: 'PostgreSQL & Prisma', icon: Layers },
+              { label: 'Cloud Architecture & DevOps', icon: Cloud },
+              { label: 'JWT & Security Gateways', icon: ShieldCheck },
+              { label: 'Verified Talent Operations', icon: Users },
+            ].map((tech, idx) => {
+              const IconComp = tech.icon;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    fontSize: '0.85rem',
+                    color: '#334155',
+                    fontWeight: 600,
+                  }}
+                >
+                  <IconComp size={15} color="#2563EB" />
+                  <span>{tech.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================================
+          3. Core Capabilities & Technology Services
           ==================================================================== */}
       <section
         style={{
@@ -433,7 +591,7 @@ export default function HomePage() {
           <span className="badge badge-primary" style={{ marginBottom: '0.85rem' }}>
             Capabilities & Solutions
           </span>
-          <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', marginBottom: '1rem', color: '#0F172A' }}>
+          <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', marginBottom: '1rem', color: '#0F172A', fontWeight: 800 }}>
             Technology Services Built for What’s Next
           </h2>
           <p
@@ -445,14 +603,14 @@ export default function HomePage() {
               lineHeight: 1.7,
             }}
           >
-            Explore our engineering and technology capabilities.
+            Explore our end-to-end engineering, cloud modernization, and technology delivery capabilities.
           </p>
         </div>
 
         {/* Loading Skeletons */}
         {loading && (
           <div style={{ textAlign: 'center', padding: '3rem' }}>
-            <RefreshCw className="spin" size={28} color="#2563EB" style={{ margin: '0 auto 1rem' }} />
+            <RefreshCw className="animate-spin" size={28} color="#2563EB" style={{ margin: '0 auto 1rem' }} />
             <p style={{ color: '#64748B' }}>Loading engineering capabilities...</p>
           </div>
         )}
@@ -480,12 +638,12 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Services Responsive Grid (3-column desktop, 2 tablet, 1 mobile) */}
+        {/* Services Responsive Grid */}
         {!loading && !servicesError && (
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
               gap: 'clamp(1.25rem, 3vw, 2rem)',
             }}
           >
@@ -500,6 +658,8 @@ export default function HomePage() {
                   background: '#FFFFFF',
                   borderRadius: '16px',
                   border: '1px solid #E2E8F0',
+                  boxShadow: '0 4px 6px -1px rgba(15, 23, 42, 0.05)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
                 }}
               >
                 {/* Light Blue Icon Container */}
@@ -587,6 +747,7 @@ export default function HomePage() {
                       fontSize: '0.9rem',
                       color: '#2563EB',
                       fontWeight: 600,
+                      textDecoration: 'none',
                     }}
                   >
                     <span>Explore Service</span>
@@ -600,7 +761,83 @@ export default function HomePage() {
       </section>
 
       {/* ====================================================================
-          3. Why Choose Nexora — Alternate Pale-Blue Background
+          4. Impact Numbers & Enterprise Performance Grid
+          ==================================================================== */}
+      <section
+        style={{
+          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
+          color: '#FFFFFF',
+          padding: 'clamp(3.5rem, 5vw, 5rem) clamp(1rem, 3vw, 1.5rem)',
+          borderTop: '1px solid #E2E8F0',
+        }}
+      >
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <span
+              style={{
+                background: 'rgba(37, 99, 235, 0.25)',
+                border: '1px solid #3B82F6',
+                color: '#93C5FD',
+                padding: '0.35rem 0.95rem',
+                borderRadius: '9999px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                display: 'inline-block',
+                marginBottom: '0.75rem',
+              }}
+            >
+              Enterprise Impact
+            </span>
+            <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontWeight: 800, margin: 0, color: '#FFFFFF' }}>
+              Delivering Measurable Outcomes Globally
+            </h2>
+            <p style={{ color: '#94A3B8', fontSize: '1.05rem', marginTop: '0.75rem', maxWidth: '640px', margin: '0.75rem auto 0' }}>
+              Engineered for resilience, high concurrency, and rapid talent deployment.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+              gap: '1.5rem',
+            }}
+          >
+            {[
+              { stat: '100+', label: 'Digital Products Engineered', desc: 'Scalable platforms deployed for clients', icon: RocketIcon },
+              { stat: '99.99%', label: 'Cloud Architecture Uptime', desc: 'Zero unmanaged downtime SLA', icon: Cloud },
+              { stat: '15 Days', label: 'Average Talent Matching', desc: 'Rapid interview-to-offer turnaround', icon: Clock },
+              { stat: '100%', label: 'Security & Compliance', desc: 'Enterprise-grade access & audit logging', icon: ShieldCheck },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  padding: '2rem 1.5rem',
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{ fontSize: 'clamp(2.2rem, 4vw, 3rem)', fontWeight: 800, color: '#38BDF8', marginBottom: '0.35rem' }}>
+                  {item.stat}
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '0.4rem' }}>
+                  {item.label}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#94A3B8', lineHeight: 1.5 }}>
+                  {item.desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================================
+          5. Why Choose Nexora — Hybrid Delivery Model
           ==================================================================== */}
       <section
         style={{
@@ -615,7 +852,7 @@ export default function HomePage() {
             maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
             gap: 'clamp(2rem, 4vw, 4rem)',
             alignItems: 'center',
           }}
@@ -631,6 +868,7 @@ export default function HomePage() {
                 lineHeight: 1.25,
                 marginBottom: '1.25rem',
                 color: '#0F172A',
+                fontWeight: 800,
               }}
             >
               A Hybrid Global Delivery Model Designed for Scalability and Speed
@@ -659,8 +897,8 @@ export default function HomePage() {
                   desc: 'Modular architectures designed to handle growing traffic, data, and users.',
                 },
                 {
-                  title: 'Collaborative Development',
-                  desc: 'Agile sprints with transparent source control, CI/CD pipelines, and regular reviews.',
+                  title: 'Collaborative Agile Development',
+                  desc: 'Transparent source control, CI/CD pipelines, sprint demos, and regular reviews.',
                 },
                 {
                   title: 'Talent & Career Connections',
@@ -685,7 +923,7 @@ export default function HomePage() {
                     <Check size={14} color="#2563EB" strokeWidth={3} />
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#0F172A' }}>
+                    <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#0F172A', fontWeight: 700 }}>
                       {point.title}
                     </h4>
                     <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.5, margin: 0 }}>
@@ -697,22 +935,25 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right Column: Clean Composition of Feature Cards / Tech Stack */}
+          {/* Right Column: Clean Composition of Tech Stack */}
           <div
             className="card"
             style={{
-              padding: 'clamp(1.25rem, 4vw, 2.5rem)',
+              padding: 'clamp(1.5rem, 4vw, 2.5rem)',
               background: '#FFFFFF',
               borderRadius: '20px',
               border: '1px solid #E2E8F0',
-              boxShadow: 'var(--shadow-md)',
+              boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.08)',
             }}
           >
-            <h3 style={{ fontSize: '1.35rem', marginBottom: '0.5rem', color: '#0F172A' }}>
-              Technology Excellence Stack
-            </h3>
-            <p style={{ color: '#64748B', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-              Modern, battle-tested enterprise frameworks and cloud infrastructure.
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+              <Cpu size={20} color="#2563EB" />
+              <h3 style={{ fontSize: '1.35rem', margin: 0, color: '#0F172A', fontWeight: 800 }}>
+                Technology Excellence Stack
+              </h3>
+            </div>
+            <p style={{ color: '#64748B', fontSize: '0.9rem', marginBottom: '1.75rem' }}>
+              Modern, battle-tested enterprise frameworks, secure pipelines, and cloud infrastructure.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '1rem' }}>
@@ -727,16 +968,16 @@ export default function HomePage() {
                 <div
                   key={t}
                   style={{
-                    padding: '1rem',
+                    padding: '1.1rem 1rem',
                     background: '#F8FAFC',
-                    borderRadius: '10px',
+                    borderRadius: '12px',
                     border: '1px solid #E2E8F0',
                   }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0F172A' }}>
                     {tech.name}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.2rem' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '0.25rem' }}>
                     {tech.role}
                   </div>
                 </div>
@@ -747,7 +988,122 @@ export default function HomePage() {
       </section>
 
       {/* ====================================================================
-          4. Careers and Job Opportunities — Section 8
+          6. How We Work — 4-Step Engineering Delivery Lifecycle
+          ==================================================================== */}
+      <section
+        style={{
+          padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 1.5rem)',
+          maxWidth: '1280px',
+          margin: '0 auto',
+          background: '#FFFFFF',
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+          <span className="badge badge-primary" style={{ marginBottom: '0.85rem' }}>
+            Structured Execution
+          </span>
+          <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', marginBottom: '1rem', color: '#0F172A', fontWeight: 800 }}>
+            How Nexora Delivers
+          </h2>
+          <p
+            style={{
+              color: '#475569',
+              maxWidth: '640px',
+              margin: '0 auto',
+              fontSize: '1.1rem',
+              lineHeight: 1.7,
+            }}
+          >
+            A disciplined, transparent delivery framework that ensures project clarity and on-time launches.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
+            gap: '1.5rem',
+          }}
+        >
+          {[
+            {
+              step: '01',
+              title: 'Discovery & Architecture',
+              desc: 'Deep-dive into business goals, technical constraints, and system design specifications.',
+              icon: Compass,
+            },
+            {
+              step: '02',
+              title: 'Agile Sprints & Build',
+              desc: 'Iterative two-week development sprints with code reviews and automated CI/CD checks.',
+              icon: Code2,
+            },
+            {
+              step: '03',
+              title: 'Quality & Security Testing',
+              desc: 'End-to-end integration, performance load tests, vulnerability scanning, and QA verification.',
+              icon: ShieldCheck,
+            },
+            {
+              step: '04',
+              title: 'Deployment & Scale',
+              desc: 'Production cloud rollout, monitoring telemetry, SLA maintenance, and continuous optimization.',
+              icon: TrendingUp,
+            },
+          ].map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={idx}
+                style={{
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '16px',
+                  padding: '2rem 1.5rem',
+                  boxShadow: '0 4px 6px -1px rgba(15, 23, 42, 0.05)',
+                  position: 'relative',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '2rem',
+                    fontWeight: 800,
+                    color: '#E2E8F0',
+                    marginBottom: '0.75rem',
+                    fontFamily: 'monospace',
+                  }}
+                >
+                  {item.step}
+                </div>
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '10px',
+                    background: '#EFF6FF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#2563EB',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  <Icon size={20} />
+                </div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.5rem' }}>
+                  {item.title}
+                </h3>
+                <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
+                  {item.desc}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ====================================================================
+          7. Careers and Job Opportunities
           ==================================================================== */}
       {jobs.length > 0 && (
         <section
@@ -755,7 +1111,8 @@ export default function HomePage() {
             padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 1.5rem)',
             maxWidth: '1280px',
             margin: '0 auto',
-            background: '#FFFFFF',
+            background: '#F8FAFC',
+            borderTop: '1px solid #E2E8F0',
           }}
         >
           <div
@@ -772,7 +1129,7 @@ export default function HomePage() {
               <span className="badge badge-primary" style={{ marginBottom: '0.75rem' }}>
                 Open Positions
               </span>
-              <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', color: '#0F172A', margin: 0 }}>
+              <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', color: '#0F172A', margin: 0, fontWeight: 800 }}>
                 Build Your Next Chapter with Nexora
               </h2>
               <p style={{ color: '#475569', fontSize: '1.05rem', marginTop: '0.5rem', maxWidth: '600px' }}>
@@ -803,6 +1160,7 @@ export default function HomePage() {
                   background: '#FFFFFF',
                   borderRadius: '16px',
                   border: '1px solid #E2E8F0',
+                  boxShadow: '0 4px 6px -1px rgba(15, 23, 42, 0.05)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -810,7 +1168,7 @@ export default function HomePage() {
                   <span className="badge badge-primary">{job.workMode}</span>
                 </div>
 
-                <h3 style={{ fontSize: '1.3rem', marginBottom: '0.65rem', color: '#0F172A' }}>
+                <h3 style={{ fontSize: '1.3rem', marginBottom: '0.65rem', color: '#0F172A', fontWeight: 700 }}>
                   {job.title}
                 </h3>
 
@@ -873,60 +1231,70 @@ export default function HomePage() {
       )}
 
       {/* ====================================================================
-          5. Recruitment Portal Callout Banner
+          8. Dual Action Callout Banner (For Clients & Candidates)
           ==================================================================== */}
       <section
         style={{
-          padding: 'clamp(3rem, 6vw, 5rem) clamp(1rem, 3vw, 1.5rem)',
+          padding: 'clamp(3.5rem, 6vw, 5.5rem) clamp(1rem, 3vw, 1.5rem)',
           background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDFA 100%)',
           borderTop: '1px solid #E2E8F0',
         }}
       >
         <div
           style={{
-            maxWidth: '1000px',
+            maxWidth: '1080px',
             margin: '0 auto',
             textAlign: 'center',
           }}
         >
           <span className="badge badge-primary" style={{ marginBottom: '1rem' }}>
-            We Are Actively Hiring
+            Get Started With Nexora
           </span>
-          <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', marginBottom: '1rem', color: '#0F172A' }}>
-            Build Your Engineering Career at {company?.companyName || 'Nexora Technologies'}
+          <h2 style={{ fontSize: 'clamp(2.15rem, 4vw, 3rem)', marginBottom: '1.25rem', color: '#0F172A', fontWeight: 800 }}>
+            Ready to Build Next-Generation Digital Products or Advance Your Career?
           </h2>
           <p
             style={{
               color: '#475569',
-              maxWidth: '680px',
-              margin: '0 auto 2.25rem',
-              fontSize: '1.1rem',
+              maxWidth: '720px',
+              margin: '0 auto 2.5rem',
+              fontSize: '1.15rem',
               lineHeight: 1.7,
             }}
           >
-            Join our engineering team in Hyderabad or work across our hybrid hubs. Create your verified applicant
-            profile, track applications in real time, and access official offer letters securely.
+            Whether you are looking to build a resilient cloud product with our engineering team, or ready to apply for high-impact software roles, Nexora is here for you.
           </p>
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link
-              to="/register"
+              to="/contact"
               className="btn btn-primary"
-              style={{ padding: '0.85rem 2rem', fontSize: '1rem' }}
+              style={{ padding: '0.95rem 2.25rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
             >
-              <span>Create Candidate Account</span>
-              <ArrowRight size={16} />
+              <span>Schedule a Consultation</span>
+              <ArrowRight size={18} />
             </Link>
             <Link
-              to="/careers"
+              to="/register"
               className="btn btn-secondary"
-              style={{ padding: '0.85rem 2rem', fontSize: '1rem' }}
+              style={{ padding: '0.95rem 2.25rem', fontSize: '1rem' }}
             >
-              <span>Browse Job Listings</span>
+              <span>Create Candidate Account</span>
+            </Link>
+            <Link
+              to="/services"
+              className="btn btn-secondary"
+              style={{ padding: '0.95rem 1.85rem', fontSize: '1rem', color: '#475569' }}
+            >
+              <span>Explore Services</span>
             </Link>
           </div>
         </div>
       </section>
     </div>
   );
+}
+
+function RocketIcon(props) {
+  return <Zap {...props} />;
 }

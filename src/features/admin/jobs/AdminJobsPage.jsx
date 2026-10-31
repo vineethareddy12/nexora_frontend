@@ -11,6 +11,11 @@ export default function AdminJobsPage() {
   const toast = useToast();
   const token = accessToken || (typeof window !== 'undefined' ? localStorage.getItem('nexora_access_token') : null);
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterDept, setFilterDept] = useState('ALL');
+  const [filterAvailability, setFilterAvailability] = useState('ALL');
+
   const cacheKey = `admin_jobs_${searchTerm.trim()}_${filterStatus}_${filterDept}_${filterAvailability}`;
   const cachedData = clientCache.get(cacheKey);
 
@@ -18,10 +23,6 @@ export default function AdminJobsPage() {
   const [loading, setLoading] = useState(!cachedData);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('ALL');
-  const [filterDept, setFilterDept] = useState('ALL');
-  const [filterAvailability, setFilterAvailability] = useState('ALL');
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);

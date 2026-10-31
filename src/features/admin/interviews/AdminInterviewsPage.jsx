@@ -315,7 +315,11 @@ export default function AdminInterviewsPage() {
         : [];
 
       if (roundFilter !== 'ALL') {
-        items = items.filter((item) => item.round === roundFilter);
+        const normFilter = roundFilter.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        items = items.filter((item) => {
+          const normRound = (item.round || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+          return normRound === normFilter || normRound.includes(normFilter) || normFilter.includes(normRound);
+        });
       }
 
       setInterviews(items);
@@ -798,7 +802,7 @@ export default function AdminInterviewsPage() {
             </select>
           </div>
 
-          <div style={{ minWidth: '160px' }}>
+          <div style={{ minWidth: '180px' }}>
             <select
               value={roundFilter}
               onChange={(e) => {
@@ -809,12 +813,28 @@ export default function AdminInterviewsPage() {
               style={{ width: '100%', borderRadius: '10px' }}
             >
               <option value="ALL">All Rounds</option>
-              <option value="SCREENING">Screening</option>
-              <option value="TECHNICAL">Technical Round 1</option>
-              <option value="SYSTEM_DESIGN">System Design</option>
-              <option value="MANAGERIAL">Managerial</option>
-              <option value="HR">HR Round</option>
-              <option value="FINAL">Final Round</option>
+              <optgroup label="Core / Screening">
+                <option value="Screening">Screening</option>
+              </optgroup>
+              <optgroup label="Engineering & Technical">
+                <option value="Technical Round 1">Technical Round 1</option>
+                <option value="Technical Round 2">Technical Round 2</option>
+                <option value="System Design">System Design</option>
+              </optgroup>
+              <optgroup label="Design (UI/UX)">
+                <option value="Portfolio Review">Portfolio Review</option>
+                <option value="Design Task">Design Task</option>
+                <option value="Design Discussion">Design Discussion</option>
+              </optgroup>
+              <optgroup label="Business & Sales">
+                <option value="Communication Round">Communication Round</option>
+                <option value="Sales Assessment">Sales Assessment</option>
+              </optgroup>
+              <optgroup label="Managerial & HR">
+                <option value="Managerial Round">Managerial Round</option>
+                <option value="HR Round">HR Round</option>
+                <option value="Final Interview">Final Interview</option>
+              </optgroup>
             </select>
           </div>
 
@@ -1399,6 +1419,12 @@ export default function AdminInterviewsPage() {
                           <span>All rounds cleared! Candidate is ready for final selection and official offer letter.</span>
                         </div>
                       )}
+                      {selectedCandidatePipeline.rounds?.some((r) => r.status === 'SCHEDULED') && (
+                        <div style={{ marginTop: '0.6rem', padding: '0.55rem 0.85rem', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '8px', fontSize: '0.78rem', color: '#92400E', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <AlertCircle size={14} style={{ flexShrink: 0 }} />
+                          <span>Active interview scheduled ({selectedCandidatePipeline.rounds.find((r) => r.status === 'SCHEDULED')?.name || 'In Progress'}). Record feedback for this round to unlock subsequent stages.</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1411,6 +1437,7 @@ export default function AdminInterviewsPage() {
                     </label>
                     <select
                       value={scheduleForm.round}
+                      disabled={!scheduleForm.applicationId || loadingCandidatePipeline}
                       onChange={(e) => {
                         setScheduleForm({ ...scheduleForm, round: e.target.value });
                         if (formErrors.round) setFormErrors((prev) => ({ ...prev, round: undefined }));
@@ -1419,10 +1446,13 @@ export default function AdminInterviewsPage() {
                       style={{ 
                         width: '100%', 
                         borderRadius: '8px',
-                        border: formErrors.round ? '1.5px solid #EF4444' : '1px solid #CBD5E1'
+                        border: formErrors.round ? '1.5px solid #EF4444' : '1px solid #CBD5E1',
+                        background: !scheduleForm.applicationId ? '#F8FAFC' : '#FFFFFF',
                       }}
                     >
-                      {selectedCandidatePipeline?.rounds && selectedCandidatePipeline.rounds.length > 0 ? (
+                      {!scheduleForm.applicationId ? (
+                        <option value="">-- Select Candidate above to view rounds --</option>
+                      ) : selectedCandidatePipeline?.rounds && selectedCandidatePipeline.rounds.length > 0 ? (
                         selectedCandidatePipeline.rounds.map((r) => {
                           const isCleared = r.status === 'CLEARED';
                           const isEligible = r.status === 'ELIGIBLE';
@@ -1439,14 +1469,7 @@ export default function AdminInterviewsPage() {
                           );
                         })
                       ) : (
-                        <>
-                          <option value="Screening">Screening Round</option>
-                          <option value="Technical Round 1">Technical Round 1</option>
-                          <option value="Technical Round 2">Technical Round 2</option>
-                          <option value="System Design">System Design</option>
-                          <option value="Managerial Round">Managerial Round</option>
-                          <option value="HR Round">HR Round</option>
-                        </>
+                        <option value="Screening">Screening Round</option>
                       )}
                     </select>
                     {formErrors.round && (
