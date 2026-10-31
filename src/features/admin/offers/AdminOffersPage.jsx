@@ -4,6 +4,7 @@ import {
   Plus, 
   FileText, 
   Download, 
+  Upload,
   CheckCircle, 
   RefreshCw, 
   Inbox, 
@@ -43,6 +44,7 @@ export default function AdminOffersPage() {
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedPdfFile, setSelectedPdfFile] = useState(null);
 
   // Eligible Applications for offer creation
   const [eligibleApplications, setEligibleApplications] = useState([]);
@@ -147,10 +149,8 @@ export default function AdminOffersPage() {
       const allInterviews = interviewsRes?.interviews || interviewsRes?.data?.interviews || interviewsRes?.data || [];
 
       // Map application clearance details
+      // Filter candidates: Only candidates whose interviews are completed and cleared (or status is SELECTED / OFFER_EXTENDED with completed interviews)
       const candidates = (appsRes.applications || [])
-        .filter((a) =>
-          ['SELECTED', 'INTERVIEW_SCHEDULED', 'SHORTLISTED', 'OFFER_EXTENDED', 'UNDER_REVIEW'].includes(a.status)
-        )
         .map((app) => {
           // Find all interviews for this application
           const appInterviews = allInterviews.filter((i) => i.applicationId === app.id);
@@ -159,20 +159,31 @@ export default function AdminOffersPage() {
             const rec = i.feedbacks?.[0]?.recommendation;
             return rec === 'STRONG_HIRE' || rec === 'RECOMMENDED' || !rec;
           });
+          const hasPendingInterviews = appInterviews.some((i) => i.status === 'SCHEDULED' || i.status === 'RESCHEDULED');
+          const isRejected = appInterviews.some((i) => i.feedbacks?.[0]?.recommendation === 'NOT_RECOMMENDED') || app.status === 'REJECTED';
 
           return {
             ...app,
+            totalInterviewsCount: appInterviews.length,
+            completedRoundsCount: completedRounds.length,
             clearedRoundsCount: clearedRounds.length,
             clearedRoundNames: clearedRounds.map((r) => r.round.replace('_', ' ')).join(', '),
             hasClearedInterviews: clearedRounds.length > 0,
-            hasPendingInterviews: appInterviews.some((i) => i.status === 'SCHEDULED'),
+            hasPendingInterviews,
+            isRejected,
           };
         })
         .filter((app) => {
-          // Exclude candidates whose interviews are rejected
-          const appInterviews = allInterviews.filter((i) => i.applicationId === app.id);
-          const rejected = appInterviews.some((i) => i.feedbacks?.[0]?.recommendation === 'NOT_RECOMMENDED');
-          return !rejected;
+          // Exclude rejected candidates
+          if (app.isRejected) return false;
+          // Exclude candidates with pending scheduled interviews
+          if (app.hasPendingInterviews) return false;
+          // Must either be officially SELECTED or have cleared interview rounds
+          if (app.status === 'SELECTED' || app.status === 'OFFER_EXTENDED') {
+            return true;
+          }
+          // Or candidate whose interviews are all completed & cleared
+          return app.hasClearedInterviews && app.completedRoundsCount > 0;
         });
 
       setEligibleApplications(candidates);
@@ -190,7 +201,7 @@ export default function AdminOffersPage() {
     }
     try {
       setSubmitting(true);
-      await offersApi.createOffer({
+      const created = await offersApi.createOffer({
         applicationId: createForm.applicationId,
         designation: createForm.designation,
         employmentType: createForm.employmentType,
@@ -202,8 +213,18 @@ export default function AdminOffersPage() {
         notes: createForm.notes,
       });
 
+      // Upload attached PDF if provided
+      if (selectedPdfFile && created?.id) {
+        try {
+          await offersApi.uploadOfferAttachment(created.id, selectedPdfFile);
+        } catch (attachErr) {
+          toast?.showError('Offer created, but failed to attach PDF: ' + attachErr.message);
+        }
+      }
+
       toast?.showSuccess('Draft offer letter created');
       setCreateModalOpen(false);
+      setSelectedPdfFile(null);
       setCreateForm({
         applicationId: '',
         designation: '',
@@ -231,6 +252,10 @@ export default function AdminOffersPage() {
 
   const handleConfirmIssue = async () => {
     if (!offerToIssue || submitting) return;
+    if (!offerToIssue.attachment) {
+      toast?.showError('A signed offer letter PDF attachment is mandatory before issuing. Please upload the PDF document.');
+      return;
+    }
     try {
       setSubmitting(true);
       await offersApi.issueOffer(offerToIssue.id);
@@ -557,7 +582,45 @@ export default function AdminOffersPage() {
                         </span>
                       </td>
                       <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                          {offer.attachment ? (
+                            <button
+                              type="button"
+                              onClick={() => offersApi.downloadOfferAttachment(offer.id, 'admin')}
+                              className="btn btn-secondary"
+                              style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#1D4ED8' }}
+                              title={`Download attached PDF (${offer.attachment.originalFilename})`}
+                            >
+                              <FileText size={13} />
+                              <span>PDF</span>
+                            </button>
+                          ) : isDraft ? (
+                            <label
+                              style={{ cursor: 'pointer', padding: '0.35rem 0.65rem', fontSize: '0.75rem', borderRadius: '6px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                              title="Upload mandatory PDF attachment before issuing"
+                            >
+                              <Upload size={13} />
+                              <span>Attach PDF</span>
+                              <input
+                                type="file"
+                                accept=".pdf,application/pdf"
+                                style={{ display: 'none' }}
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    try {
+                                      await offersApi.uploadOfferAttachment(offer.id, file);
+                                      toast?.showSuccess('PDF attached to offer draft.');
+                                      loadData(true);
+                                    } catch (err) {
+                                      toast?.showError(err.message || 'Failed to attach PDF');
+                                    }
+                                  }
+                                }}
+                              />
+                            </label>
+                          ) : null}
+
                           <button
                             onClick={() => handlePreview(offer)}
                             className="btn btn-secondary"
@@ -744,10 +807,10 @@ export default function AdminOffersPage() {
                     <option value="">-- Choose Candidate --</option>
                     {eligibleApplications.map((app) => {
                       const clearanceText = app.hasClearedInterviews
-                        ? `✓ [Cleared: ${app.clearedRoundNames}]`
+                        ? `✓ [Interview Cleared: ${app.clearedRoundNames}]`
                         : app.status === 'SELECTED'
-                        ? '✓ [Selected]'
-                        : '[Shortlisted - Interview Pending]';
+                        ? '★ [Selected for Offer]'
+                        : '[Interview Pending]';
                       return (
                         <option key={app.id} value={app.id}>
                           {app.applicant?.fullName} — {app.job?.title} ({app.referenceNumber}) {clearanceText}
@@ -855,6 +918,63 @@ export default function AdminOffersPage() {
                     className="form-control"
                     style={{ width: '100%', borderRadius: '8px' }}
                   />
+                </div>
+
+                {/* PDF Attachment Upload (Mandatory before issuing) */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                    Attach Official Offer Letter PDF (Required before issuing) *
+                  </label>
+                  <div style={{ padding: '1rem', background: '#F8FAFC', border: '1px dashed #CBD5E1', borderRadius: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                      <label
+                        className="btn btn-secondary"
+                        style={{ cursor: 'pointer', padding: '0.5rem 0.85rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                      >
+                        <Upload size={14} />
+                        <span>Select PDF Document</span>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          style={{ display: 'none' }}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                                toast?.showError('Only PDF files are accepted for offer letters.');
+                                return;
+                              }
+                              if (file.size > 10 * 1024 * 1024) {
+                                toast?.showError('Offer letter PDF cannot exceed 10 MB.');
+                                return;
+                              }
+                              setSelectedPdfFile(file);
+                            }
+                          }}
+                        />
+                      </label>
+                      {selectedPdfFile ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#059669', fontWeight: 600 }}>
+                          <CheckCircle size={15} />
+                          <span>{selectedPdfFile.name} ({(selectedPdfFile.size / 1024).toFixed(1)} KB)</span>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPdfFile(null)}
+                            style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                          No PDF attached yet. You can attach it now or while offer is in DRAFT.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: '#64748B', margin: '0.35rem 0 0' }}>
+                    Upload your organization's signed offer letter PDF. The candidate will review and download this official PDF attachment from their candidate hub.
+                  </p>
                 </div>
               </div>
 

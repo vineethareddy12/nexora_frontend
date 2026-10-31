@@ -238,14 +238,28 @@ export default function ApplicantOffersPage() {
 
                 {/* Action Buttons */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', paddingTop: '0.5rem' }}>
-                  <button
-                    onClick={() => handlePreview(offer)}
-                    className="btn btn-secondary"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.15rem' }}
-                  >
-                    <Eye size={16} />
-                    <span>View & Print Official Letter</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {offer.attachment && (
+                      <button
+                        type="button"
+                        onClick={() => offersApi.downloadOfferAttachment(offer.id, 'applicant')}
+                        className="btn btn-primary"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.15rem' }}
+                      >
+                        <Download size={16} />
+                        <span>Download Offer Letter (PDF)</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => handlePreview(offer)}
+                      className="btn btn-secondary"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.15rem' }}
+                    >
+                      <Eye size={16} />
+                      <span>View Terms</span>
+                    </button>
+                  </div>
 
                   {isIssued && (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>

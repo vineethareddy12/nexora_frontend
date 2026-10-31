@@ -96,6 +96,24 @@ export const interviewsApi = {
     return json.data;
   },
 
+  async getCandidatePipeline(applicationId) {
+    const res = await authFetch(`${BASE_URL}/admin/interviews/applications/${applicationId}/pipeline`);
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error?.message || 'Failed to fetch candidate pipeline');
+    return json.data;
+  },
+
+  async makeFinalDecision(applicationId, payload) {
+    const res = await authFetch(`${BASE_URL}/admin/interviews/applications/${applicationId}/final-decision`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error?.message || 'Failed to record final decision');
+    return json.data;
+  },
+
   // Applicant Methods
   async getApplicantInterviews(params = {}) {
     const query = new URLSearchParams();

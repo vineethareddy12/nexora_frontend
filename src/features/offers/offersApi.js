@@ -117,5 +117,50 @@ export const offersApi = {
     if (!res.ok) throw new Error(json?.error?.message || 'Failed to respond to offer');
     return json.data;
   },
+
+  async uploadOfferAttachment(offerId, file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('nexora_access_token') : null;
+    const res = await fetch(`${BASE_URL}/admin/offers/${offerId}/attachment`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.message || json?.error?.message || 'Failed to upload offer attachment');
+    return json.data;
+  },
+
+  async downloadOfferAttachment(offerId, role = 'admin') {
+    const endpoint = role === 'admin' ? `${BASE_URL}/admin/offers/${offerId}/attachment` : `${BASE_URL}/me/offers/${offerId}/attachment`;
+    const res = await authFetch(endpoint);
+
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const json = await res.json();
+      if (json.downloadUrl) {
+        window.open(json.downloadUrl, '_blank');
+        return;
+      }
+    }
+
+    if (!res.ok) {
+      throw new Error('Failed to download offer attachment PDF');
+    }
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Offer_Letter_${offerId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  },
 };
 

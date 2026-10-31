@@ -179,3 +179,4 @@ export function EmptyState({ icon: Icon = Inbox, title = 'No records found', des
     </div>
   );
 }
+

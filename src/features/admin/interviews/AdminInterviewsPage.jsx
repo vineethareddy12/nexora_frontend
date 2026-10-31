@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   CalendarClock, 
   Plus, 
@@ -15,7 +16,13 @@ import {
   MessageSquare,
   Clock,
   ExternalLink,
-  Edit2
+  Edit2,
+  GitCommit,
+  Award,
+  Check,
+  Lock,
+  ArrowRight,
+  FileText
 } from 'lucide-react';
 import { interviewsApi } from '../../interviews/interviewsApi';
 import { adminReviewApi } from '../review/adminReviewApi';
@@ -218,6 +225,7 @@ export const getMeetingLifecycle = (item) => {
 };
 
 export default function AdminInterviewsPage() {
+  const navigate = useNavigate();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [interviews, setInterviews] = useState([]);
@@ -235,6 +243,13 @@ export default function AdminInterviewsPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [selectedInterview, setSelectedInterview] = useState(null);
+
+  // Candidate Pipeline Inspection & Decision state
+  const [pipelineModalOpen, setPipelineModalOpen] = useState(false);
+  const [pipelineData, setPipelineData] = useState(null);
+  const [loadingPipeline, setLoadingPipeline] = useState(false);
+  const [selectedCandidatePipeline, setSelectedCandidatePipeline] = useState(null);
+  const [loadingCandidatePipeline, setLoadingCandidatePipeline] = useState(false);
 
   // Field-level error validation state
   const [formErrors, setFormErrors] = useState({});
@@ -347,14 +362,74 @@ export default function AdminInterviewsPage() {
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
+  const handleCandidateChange = async (appId) => {
+    setScheduleForm((prev) => ({ ...prev, applicationId: appId }));
+    if (formErrors.applicationId) setFormErrors((prev) => ({ ...prev, applicationId: undefined }));
+    if (!appId) {
+      setSelectedCandidatePipeline(null);
+      return;
+    }
+    try {
+      setLoadingCandidatePipeline(true);
+      const pipeline = await interviewsApi.getCandidatePipeline(appId);
+      setSelectedCandidatePipeline(pipeline);
+      // Automatically pre-select the first eligible round
+      const nextEligible = (pipeline.rounds || []).find((r) => r.status === 'ELIGIBLE');
+      if (nextEligible) {
+        setScheduleForm((prev) => ({ ...prev, round: nextEligible.round }));
+      }
+    } catch (err) {
+      console.warn('Could not load candidate pipeline:', err);
+    } finally {
+      setLoadingCandidatePipeline(false);
+    }
+  };
+
+  const openPipelineModal = async (applicationId) => {
+    if (!applicationId) return;
+    try {
+      setLoadingPipeline(true);
+      setPipelineModalOpen(true);
+      const data = await interviewsApi.getCandidatePipeline(applicationId);
+      setPipelineData(data);
+    } catch (err) {
+      toast?.error('Failed to load candidate pipeline: ' + err.message);
+      setPipelineModalOpen(false);
+    } finally {
+      setLoadingPipeline(false);
+    }
+  };
+
+  const handleFinalSelectionDecision = async (decision) => {
+    if (!pipelineData?.applicationId) return;
+    try {
+      setSubmitting(true);
+      await interviewsApi.makeFinalDecision(pipelineData.applicationId, {
+        decision,
+        remarks: decision === 'SELECTED'
+          ? 'Candidate cleared all interview rounds and is officially selected for offer release.'
+          : 'Candidate did not meet the final selection criteria.'
+      });
+      toast?.success(`Candidate officially marked as ${decision}!`);
+      setPipelineModalOpen(false);
+      loadData(true);
+      window.dispatchEvent(new CustomEvent('nexora:data-updated'));
+    } catch (err) {
+      toast?.error('Failed to record final decision: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const openScheduleModal = async () => {
     try {
       setFormErrors({});
+      setSelectedCandidatePipeline(null);
       const today = getTodayDateString();
       const suggestedTime = getNextSuggestedTimeString();
       setScheduleForm({
         applicationId: '',
-        round: 'TECHNICAL',
+        round: 'Screening',
         mode: 'ONLINE',
         interviewDate: today,
         interviewTime: suggestedTime,
@@ -367,7 +442,7 @@ export default function AdminInterviewsPage() {
       // Fetch both SHORTLISTED candidates and candidates with existing interview progress (for Round 2, Round 3, etc.)
       const apps = await adminReviewApi.getApplications({ limit: 100 });
       const candidates = (apps.applications || []).filter((a) =>
-        ['SHORTLISTED', 'INTERVIEW_SCHEDULED', 'UNDER_REVIEW', 'SELECTED'].includes(a.status)
+        ['SHORTLISTED', 'INTERVIEW_SCHEDULED', 'UNDER_REVIEW'].includes(a.status)
       );
       setEligibleApplications(candidates);
       setScheduleModalOpen(true);
@@ -546,6 +621,8 @@ export default function AdminInterviewsPage() {
             ? 'STRONG_HIRE'
             : feedbackForm.recommendation === 'NEXT_ROUND'
             ? 'RECOMMENDED'
+            : feedbackForm.recommendation === 'HOLD'
+            ? 'HOLD'
             : 'NOT_RECOMMENDED',
       });
       toast?.success('Feedback recorded successfully');
@@ -761,7 +838,7 @@ export default function AdminInterviewsPage() {
       </div>
 
       {/* Interviews Content */}
-      {loading ? (
+      {loading && (!Array.isArray(interviews) || interviews.length === 0) ? (
         <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#64748B' }}>
           <RotateCcw className="animate-spin" size={32} style={{ margin: '0 auto 0.75rem' }} />
           <div>Loading interview schedules...</div>
@@ -958,6 +1035,17 @@ export default function AdminInterviewsPage() {
                               <span>{lifecycle.isLive ? 'Join Now' : 'Join Call'}</span>
                               <ExternalLink size={11} />
                             </a>
+                          )}
+                          {item.applicationId && (
+                            <button
+                              onClick={() => openPipelineModal(item.applicationId)}
+                              className="btn btn-secondary"
+                              style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#4338CA', background: '#EEF2FF', borderColor: '#C7D2FE' }}
+                              title="View round progression & pipeline details"
+                            >
+                              <GitCommit size={12} />
+                              <span>Progress</span>
+                            </button>
                           )}
                           {isScheduled && lifecycle.isConcluded && (
                             <button
@@ -1244,10 +1332,7 @@ export default function AdminInterviewsPage() {
                   </label>
                   <select
                     value={scheduleForm.applicationId}
-                    onChange={(e) => {
-                      setScheduleForm({ ...scheduleForm, applicationId: e.target.value });
-                      if (formErrors.applicationId) setFormErrors((prev) => ({ ...prev, applicationId: undefined }));
-                    }}
+                    onChange={(e) => handleCandidateChange(e.target.value)}
                     className="form-control"
                     style={{ 
                       width: '100%', 
@@ -1267,6 +1352,53 @@ export default function AdminInterviewsPage() {
                     <div style={{ color: '#EF4444', fontSize: '0.78rem', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                       <AlertCircle size={13} />
                       <span>{formErrors.applicationId}</span>
+                    </div>
+                  )}
+
+                  {/* Candidate Pipeline Progression Status */}
+                  {loadingCandidatePipeline && (
+                    <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <RotateCcw className="animate-spin" size={13} />
+                      <span>Checking role rounds progression...</span>
+                    </div>
+                  )}
+
+                  {selectedCandidatePipeline && !loadingCandidatePipeline && (
+                    <div style={{ marginTop: '0.65rem', padding: '0.75rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                        Interview Stage Progression ({selectedCandidatePipeline.job?.title}):
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                        {selectedCandidatePipeline.rounds?.map((r) => {
+                          const isCleared = r.status === 'CLEARED';
+                          const isEligible = r.status === 'ELIGIBLE';
+                          const isSched = r.status === 'SCHEDULED';
+                          const isRej = r.status === 'REJECTED';
+                          return (
+                            <span
+                              key={r.round}
+                              style={{
+                                fontSize: '0.73rem',
+                                padding: '0.2rem 0.5rem',
+                                borderRadius: '6px',
+                                fontWeight: 600,
+                                background: isCleared ? '#DCFCE7' : isSched ? '#EFF6FF' : isEligible ? '#FEF3C7' : isRej ? '#FEE2E2' : '#F1F5F9',
+                                color: isCleared ? '#166534' : isSched ? '#1D4ED8' : isEligible ? '#B45309' : isRej ? '#991B1B' : '#64748B',
+                                border: isEligible ? '1px solid #F59E0B' : '1px solid transparent',
+                              }}
+                            >
+                              {isCleared ? '✓ ' : isEligible ? '★ ' : isSched ? '⏳ ' : isRej ? '✗ ' : '🔒 '}
+                              {r.name || r.round}
+                            </span>
+                          );
+                        })}
+                      </div>
+                      {selectedCandidatePipeline.isAllRoundsCleared && (
+                        <div style={{ marginTop: '0.5rem', color: '#16A34A', fontSize: '0.78rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <CheckCircle size={14} />
+                          <span>All rounds cleared! Candidate is ready for final selection and official offer letter.</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1290,12 +1422,32 @@ export default function AdminInterviewsPage() {
                         border: formErrors.round ? '1.5px solid #EF4444' : '1px solid #CBD5E1'
                       }}
                     >
-                      <option value="SCREENING">Screening Round</option>
-                      <option value="TECHNICAL">Technical Round 1</option>
-                      <option value="SYSTEM_DESIGN">System Design</option>
-                      <option value="MANAGERIAL">Managerial Round</option>
-                      <option value="HR">HR Round</option>
-                      <option value="FINAL">Final Interview</option>
+                      {selectedCandidatePipeline?.rounds && selectedCandidatePipeline.rounds.length > 0 ? (
+                        selectedCandidatePipeline.rounds.map((r) => {
+                          const isCleared = r.status === 'CLEARED';
+                          const isEligible = r.status === 'ELIGIBLE';
+                          const isLocked = r.status === 'LOCKED';
+                          const isSched = r.status === 'SCHEDULED';
+                          return (
+                            <option
+                              key={r.round}
+                              value={r.round}
+                              disabled={isLocked || isCleared}
+                            >
+                              {r.name || r.round} {isCleared ? '(Cleared ✓)' : isEligible ? '(Eligible ★)' : isSched ? '(Already Scheduled ⏳)' : '(Locked: Clear Previous First 🔒)'}
+                            </option>
+                          );
+                        })
+                      ) : (
+                        <>
+                          <option value="Screening">Screening Round</option>
+                          <option value="Technical Round 1">Technical Round 1</option>
+                          <option value="Technical Round 2">Technical Round 2</option>
+                          <option value="System Design">System Design</option>
+                          <option value="Managerial Round">Managerial Round</option>
+                          <option value="HR Round">HR Round</option>
+                        </>
+                      )}
                     </select>
                     {formErrors.round && (
                       <div style={{ color: '#EF4444', fontSize: '0.78rem', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -1788,6 +1940,188 @@ export default function AdminInterviewsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* CANDIDATE PIPELINE MODAL */}
+      {pipelineModalOpen && (
+        <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', background: '#FFFFFF', borderRadius: '16px', padding: '1.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                  <GitCommit size={20} color="#4F46E5" />
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#0F172A' }}>
+                    Candidate Interview Pipeline
+                  </h3>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: '#64748B', margin: 0 }}>
+                  Stage-by-stage progression and evaluation criteria for {pipelineData?.candidate?.fullName || 'Candidate'}
+                </p>
+              </div>
+              <button onClick={() => setPipelineModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {loadingPipeline ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748B' }}>
+                <RotateCcw className="animate-spin" size={28} style={{ margin: '0 auto 0.5rem' }} />
+                <div>Loading pipeline details...</div>
+              </div>
+            ) : pipelineData ? (
+              <div>
+                {/* Candidate Overview Card */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.85rem 1rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.95rem' }}>
+                      {pipelineData.candidate?.fullName}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                      {pipelineData.candidate?.email} • Applied for <strong>{pipelineData.job?.title}</strong>
+                    </div>
+                  </div>
+                  <div>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: '6px',
+                        background: pipelineData.applicationStatus === 'SELECTED' ? '#DCFCE7' : pipelineData.applicationStatus === 'REJECTED' ? '#FEE2E2' : '#EFF6FF',
+                        color: pipelineData.applicationStatus === 'SELECTED' ? '#166534' : pipelineData.applicationStatus === 'REJECTED' ? '#991B1B' : '#1D4ED8',
+                      }}
+                    >
+                      Status: {pipelineData.applicationStatus}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Pipeline Progression Timeline */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.5rem' }}>
+                  {(pipelineData.rounds || []).map((round, idx) => {
+                    const isCleared = round.status === 'CLEARED';
+                    const isEligible = round.status === 'ELIGIBLE';
+                    const isSched = round.status === 'SCHEDULED';
+                    const isRej = round.status === 'REJECTED';
+                    const isHold = round.status === 'ON_HOLD';
+
+                    return (
+                      <div
+                        key={round.round || idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.85rem',
+                          padding: '0.85rem 1rem',
+                          background: isCleared ? '#F0FDF4' : isSched ? '#EFF6FF' : isEligible ? '#FFFBEB' : isRej ? '#FEF2F2' : '#F8FAFC',
+                          border: isCleared ? '1px solid #BBF7D0' : isSched ? '1px solid #BFDBFE' : isEligible ? '1.5px solid #FCD34D' : isRej ? '1px solid #FECACA' : '1px solid #E2E8F0',
+                          borderRadius: '10px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            flexShrink: 0,
+                            background: isCleared ? '#16A34A' : isSched ? '#2563EB' : isEligible ? '#D97706' : isRej ? '#DC2626' : '#94A3B8',
+                            color: '#FFFFFF',
+                          }}
+                        >
+                          {isCleared ? '✓' : isRej ? '✗' : idx + 1}
+                        </div>
+
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.35rem' }}>
+                            <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '0.9rem' }}>
+                              {round.name || round.round}
+                            </div>
+                            <span
+                              style={{
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                padding: '0.15rem 0.5rem',
+                                borderRadius: '4px',
+                                background: isCleared ? '#DCFCE7' : isSched ? '#DBEAFE' : isEligible ? '#FEF3C7' : isRej ? '#FEE2E2' : '#E2E8F0',
+                                color: isCleared ? '#166534' : isSched ? '#1E40AF' : isEligible ? '#92400E' : isRej ? '#991B1B' : '#475569',
+                              }}
+                            >
+                              {isCleared ? 'CLEARED' : isSched ? 'SCHEDULED' : isEligible ? 'ELIGIBLE NEXT' : isRej ? 'REJECTED' : isHold ? 'ON HOLD' : 'LOCKED'}
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '0.2rem' }}>
+                            {round.description}
+                          </div>
+
+                          {round.interview && (
+                            <div style={{ fontSize: '0.75rem', color: '#334155', marginTop: '0.45rem', padding: '0.35rem 0.6rem', background: 'rgba(255,255,255,0.7)', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.05)' }}>
+                              <strong>Scheduled:</strong> {new Date(round.interview.interviewDate).toLocaleDateString()} ({round.interview.startTime || 'TBA'}) • {round.interview.mode}
+                              {round.interview.feedbacks?.[0] && (
+                                <div style={{ marginTop: '0.2rem', color: isCleared ? '#15803D' : '#B91C1C' }}>
+                                  <strong>Evaluation:</strong> {round.interview.feedbacks[0].recommendation} (Rating: {round.interview.feedbacks[0].technicalRating || 4}/5)
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* All Rounds Cleared / Decision Banner */}
+                {pipelineData.isAllRoundsCleared && (
+                  <div style={{ padding: '1rem', background: '#ECFDF5', border: '1.5px solid #6EE7B7', borderRadius: '12px', marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#065F46', fontWeight: 800, fontSize: '0.95rem' }}>
+                      <Award size={18} />
+                      <span>All Required Rounds Completed & Cleared!</span>
+                    </div>
+                    <p style={{ fontSize: '0.82rem', color: '#047857', margin: '0.35rem 0 0.75rem' }}>
+                      The candidate has cleared every evaluation stage for {pipelineData.job?.title}. You can now officially mark them as Selected and proceed to issue their offer letter.
+                    </p>
+                    {pipelineData.applicationStatus !== 'SELECTED' && (
+                      <button
+                        onClick={() => handleFinalSelectionDecision('SELECTED')}
+                        disabled={submitting}
+                        className="btn btn-primary"
+                        style={{ padding: '0.45rem 1rem', fontSize: '0.82rem', background: '#059669', borderColor: '#047857' }}
+                      >
+                        {submitting ? 'Applying...' : 'Mark as Officially SELECTED'}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Footer Actions */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid #E2E8F0' }}>
+                  <button type="button" onClick={() => setPipelineModalOpen(false)} className="btn btn-secondary">
+                    Close
+                  </button>
+                  {pipelineData.applicationStatus === 'SELECTED' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPipelineModalOpen(false);
+                        navigate('/admin/offers');
+                      }}
+                      className="btn btn-primary"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                    >
+                      <span>Prepare Official Job Offer</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       )}
