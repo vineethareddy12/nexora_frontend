@@ -4,11 +4,9 @@ import {
   ArrowRight,
   Sparkles,
   Code2,
-  Smartphone,
   Cloud,
   ShieldCheck,
   Cpu,
-  CheckCircle2,
   Users,
   Briefcase,
   Award,
@@ -19,18 +17,13 @@ import {
   MapPin,
   Clock,
   RefreshCw,
-  Terminal,
   Activity,
   Check,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Server,
-  TrendingUp,
   Compass,
   Building2,
-  Lock
+  CheckCircle2,
+  Target,
+  FileCheck
 } from 'lucide-react';
 import { companyApi } from '../company/companyApi';
 import { servicesApi } from '../services/api/servicesApi';
@@ -75,14 +68,16 @@ export default function HomePage() {
     if (videoRef.current) {
       videoRef.current.muted = true;
       videoRef.current.defaultMuted = true;
-      videoRef.current.play().catch(() => {});
+      videoRef.current.play().catch((err) => {
+        console.warn('Video background autoplay note:', err);
+      });
     }
   }, []);
 
   return (
     <div style={{ width: '100%', overflow: 'hidden', background: '#FFFFFF' }}>
       {/* ====================================================================
-          1. Hero Section — Two-Column Layout With High-Tech Video Showcase
+          1. Hero Section — Premium Split Screen With Crystal-Clear Video Showcase
           ==================================================================== */}
       <section
         style={{
@@ -102,7 +97,7 @@ export default function HomePage() {
             alignItems: 'center',
           }}
         >
-          {/* Left Column: Headline, Description, CTAs, Feature Indicators */}
+          {/* Left Column: Headline, Pitch, CTAs, Verified Metrics */}
           <div>
             <div style={{ display: 'inline-flex', marginBottom: '1.25rem' }}>
               <span
@@ -158,7 +153,7 @@ export default function HomePage() {
               }}
             >
               {company?.shortDescription ||
-                'Nexora Technologies builds enterprise-grade digital products, cloud architectures, and scalable web platforms while empowering businesses with verified engineering talent.'}
+                'Nexora Technologies builds enterprise-grade digital products, cloud architectures, and scalable web platforms while empowering businesses globally with verified engineering talent from Hyderabad, India.'}
             </p>
 
             {/* CTAs */}
@@ -205,7 +200,7 @@ export default function HomePage() {
               </div>
               <div>
                 <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#06B6D4' }}>24/7</div>
-                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Cloud Monitoring</div>
+                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Proactive Monitoring</div>
               </div>
               <div>
                 <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#059669' }}>100%</div>
@@ -213,7 +208,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Feature Indicators Row */}
+            {/* Value Checkmarks */}
             <div
               style={{
                 display: 'flex',
@@ -223,9 +218,9 @@ export default function HomePage() {
               }}
             >
               {[
-                'Full-Stack Software Engineering',
-                'Cloud Infrastructure & DevOps',
-                'Talent & Recruitment Hub',
+                'Enterprise Software Engineering',
+                'Cloud Modernization & DevOps',
+                'Integrated Talent Operations',
               ].map((feature, idx) => (
                 <div
                   key={idx}
@@ -302,20 +297,21 @@ export default function HomePage() {
               >
                 <video
                   ref={videoRef}
-                  src="/hero-video.mp4"
                   autoPlay
                   loop
                   muted
                   playsInline
-                  preload="metadata"
+                  preload="auto"
                   style={{
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
                     display: 'block',
-                    filter: 'contrast(1.05) brightness(1.02)',
+                    filter: 'contrast(1.08) saturate(1.05) brightness(1.02)',
                   }}
-                />
+                >
+                  <source src="/hero-video.mp4" type="video/mp4" />
+                </video>
 
                 {/* Subtle Floating Status Pill (Non-blocking) */}
                 <div
@@ -411,70 +407,7 @@ export default function HomePage() {
       </section>
 
       {/* ====================================================================
-          2. Technology Excellence & Trust Strip
-          ==================================================================== */}
-      <section
-        style={{
-          background: '#F8FAFC',
-          borderBottom: '1px solid #E2E8F0',
-          padding: '1.75rem 1.5rem',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1.25rem',
-          }}
-        >
-          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Enterprise Tech Stack:
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'clamp(1rem, 3vw, 2.25rem)',
-              flexWrap: 'wrap',
-            }}
-          >
-            {[
-              { label: 'React & Next.js', icon: Code2 },
-              { label: 'Node.js & Express', icon: Server },
-              { label: 'PostgreSQL & Prisma', icon: Layers },
-              { label: 'Cloud Architecture & DevOps', icon: Cloud },
-              { label: 'JWT & Security Gateways', icon: ShieldCheck },
-              { label: 'Verified Talent Operations', icon: Users },
-            ].map((tech, idx) => {
-              const IconComp = tech.icon;
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.45rem',
-                    fontSize: '0.85rem',
-                    color: '#334155',
-                    fontWeight: 600,
-                  }}
-                >
-                  <IconComp size={15} color="#2563EB" />
-                  <span>{tech.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          3. Core Capabilities & Technology Services
+          2. Core Capabilities & Technology Services
           ==================================================================== */}
       <section
         style={{
@@ -489,7 +422,7 @@ export default function HomePage() {
             Capabilities & Solutions
           </span>
           <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', marginBottom: '1rem', color: '#0F172A', fontWeight: 800 }}>
-            Technology Services Built for What’s Next
+            Technology Services Built for Scale
           </h2>
           <p
             style={{
@@ -500,7 +433,7 @@ export default function HomePage() {
               lineHeight: 1.7,
             }}
           >
-            Explore our end-to-end engineering, cloud modernization, and technology delivery capabilities.
+            Explore our end-to-end engineering, cloud modernization, and verified technology delivery capabilities.
           </p>
         </div>
 
@@ -655,86 +588,21 @@ export default function HomePage() {
             ))}
           </div>
         )}
-      </section>
 
-      {/* ====================================================================
-          4. Impact Numbers & Enterprise Performance Grid
-          ==================================================================== */}
-      <section
-        style={{
-          background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
-          color: '#FFFFFF',
-          padding: 'clamp(3.5rem, 5vw, 5rem) clamp(1rem, 3vw, 1.5rem)',
-          borderTop: '1px solid #E2E8F0',
-        }}
-      >
-        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <span
-              style={{
-                background: 'rgba(37, 99, 235, 0.25)',
-                border: '1px solid #3B82F6',
-                color: '#93C5FD',
-                padding: '0.35rem 0.95rem',
-                borderRadius: '9999px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                display: 'inline-block',
-                marginBottom: '0.75rem',
-              }}
-            >
-              Enterprise Impact
-            </span>
-            <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontWeight: 800, margin: 0, color: '#FFFFFF' }}>
-              Delivering Measurable Outcomes Globally
-            </h2>
-            <p style={{ color: '#94A3B8', fontSize: '1.05rem', marginTop: '0.75rem', maxWidth: '640px', margin: '0.75rem auto 0' }}>
-              Engineered for resilience, high concurrency, and rapid talent deployment.
-            </p>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
-              gap: '1.5rem',
-            }}
+        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+          <Link
+            to="/services"
+            className="btn btn-secondary"
+            style={{ padding: '0.75rem 2rem', fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            {[
-              { stat: '100+', label: 'Digital Products Engineered', desc: 'Scalable platforms deployed for clients', icon: Zap },
-              { stat: '99.99%', label: 'Cloud Architecture Uptime', desc: 'Zero unmanaged downtime SLA', icon: Cloud },
-              { stat: '15 Days', label: 'Average Talent Matching', desc: 'Rapid interview-to-offer turnaround', icon: Clock },
-              { stat: '100%', label: 'Security & Compliance', desc: 'Enterprise-grade access & audit logging', icon: ShieldCheck },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '16px',
-                  padding: '2rem 1.5rem',
-                  textAlign: 'center',
-                }}
-              >
-                <div style={{ fontSize: 'clamp(2.2rem, 4vw, 3rem)', fontWeight: 800, color: '#38BDF8', marginBottom: '0.35rem' }}>
-                  {item.stat}
-                </div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF', marginBottom: '0.4rem' }}>
-                  {item.label}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#94A3B8', lineHeight: 1.5 }}>
-                  {item.desc}
-                </div>
-              </div>
-            ))}
-          </div>
+            <span>View All Engineering Services</span>
+            <ArrowRight size={16} />
+          </Link>
         </div>
       </section>
 
       {/* ====================================================================
-          5. Why Choose Nexora — Hybrid Delivery Model
+          3. About Nexora Technologies — Corporate Profile & Purpose
           ==================================================================== */}
       <section
         style={{
@@ -749,8 +617,154 @@ export default function HomePage() {
             maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
-            gap: 'clamp(2rem, 4vw, 4rem)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+            gap: 'clamp(2.5rem, 5vw, 4.5rem)',
+            alignItems: 'center',
+          }}
+        >
+          {/* Left: Introduction & Mission */}
+          <div>
+            <span className="badge badge-primary" style={{ marginBottom: '1rem' }}>
+              About Nexora Technologies
+            </span>
+            <h2
+              style={{
+                fontSize: 'clamp(2rem, 3.5vw, 2.75rem)',
+                lineHeight: 1.25,
+                marginBottom: '1.25rem',
+                color: '#0F172A',
+                fontWeight: 800,
+              }}
+            >
+              Pioneering Enterprise Software & High-Caliber Talent Synergy
+            </h2>
+            <p
+              style={{
+                color: '#475569',
+                fontSize: '1.05rem',
+                lineHeight: 1.7,
+                marginBottom: '1.5rem',
+              }}
+            >
+              Headquartered in Hyderabad, India, Nexora Technologies provides integrated software development, cloud platform engineering, and technical recruitment solutions to forward-looking companies worldwide.
+            </p>
+            <p
+              style={{
+                color: '#475569',
+                fontSize: '1rem',
+                lineHeight: 1.7,
+                marginBottom: '2rem',
+              }}
+            >
+              We bridge the critical gap between complex digital transformation goals and verified engineering talent, providing organizations with transparent, agile delivery partnerships.
+            </p>
+
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <Link
+                to="/about"
+                className="btn btn-primary"
+                style={{ padding: '0.8rem 1.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
+              >
+                <span>Learn More About Us</span>
+                <ArrowRight size={16} />
+              </Link>
+              <Link
+                to="/contact"
+                className="btn btn-secondary"
+                style={{ padding: '0.8rem 1.5rem' }}
+              >
+                <span>Contact Leadership</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Right: Key Pillars Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+              gap: '1.25rem',
+            }}
+          >
+            {[
+              {
+                icon: Building2,
+                title: 'Global Delivery Synergy',
+                desc: 'Strategic onsite consulting paired with offshore engineering execution for rapid, cost-effective delivery.',
+              },
+              {
+                icon: ShieldCheck,
+                title: 'Enterprise Security & IP',
+                desc: 'Strict intellectual property protection, rigorous NDAs, and production data privacy safeguards.',
+              },
+              {
+                icon: Target,
+                title: 'Verified Technical Vetting',
+                desc: 'Multi-round technical and problem-solving screenings ensure only top engineering profiles join projects.',
+              },
+              {
+                icon: Clock,
+                title: 'Rapid Turnaround',
+                desc: 'Accelerated development sprints and talent placement pipelines that keep project deadlines on track.',
+              },
+            ].map((pillar, pIdx) => {
+              const PIcon = pillar.icon;
+              return (
+                <div
+                  key={pIdx}
+                  className="card"
+                  style={{
+                    padding: '1.5rem',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 6px -1px rgba(15, 23, 42, 0.05)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '10px',
+                      background: '#EFF6FF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#2563EB',
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    <PIcon size={20} />
+                  </div>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.4rem' }}>
+                    {pillar.title}
+                  </h4>
+                  <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                    {pillar.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================================
+          4. Why Choose Nexora — Client & Candidate Value Proposition
+          ==================================================================== */}
+      <section
+        style={{
+          padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 1.5rem)',
+          maxWidth: '1280px',
+          margin: '0 auto',
+          background: '#FFFFFF',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+            gap: 'clamp(2.5rem, 5vw, 4.5rem)',
             alignItems: 'center',
           }}
         >
@@ -768,7 +782,7 @@ export default function HomePage() {
                 fontWeight: 800,
               }}
             >
-              A Hybrid Global Delivery Model Designed for Scalability and Speed
+              A Delivery Model Engineered for Transparency, Speed, and Quality
             </h2>
             <p
               style={{
@@ -779,27 +793,27 @@ export default function HomePage() {
               }}
             >
               Guided by relentless dedication to client satisfaction, our unique onsite and offshore
-              engagement model helps organizations transform operations, achieve higher flexibility, and maintain
+              engagement model helps organizations transform digital operations, achieve higher flexibility, and maintain
               lower operating costs.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               {[
                 {
-                  title: 'Engineering-Led Delivery',
+                  title: 'Engineering-Led Accountability',
                   desc: 'Senior architects and lead engineers engaged at every project milestone.',
                 },
                 {
-                  title: 'Scalable Digital Solutions',
-                  desc: 'Modular architectures designed to handle growing traffic, data, and users.',
+                  title: 'Scalable Architecture Foundations',
+                  desc: 'Modular systems designed to handle growing traffic, high concurrency, and data complexity.',
                 },
                 {
                   title: 'Collaborative Agile Development',
-                  desc: 'Transparent source control, CI/CD pipelines, sprint demos, and regular reviews.',
+                  desc: 'Transparent code repositories, sprint demos, and regular milestone retrospectives.',
                 },
                 {
-                  title: 'Talent & Career Connections',
-                  desc: 'Direct alignment between industry requirements and career advancement opportunities.',
+                  title: 'Career & Talent Alignment',
+                  desc: 'Direct harmony between client technical requirements and candidates’ long-term career growth.',
                 },
               ].map((point, i) => (
                 <div key={i} style={{ display: 'flex', gap: '0.85rem' }}>
@@ -832,50 +846,48 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right Column: Clean Composition of Tech Stack */}
+          {/* Right Column: Business & Delivery Guarantees Showcase */}
           <div
             className="card"
             style={{
-              padding: 'clamp(1.5rem, 4vw, 2.5rem)',
+              padding: 'clamp(1.75rem, 4vw, 2.5rem)',
               background: '#FFFFFF',
               borderRadius: '20px',
               border: '1px solid #E2E8F0',
-              boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.08)',
+              boxShadow: '0 10px 30px -5px rgba(15, 23, 42, 0.08)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-              <Cpu size={20} color="#2563EB" />
+              <FileCheck size={22} color="#2563EB" />
               <h3 style={{ fontSize: '1.35rem', margin: 0, color: '#0F172A', fontWeight: 800 }}>
-                Technology Excellence Stack
+                Enterprise Delivery Standards
               </h3>
             </div>
             <p style={{ color: '#64748B', fontSize: '0.9rem', marginBottom: '1.75rem' }}>
-              Modern, battle-tested enterprise frameworks, secure pipelines, and cloud infrastructure.
+              Guaranteed operational baselines that protect your investments and timelines.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '1.15rem' }}>
               {[
-                { name: 'JavaScript & React', role: 'Full-Stack Ecosystem' },
-                { name: 'Node.js & Express', role: 'Resilient Microservices' },
-                { name: 'PostgreSQL & Prisma', role: 'ACID Relational Storage' },
-                { name: 'Cloud & Container Hub', role: 'Scalable Deployments' },
-                { name: 'Security & Auth', role: 'JWT & Role Gateways' },
-                { name: 'DevOps & CI/CD', role: 'Automated Delivery' },
-              ].map((tech, t) => (
+                { title: '100% IP Ownership', desc: 'All codebases and artifacts belong entirely to our clients upon delivery.' },
+                { title: 'Predictable Milestones', desc: 'Clear sprint timelines with measurable acceptance criteria at each phase.' },
+                { title: 'Continuous QA', desc: 'Automated integration testing and security scanning embedded in delivery.' },
+                { title: 'Dedicated Governance', desc: 'Direct engagement with engineering leads and strategic account managers.' },
+              ].map((std, sIdx) => (
                 <div
-                  key={t}
+                  key={sIdx}
                   style={{
-                    padding: '1.1rem 1rem',
+                    padding: '1.15rem',
                     background: '#F8FAFC',
                     borderRadius: '12px',
                     border: '1px solid #E2E8F0',
                   }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0F172A' }}>
-                    {tech.name}
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F172A', marginBottom: '0.35rem' }}>
+                    {std.title}
                   </div>
-                  <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '0.25rem' }}>
-                    {tech.role}
+                  <div style={{ fontSize: '0.82rem', color: '#64748B', lineHeight: 1.5 }}>
+                    {std.desc}
                   </div>
                 </div>
               ))}
@@ -885,134 +897,136 @@ export default function HomePage() {
       </section>
 
       {/* ====================================================================
-          6. How We Work — 4-Step Engineering Delivery Lifecycle
+          5. How Nexora Delivers — 6-Step Structured Execution
           ==================================================================== */}
       <section
         style={{
           padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 1.5rem)',
-          maxWidth: '1280px',
-          margin: '0 auto',
-          background: '#FFFFFF',
+          background: '#F8FAFC',
+          borderTop: '1px solid #E2E8F0',
+          borderBottom: '1px solid #E2E8F0',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-          <span className="badge badge-primary" style={{ marginBottom: '0.85rem' }}>
-            Structured Execution
-          </span>
-          <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', marginBottom: '1rem', color: '#0F172A', fontWeight: 800 }}>
-            How Nexora Delivers
-          </h2>
-          <p
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+            <span className="badge badge-primary" style={{ marginBottom: '0.85rem' }}>
+              Structured Execution
+            </span>
+            <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', marginBottom: '1rem', color: '#0F172A', fontWeight: 800 }}>
+              How Nexora Delivers
+            </h2>
+            <p
+              style={{
+                color: '#475569',
+                maxWidth: '640px',
+                margin: '0 auto',
+                fontSize: '1.1rem',
+                lineHeight: 1.7,
+              }}
+            >
+              A disciplined, transparent delivery framework that ensures project clarity and on-time launches.
+            </p>
+          </div>
+
+          <div
             style={{
-              color: '#475569',
-              maxWidth: '640px',
-              margin: '0 auto',
-              fontSize: '1.1rem',
-              lineHeight: 1.7,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
+              gap: '1.5rem',
             }}
           >
-            A disciplined, transparent delivery framework that ensures project clarity and on-time launches.
-          </p>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
-            gap: '1.5rem',
-          }}
-        >
-          {[
-            {
-              step: '01',
-              title: 'Discover & Plan',
-              desc: 'Deep-dive into business goals, functional requirements, technical constraints, and scope definition.',
-              icon: Compass,
-            },
-            {
-              step: '02',
-              title: 'Design & Architect',
-              desc: 'System architecture, microservice topologies, database schemas, and intuitive UI/UX design wireframes.',
-              icon: Layers,
-            },
-            {
-              step: '03',
-              title: 'Develop & Build',
-              desc: 'Iterative agile development sprints with peer code reviews, continuous integration, and clean code standards.',
-              icon: Code2,
-            },
-            {
-              step: '04',
-              title: 'Quality & Security Testing',
-              desc: 'Comprehensive unit, end-to-end integration, performance load tests, and security vulnerability scanning.',
-              icon: ShieldCheck,
-            },
-            {
-              step: '05',
-              title: 'Deploy & Scale',
-              desc: 'Containerized production cloud rollout, zero-downtime deployment pipelines, and auto-scaling infrastructure.',
-              icon: Cloud,
-            },
-            {
-              step: '06',
-              title: 'Support & Grow',
-              desc: 'Continuous telemetry monitoring, proactive maintenance, SLA guarantees, and long-term capability expansion.',
-              icon: TrendingUp,
-            },
-          ].map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={idx}
-                style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '16px',
-                  padding: '2rem 1.5rem',
-                  boxShadow: '0 4px 6px -1px rgba(15, 23, 42, 0.05)',
-                  position: 'relative',
-                }}
-              >
+            {[
+              {
+                step: '01',
+                title: 'Discover & Plan',
+                desc: 'Deep-dive into business goals, functional requirements, technical constraints, and scope definition.',
+                icon: Compass,
+              },
+              {
+                step: '02',
+                title: 'Design & Architect',
+                desc: 'System architecture, microservice topologies, database models, and intuitive UI/UX design wireframes.',
+                icon: Layers,
+              },
+              {
+                step: '03',
+                title: 'Develop & Build',
+                desc: 'Iterative agile development sprints with peer code reviews, continuous integration, and clean code standards.',
+                icon: Code2,
+              },
+              {
+                step: '04',
+                title: 'Quality & Security Testing',
+                desc: 'Comprehensive unit, end-to-end integration, performance load tests, and security vulnerability scanning.',
+                icon: ShieldCheck,
+              },
+              {
+                step: '05',
+                title: 'Deploy & Scale',
+                desc: 'Containerized production cloud rollout, zero-downtime deployment pipelines, and auto-scaling infrastructure.',
+                icon: Cloud,
+              },
+              {
+                step: '06',
+                title: 'Support & Grow',
+                desc: 'Continuous telemetry monitoring, proactive maintenance, SLA guarantees, and long-term capability expansion.',
+                icon: Zap,
+              },
+            ].map((item, idx) => {
+              const Icon = item.icon;
+              return (
                 <div
+                  key={idx}
                   style={{
-                    fontSize: '2rem',
-                    fontWeight: 800,
-                    color: '#E2E8F0',
-                    marginBottom: '0.75rem',
-                    fontFamily: 'monospace',
+                    background: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '16px',
+                    padding: '2rem 1.5rem',
+                    boxShadow: '0 4px 6px -1px rgba(15, 23, 42, 0.05)',
+                    position: 'relative',
                   }}
                 >
-                  {item.step}
+                  <div
+                    style={{
+                      fontSize: '1.85rem',
+                      fontWeight: 800,
+                      color: '#E2E8F0',
+                      marginBottom: '0.75rem',
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    {item.step}
+                  </div>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '10px',
+                      background: '#EFF6FF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#2563EB',
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    <Icon size={20} />
+                  </div>
+                  <h3 style={{ fontSize: '1.18rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.5rem' }}>
+                    {item.title}
+                  </h3>
+                  <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
+                    {item.desc}
+                  </p>
                 </div>
-                <div
-                  style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '10px',
-                    background: '#EFF6FF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#2563EB',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  <Icon size={20} />
-                </div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.5rem' }}>
-                  {item.title}
-                </h3>
-                <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
-                  {item.desc}
-                </p>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* ====================================================================
-          7. Careers and Job Opportunities
+          6. Careers & Job Opportunities
           ==================================================================== */}
       {jobs.length > 0 && (
         <section
@@ -1020,8 +1034,7 @@ export default function HomePage() {
             padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 1.5rem)',
             maxWidth: '1280px',
             margin: '0 auto',
-            background: '#F8FAFC',
-            borderTop: '1px solid #E2E8F0',
+            background: '#FFFFFF',
           }}
         >
           <div
@@ -1042,10 +1055,10 @@ export default function HomePage() {
                 Build Your Next Chapter with Nexora
               </h2>
               <p style={{ color: '#475569', fontSize: '1.05rem', marginTop: '0.5rem', maxWidth: '600px' }}>
-                Discover opportunities to develop your skills and contribute to meaningful technology projects.
+                Discover verified career opportunities to engineer impactful software platforms and grow with high-performing teams.
               </p>
             </div>
-            <Link to="/careers" className="btn btn-secondary">
+            <Link to="/careers" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
               <span>View All Vacancies</span>
               <ArrowRight size={16} />
             </Link>
@@ -1140,7 +1153,7 @@ export default function HomePage() {
       )}
 
       {/* ====================================================================
-          8. Dual Action Callout Banner (For Clients & Candidates)
+          7. Final Call to Action
           ==================================================================== */}
       <section
         style={{
@@ -1184,11 +1197,11 @@ export default function HomePage() {
               <ArrowRight size={18} />
             </Link>
             <Link
-              to="/register"
+              to="/careers"
               className="btn btn-secondary"
               style={{ padding: '0.95rem 2.25rem', fontSize: '1rem' }}
             >
-              <span>Create Candidate Account</span>
+              <span>Browse Careers</span>
             </Link>
             <Link
               to="/services"

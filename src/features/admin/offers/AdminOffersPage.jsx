@@ -37,6 +37,7 @@ export default function AdminOffersPage() {
 
   // Modals
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createSuccess, setCreateSuccess] = useState(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -141,6 +142,7 @@ export default function AdminOffersPage() {
 
   const openCreateModal = async () => {
     try {
+      setCreateSuccess(null);
       // Find candidate applications eligible for offer
       // Fetch applications along with interviews to determine exact interview clearance
       const [appsRes, interviewsRes] = await Promise.all([
@@ -186,7 +188,8 @@ export default function AdminOffersPage() {
           }
           // Or candidate whose interviews are all completed & cleared
           return app.hasClearedInterviews && app.completedRoundsCount > 0;
-        });
+        })
+        .sort((a, b) => (b.clearedRoundsCount || 0) - (a.clearedRoundsCount || 0));
 
       setEligibleApplications(candidates);
       setCreateModalOpen(true);
@@ -225,20 +228,16 @@ export default function AdminOffersPage() {
       }
 
       toast?.showSuccess('Draft offer letter created');
-      setCreateModalOpen(false);
-      setSelectedPdfFile(null);
-      setCreateForm({
-        applicationId: '',
-        designation: '',
-        employmentType: 'FULL_TIME',
-        salary: '',
-        currency: 'INR',
-        joiningDate: '',
-        expiryDate: '',
-        termsAndConditions: 'Standard 3-month probation period applies. Employment subject to satisfactory background checks.',
-        notes: '',
+      const chosenApp = eligibleApplications.find((a) => a.id === createForm.applicationId);
+      setCreateSuccess({
+        offerCode: created.offerCode,
+        candidateName: chosenApp?.applicant?.fullName || 'Candidate',
+        designation: created.designation,
+        salary: created.salary,
+        currency: created.currency,
+        joiningDate: created.joiningDate,
       });
-      loadData();
+      loadData(true);
       window.dispatchEvent(new CustomEvent('nexora:data-updated'));
     } catch (err) {
       toast?.showError(err.message || 'Failed to create offer');
@@ -781,15 +780,74 @@ export default function AdminOffersPage() {
       {/* CREATE OFFER MODAL */}
       {createModalOpen && (
         <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', background: '#FFFFFF', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#0F172A' }}>Prepare Official Job Offer</h3>
-              <button onClick={() => setCreateModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
-                <X size={20} />
-              </button>
-            </div>
+          <div className="card" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', background: '#FFFFFF', borderRadius: '16px', padding: '1.75rem', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+            {createSuccess ? (
+              <div style={{ textAlign: 'center', padding: '0.75rem 0.25rem' }}>
+                <div
+                  style={{
+                    width: '68px',
+                    height: '68px',
+                    borderRadius: '50%',
+                    background: '#ECFDF5',
+                    border: '2px solid #86EFAC',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1.25rem',
+                    color: '#059669',
+                    boxShadow: '0 10px 25px -5px rgba(5, 150, 105, 0.25)',
+                  }}
+                >
+                  <CheckCircle size={38} />
+                </div>
 
-            <form onSubmit={handleCreateSubmit}>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>
+                  Draft Offer Prepared! 🎉
+                </h3>
+
+                <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.6, maxWidth: '440px', margin: '0 auto 1.25rem' }}>
+                  Official offer letter <strong>{createSuccess.offerCode}</strong> has been generated for <strong>{createSuccess.candidateName}</strong> ({createSuccess.designation}).
+                </p>
+
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '0.85rem 1rem', marginBottom: '1.5rem', fontSize: '0.82rem', color: '#64748B', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                  <div>&bull; <strong>Status:</strong> <span style={{ color: '#D97706', fontWeight: 700 }}>DRAFT</span></div>
+                  <div>&bull; <strong>Next Step:</strong> Review preview, upload signed PDF attachment if required, and click <strong>Issue Offer</strong>.</div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreateModalOpen(false);
+                    setCreateSuccess(null);
+                    setSelectedPdfFile(null);
+                    setCreateForm({
+                      applicationId: '',
+                      designation: '',
+                      employmentType: 'FULL_TIME',
+                      salary: '',
+                      currency: 'INR',
+                      joiningDate: '',
+                      expiryDate: '',
+                      termsAndConditions: 'Standard 3-month probation period applies. Employment subject to satisfactory background checks.',
+                      notes: '',
+                    });
+                  }}
+                  className="btn btn-primary"
+                  style={{ padding: '0.65rem 2.25rem', fontSize: '0.95rem' }}
+                >
+                  Done &bull; View Offers
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#0F172A' }}>Prepare Official Job Offer</h3>
+                  <button onClick={() => setCreateModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreateSubmit}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
@@ -993,9 +1051,11 @@ export default function AdminOffersPage() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
+    </div>
+  )}
 
       {/* PREVIEW MODAL */}
       {previewModalOpen && selectedOffer && (
