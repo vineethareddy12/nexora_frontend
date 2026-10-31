@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Calendar, 
   Clock, 
@@ -10,7 +10,9 @@ import {
   ExternalLink,
   RotateCcw,
   UserCheck,
-  FileText
+  FileText,
+  Award,
+  ChevronRight
 } from 'lucide-react';
 import { interviewsApi } from '../../interviews/interviewsApi';
 import { useAuth } from '../../auth/hooks/useAuth';
@@ -243,15 +245,53 @@ export default function ApplicantInterviewsPage() {
     };
   }, [userId]);
 
+  // Group interviews by Applied Position / Application
+  const groupedPositions = useMemo(() => {
+    if (!Array.isArray(interviews) || interviews.length === 0) return [];
+
+    const map = new Map();
+    for (const interview of interviews) {
+      const appId = interview.applicationId || interview.application?.id || interview.job?.id || 'default';
+      if (!map.has(appId)) {
+        map.set(appId, {
+          appId,
+          jobTitle: interview.job?.title || 'Open Position',
+          department: interview.job?.department || 'Nexora Technologies',
+          referenceNumber: interview.application?.referenceNumber || '',
+          interviews: [],
+        });
+      }
+      map.get(appId).interviews.push(interview);
+    }
+
+    return Array.from(map.values()).map((group) => {
+      // Sort interviews chronologically
+      group.interviews.sort((a, b) => new Date(a.interviewDate) - new Date(b.interviewDate));
+      
+      const totalRounds = group.interviews.length;
+      const completedRounds = group.interviews.filter((i) => i.status === 'COMPLETED').length;
+      const scheduledRounds = group.interviews.filter((i) => i.status === 'SCHEDULED').length;
+      const progressPercent = totalRounds > 0 ? Math.round((completedRounds / totalRounds) * 100) : 0;
+      
+      return {
+        ...group,
+        totalRounds,
+        completedRounds,
+        scheduledRounds,
+        progressPercent,
+      };
+    });
+  }, [interviews]);
+
   return (
-    <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+    <div style={{ width: '100%', maxWidth: '1060px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.35rem' }}>
-            Interview Schedules
+            Interview Schedules & Progress
           </h1>
           <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
-            Details, meeting coordinates, and instructions for upcoming technical and HR evaluation rounds.
+            Track stage progression, meeting coordinates, and evaluation status for each applied position.
           </p>
         </div>
         <RefreshBadge isRefreshing={isRefreshing} />
@@ -272,8 +312,101 @@ export default function ApplicantInterviewsPage() {
           description="You do not have any active or past interview schedules at this time. Once shortlisted for a round, your meeting coordinates and instructions will appear here."
         />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {interviews.map((item) => {
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {groupedPositions.map((pos) => (
+            <div
+              key={pos.appId}
+              className="card"
+              style={{
+                padding: '1.75rem',
+                background: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                borderRadius: '20px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+              }}
+            >
+              {/* Position Header & Overall Progress */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+                    <span className="badge badge-primary" style={{ fontSize: '0.76rem', padding: '0.2rem 0.65rem' }}>
+                      {pos.department}
+                    </span>
+                    {pos.referenceNumber && (
+                      <span style={{ fontSize: '0.8rem', color: '#64748B', fontFamily: 'monospace', fontWeight: 600 }}>
+                        Ref: {pos.referenceNumber}
+                      </span>
+                    )}
+                  </div>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    {pos.jobTitle}
+                  </h2>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: pos.progressPercent === 100 ? '#059669' : '#2563EB' }}>
+                    {pos.completedRounds} of {pos.totalRounds} Rounds Cleared ({pos.progressPercent}%)
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '0.15rem' }}>
+                    {pos.scheduledRounds > 0
+                      ? `${pos.scheduledRounds} round(s) currently active / scheduled`
+                      : pos.progressPercent === 100
+                      ? '✓ All interview stages completed!'
+                      : 'Next stage pending schedule'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Bar Track */}
+              <div style={{ width: '100%', height: '10px', background: '#F1F5F9', borderRadius: '9999px', overflow: 'hidden', marginBottom: '1.35rem', border: '1px solid #E2E8F0' }}>
+                <div
+                  style={{
+                    width: `${pos.progressPercent}%`,
+                    height: '100%',
+                    background: pos.progressPercent === 100
+                      ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)'
+                      : 'linear-gradient(90deg, #2563EB 0%, #06B6D4 100%)',
+                    borderRadius: '9999px',
+                    transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                />
+              </div>
+
+              {/* Pipeline Round Stepper Badges */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.75rem', padding: '0.85rem 1rem', background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginRight: '0.25rem' }}>
+                  Stages:
+                </span>
+                {pos.interviews.map((item, idx) => {
+                  const isCompleted = item.status === 'COMPLETED';
+                  const isScheduled = item.status === 'SCHEDULED';
+                  return (
+                    <div
+                      key={`step-${item.id}`}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        padding: '0.3rem 0.7rem',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        background: isCompleted ? '#DCFCE7' : isScheduled ? '#EFF6FF' : '#F1F5F9',
+                        color: isCompleted ? '#15803D' : isScheduled ? '#1E40AF' : '#64748B',
+                        border: isCompleted ? '1px solid #86EFAC' : isScheduled ? '1px solid #BFDBFE' : '1px solid #CBD5E1',
+                      }}
+                    >
+                      {isCompleted ? <CheckCircle size={13} color="#16A34A" /> : isScheduled ? <Clock size={13} color="#2563EB" /> : <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#94A3B8' }} />}
+                      <span>{idx + 1}. {item.round.replace(/_/g, ' ')}</span>
+                      <span style={{ fontSize: '0.7rem', opacity: 0.85 }}>({isCompleted ? 'Cleared' : item.status.toLowerCase()})</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Individual Interview Cards for this Applied Role */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {pos.interviews.map((item) => {
             const isOnline = item.mode === 'ONLINE';
             const isScheduled = item.status === 'SCHEDULED';
             const lifecycle = getMeetingLifecycle(item);
@@ -466,9 +599,12 @@ export default function ApplicantInterviewsPage() {
                     <p style={{ margin: '0.25rem 0 0 0' }}>{item.instructions}</p>
                   </div>
                 )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>

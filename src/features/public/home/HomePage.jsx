@@ -1,25 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ArrowRight, 
-  Sparkles, 
-  Code2, 
-  Cloud, 
-  ShieldCheck, 
-  Cpu, 
-  Clock, 
-  RefreshCw, 
-  Server, 
-  TrendingUp, 
-  Compass, 
-  Zap, 
-  Layers, 
-  Users, 
-  Check, 
-  Briefcase, 
-  MapPin, 
+import {
+  ArrowRight,
+  Sparkles,
+  Code2,
+  Smartphone,
+  Cloud,
+  ShieldCheck,
+  Cpu,
+  CheckCircle2,
+  Users,
+  Briefcase,
+  Award,
+  Zap,
+  Globe2,
   ChevronRight,
-  Award
+  Layers,
+  MapPin,
+  Clock,
+  RefreshCw,
+  Terminal,
+  Activity,
+  Check,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Server,
+  TrendingUp,
+  Compass,
+  Building2,
+  Lock
 } from 'lucide-react';
 import { companyApi } from '../company/companyApi';
 import { servicesApi } from '../services/api/servicesApi';
@@ -31,19 +42,7 @@ export default function HomePage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [servicesError, setServicesError] = useState(null);
-
   const videoRef = useRef(null);
-
-  // Guarantee seamless background looping without sound interruption
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = true;
-      videoRef.current.defaultMuted = true;
-      videoRef.current.play().catch((err) => {
-        console.warn('Video background autoplay note:', err);
-      });
-    }
-  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -73,243 +72,339 @@ export default function HomePage() {
 
   useEffect(() => {
     loadData();
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+      videoRef.current.defaultMuted = true;
+      videoRef.current.play().catch(() => {});
+    }
   }, []);
 
   return (
     <div style={{ width: '100%', overflow: 'hidden', background: '#FFFFFF' }}>
       {/* ====================================================================
-          1. Hero Section — Full-Screen Cinematic Background Video
+          1. Hero Section — Two-Column Layout With High-Tech Video Showcase
           ==================================================================== */}
       <section
         style={{
+          background: 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 55%, #ECFEFF 100%)',
+          borderBottom: '1px solid #E2E8F0',
+          padding: 'clamp(3rem, 6vw, 5.5rem) clamp(1rem, 3vw, 1.5rem)',
           position: 'relative',
-          minHeight: '88vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          background: '#0F172A',
-          color: '#FFFFFF',
-          padding: 'clamp(4rem, 7vw, 6.5rem) clamp(1rem, 4vw, 2rem)',
         }}
       >
-        {/* Full-Screen Looping Background Video */}
-        <video
-          ref={videoRef}
-          src="/hero-video.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            filter: 'brightness(0.6) contrast(1.1)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Cinematic Radial Overlay for Sharp Contrast & Readability */}
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'radial-gradient(circle at center, rgba(15, 23, 42, 0.58) 0%, rgba(15, 23, 42, 0.82) 70%, rgba(15, 23, 42, 0.98) 100%)',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Hero Content Center Stack */}
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 2,
-            maxWidth: '1060px',
+            maxWidth: '1280px',
             margin: '0 auto',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+            gap: 'clamp(2.5rem, 5vw, 4.5rem)',
             alignItems: 'center',
           }}
         >
-          {/* Glassmorphic Top Badge */}
-          <div style={{ display: 'inline-flex', marginBottom: '1.5rem' }}>
-            <span
+          {/* Left Column: Headline, Description, CTAs, Feature Indicators */}
+          <div>
+            <div style={{ display: 'inline-flex', marginBottom: '1.25rem' }}>
+              <span
+                style={{
+                  background: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  color: '#2563EB',
+                  padding: '0.4rem 0.95rem',
+                  borderRadius: '9999px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                }}
+              >
+                <Sparkles size={14} color="#2563EB" />
+                <span>Next-Gen Technology &bull; Engineering &bull; Talent</span>
+              </span>
+            </div>
+
+            <h1
               style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.22)',
-                color: '#93C5FD',
-                padding: '0.45rem 1.15rem',
-                borderRadius: '9999px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
+                fontSize: 'clamp(2.15rem, 5vw, 3.65rem)',
+                lineHeight: 1.15,
+                color: '#0F172A',
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                marginBottom: '1.35rem',
               }}
             >
-              <Sparkles size={14} color="#60A5FA" />
-              <span>Next-Gen Technology &bull; Cloud Engineering &bull; Global Talent</span>
-            </span>
+              Engineering Digital Solutions.{' '}
+              <span
+                style={{
+                  background: 'linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                Connecting Exceptional Talent.
+              </span>
+            </h1>
+
+            <p
+              style={{
+                fontSize: '1.15rem',
+                color: '#475569',
+                lineHeight: 1.7,
+                marginBottom: '2.25rem',
+                maxWidth: '580px',
+              }}
+            >
+              {company?.shortDescription ||
+                'Nexora Technologies builds enterprise-grade digital products, cloud architectures, and scalable web platforms while empowering businesses with verified engineering talent.'}
+            </p>
+
+            {/* CTAs */}
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.25rem' }}>
+              <Link
+                to="/services"
+                className="btn btn-primary"
+                style={{ padding: '0.85rem 1.85rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <span>Explore Services</span>
+                <ArrowRight size={18} />
+              </Link>
+              <Link
+                to="/careers"
+                className="btn btn-secondary"
+                style={{ padding: '0.85rem 1.85rem', fontSize: '1rem' }}
+              >
+                <span>Browse Careers</span>
+              </Link>
+              <Link
+                to="/contact"
+                className="btn btn-secondary"
+                style={{ padding: '0.85rem 1.5rem', fontSize: '1rem', color: '#475569' }}
+              >
+                <span>Contact Us</span>
+              </Link>
+            </div>
+
+            {/* Quick Metrics Strip */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '1rem',
+                padding: '1.25rem 0',
+                borderTop: '1px solid #E2E8F0',
+                borderBottom: '1px solid #E2E8F0',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#2563EB' }}>99.9%</div>
+                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Platform SLA Uptime</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#06B6D4' }}>24/7</div>
+                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Cloud Monitoring</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#059669' }}>100%</div>
+                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Verified Profiles</div>
+              </div>
+            </div>
+
+            {/* Feature Indicators Row */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1.5rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              {[
+                'Full-Stack Software Engineering',
+                'Cloud Infrastructure & DevOps',
+                'Talent & Recruitment Hub',
+              ].map((feature, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    fontSize: '0.85rem',
+                    color: '#0F172A',
+                    fontWeight: 600,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: '#EFF6FF',
+                      border: '1px solid #BFDBFE',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Check size={12} color="#2563EB" strokeWidth={3} />
+                  </div>
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Grand Headline */}
-          <h1
-            style={{
-              fontSize: 'clamp(2.35rem, 5.8vw, 4.25rem)',
-              lineHeight: 1.14,
-              fontWeight: 800,
-              color: '#FFFFFF',
-              letterSpacing: '-0.035em',
-              marginBottom: '1.5rem',
-              maxWidth: '960px',
-              textShadow: '0 4px 30px rgba(0, 0, 0, 0.45)',
-            }}
-          >
-            Engineering Digital Solutions.{' '}
-            <span
+          {/* Right Column: Hero Video Showcase */}
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+            {/* Ambient Background Glow */}
+            <div
               style={{
-                background: 'linear-gradient(135deg, #60A5FA 0%, #38BDF8 50%, #2DD4BF 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                position: 'absolute',
+                top: '-25px',
+                right: '-10px',
+                width: '440px',
+                height: '440px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, rgba(6, 182, 212, 0.15) 45%, rgba(207, 250, 254, 0) 70%)',
+                filter: 'blur(40px)',
+                zIndex: 0,
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Video Player Showcase Card */}
+            <div
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                width: '100%',
+                maxWidth: '580px',
+                background: '#0F172A',
+                borderRadius: '24px',
+                overflow: 'hidden',
+                boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8)',
+                border: '1px solid #CBD5E1',
               }}
             >
-              Connecting Exceptional Talent.
-            </span>
-          </h1>
+              {/* Crystal Clear Video Screen */}
+              <div
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  aspectRatio: '16/10',
+                  background: '#0F172A',
+                  overflow: 'hidden',
+                }}
+              >
+                <video
+                  ref={videoRef}
+                  src="/hero-video.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block',
+                    filter: 'contrast(1.05) brightness(1.02)',
+                  }}
+                />
 
-          {/* Subtitle Description */}
-          <p
-            style={{
-              fontSize: 'clamp(1.05rem, 2vw, 1.25rem)',
-              color: '#E2E8F0',
-              lineHeight: 1.75,
-              marginBottom: '2.5rem',
-              maxWidth: '740px',
-              textShadow: '0 2px 12px rgba(0, 0, 0, 0.4)',
-            }}
-          >
-            {company?.shortDescription ||
-              'Delivering high-impact enterprise software engineering, scalable cloud architectures, and an integrated global talent recruitment platform from Hyderabad, India.'}
-          </p>
+                {/* Subtle Floating Status Pill (Non-blocking) */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '14px',
+                    right: '14px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    background: 'rgba(15, 23, 42, 0.75)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    padding: '0.3rem 0.75rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    color: '#34D399',
+                    letterSpacing: '0.04em',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+                  <span>NEXORA PLATFORM</span>
+                </div>
+              </div>
 
-          {/* Call to Action Buttons */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '1.15rem',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              marginBottom: '3.5rem',
-            }}
-          >
-            <Link
-              to="/services"
-              className="btn"
-              style={{
-                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                color: '#FFFFFF',
-                padding: '0.95rem 2.2rem',
-                fontSize: '1.05rem',
-                fontWeight: 700,
-                borderRadius: '12px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                textDecoration: 'none',
-                boxShadow: '0 10px 25px -4px rgba(37, 99, 235, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <span>Explore Services</span>
-              <ArrowRight size={18} />
-            </Link>
-
-            <Link
-              to="/careers"
-              style={{
-                background: 'rgba(255, 255, 255, 0.12)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                color: '#FFFFFF',
-                padding: '0.95rem 2.2rem',
-                fontSize: '1.05rem',
-                fontWeight: 700,
-                borderRadius: '12px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                textDecoration: 'none',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <span>Browse Careers</span>
-            </Link>
-
-            <Link
-              to="/contact"
-              style={{
-                background: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: '#CBD5E1',
-                padding: '0.95rem 1.75rem',
-                fontSize: '1.05rem',
-                fontWeight: 600,
-                borderRadius: '12px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                textDecoration: 'none',
-              }}
-            >
-              <span>Contact Us</span>
-            </Link>
-          </div>
-
-          {/* Key Trust Stats Strip */}
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '840px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
-              gap: '1rem',
-              padding: '1.25rem 1.75rem',
-              background: 'rgba(15, 23, 42, 0.65)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.14)',
-              borderRadius: '18px',
-              boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#60A5FA', letterSpacing: '-0.02em' }}>99.9%</div>
-              <div style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>Platform SLA Uptime</div>
+              {/* Minimalist Lower Strip */}
+              <div
+                style={{
+                  background: '#0F172A',
+                  padding: '0.85rem 1.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                  fontSize: '0.82rem',
+                  color: '#94A3B8',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Activity size={15} color="#06B6D4" />
+                  <span>Enterprise Software Engineering & Cloud Architectures</span>
+                </div>
+                <span style={{ color: '#60A5FA', fontWeight: 700 }}>Nexora Technologies</span>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#38BDF8', letterSpacing: '-0.02em' }}>24/7</div>
-              <div style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>Cloud Monitoring</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#34D399', letterSpacing: '-0.02em' }}>100%</div>
-              <div style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>Verified Profiles</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#A78BFA', letterSpacing: '-0.02em' }}>Global</div>
-              <div style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>Delivery Synergy</div>
+
+            {/* Floating Glassmorphic Badge: Verified Hub */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-20px',
+                left: '-15px',
+                zIndex: 2,
+                background: '#FFFFFF',
+                border: '1px solid #BFDBFE',
+                borderRadius: '14px',
+                padding: '0.75rem 1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                boxShadow: '0 12px 25px -4px rgba(37, 99, 235, 0.16)',
+              }}
+            >
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  flexShrink: 0,
+                }}
+              >
+                <Award size={19} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0F172A' }}>
+                  Talent Matching Hub
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#64748B' }}>
+                  Verified Engineering Candidates
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -830,26 +925,38 @@ export default function HomePage() {
           {[
             {
               step: '01',
-              title: 'Discovery & Architecture',
-              desc: 'Deep-dive into business goals, technical constraints, and system design specifications.',
+              title: 'Discover & Plan',
+              desc: 'Deep-dive into business goals, functional requirements, technical constraints, and scope definition.',
               icon: Compass,
             },
             {
               step: '02',
-              title: 'Agile Sprints & Build',
-              desc: 'Iterative two-week development sprints with code reviews and automated CI/CD checks.',
-              icon: Code2,
+              title: 'Design & Architect',
+              desc: 'System architecture, microservice topologies, database schemas, and intuitive UI/UX design wireframes.',
+              icon: Layers,
             },
             {
               step: '03',
-              title: 'Quality & Security Testing',
-              desc: 'End-to-end integration, performance load tests, vulnerability scanning, and QA verification.',
-              icon: ShieldCheck,
+              title: 'Develop & Build',
+              desc: 'Iterative agile development sprints with peer code reviews, continuous integration, and clean code standards.',
+              icon: Code2,
             },
             {
               step: '04',
-              title: 'Deployment & Scale',
-              desc: 'Production cloud rollout, monitoring telemetry, SLA maintenance, and continuous optimization.',
+              title: 'Quality & Security Testing',
+              desc: 'Comprehensive unit, end-to-end integration, performance load tests, and security vulnerability scanning.',
+              icon: ShieldCheck,
+            },
+            {
+              step: '05',
+              title: 'Deploy & Scale',
+              desc: 'Containerized production cloud rollout, zero-downtime deployment pipelines, and auto-scaling infrastructure.',
+              icon: Cloud,
+            },
+            {
+              step: '06',
+              title: 'Support & Grow',
+              desc: 'Continuous telemetry monitoring, proactive maintenance, SLA guarantees, and long-term capability expansion.',
               icon: TrendingUp,
             },
           ].map((item, idx) => {

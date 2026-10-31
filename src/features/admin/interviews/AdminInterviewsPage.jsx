@@ -353,7 +353,7 @@ export default function AdminInterviewsPage() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('nexora:data-updated', handleDataUpdated);
     };
-  }, [pagination.page, statusFilter, roundFilter]);
+  }, [pagination.page, pagination.limit, statusFilter, roundFilter]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -1281,34 +1281,81 @@ export default function AdminInterviewsPage() {
             })}
           </div>
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderTop: '1px solid #E2E8F0', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <div style={{ fontSize: '0.85rem', color: '#64748B' }}>
-                Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  disabled={pagination.page <= 1}
-                  onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
-                  className="btn btn-secondary"
-                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+          {/* Pagination Controls */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderTop: '1px solid #E2E8F0', flexWrap: 'wrap', gap: '0.75rem', background: '#F8FAFC' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', fontSize: '0.85rem', color: '#475569' }}>
+              <span>
+                Showing <strong>{interviews.length > 0 ? (pagination.page - 1) * pagination.limit + 1 : 0}</strong> to{' '}
+                <strong>{Math.min(pagination.page * pagination.limit, pagination.total || interviews.length)}</strong> of{' '}
+                <strong>{pagination.total || interviews.length}</strong> interviews
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <span style={{ fontSize: '0.8rem', color: '#64748B' }}>Rows per page:</span>
+                <select
+                  value={pagination.limit}
+                  onChange={(e) => setPagination((prev) => ({ ...prev, limit: Number(e.target.value), page: 1 }))}
+                  style={{ padding: '0.2rem 0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.8rem', background: '#FFFFFF', color: '#0F172A' }}
                 >
-                  <ChevronLeft size={14} />
-                  <span>Prev</span>
-                </button>
-                <button
-                  disabled={pagination.page >= pagination.totalPages}
-                  onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
-                  className="btn btn-secondary"
-                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
-                >
-                  <span>Next</span>
-                  <ChevronRight size={14} />
-                </button>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
               </div>
             </div>
-          )}
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <button
+                type="button"
+                disabled={pagination.page <= 1}
+                onClick={() => setPagination((p) => ({ ...p, page: Math.max(1, p.page - 1) }))}
+                className="btn btn-secondary"
+                style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                title="Previous Page"
+              >
+                <ChevronLeft size={14} />
+                <span>Prev</span>
+              </button>
+
+              {Array.from({ length: Math.max(1, pagination.totalPages || 1) }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === (pagination.totalPages || 1) || Math.abs(p - pagination.page) <= 1)
+                .map((pageNum, idx, arr) => (
+                  <React.Fragment key={pageNum}>
+                    {idx > 0 && arr[idx - 1] !== pageNum - 1 && (
+                      <span style={{ padding: '0 0.25rem', color: '#94A3B8' }}>...</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setPagination((p) => ({ ...p, page: pageNum }))}
+                      style={{
+                        padding: '0.35rem 0.7rem',
+                        fontSize: '0.8rem',
+                        fontWeight: pagination.page === pageNum ? 700 : 500,
+                        borderRadius: '6px',
+                        border: pagination.page === pageNum ? '1px solid #2563EB' : '1px solid #E2E8F0',
+                        background: pagination.page === pageNum ? '#2563EB' : '#FFFFFF',
+                        color: pagination.page === pageNum ? '#FFFFFF' : '#334155',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  </React.Fragment>
+                ))}
+
+              <button
+                type="button"
+                disabled={pagination.page >= (pagination.totalPages || 1)}
+                onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
+                className="btn btn-secondary"
+                style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                title="Next Page"
+              >
+                <span>Next</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

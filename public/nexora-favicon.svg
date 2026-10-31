@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="nexoraBlue" x1="30" y1="24" x2="220" y2="230" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#087BFF"/>
+      <stop offset="0.52" stop-color="#0755D8"/>
+      <stop offset="1" stop-color="#00B8E8"/>
+    </linearGradient>
+    <linearGradient id="nexoraHighlight" x1="70" y1="55" x2="190" y2="205" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#45D7FF"/>
+      <stop offset="1" stop-color="#087BFF"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="48" fill="#082957"/>
+  <path d="M65 190V78c0-13 16-19 25-9l101 111c9 10 25 4 25-10V66"
+        fill="none" stroke="url(#nexoraBlue)" stroke-width="34"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M65 190V78c0-13 16-19 25-9l101 111c9 10 25 4 25-10"
+        fill="none" stroke="url(#nexoraHighlight)" stroke-width="13"
+        stroke-linecap="round" stroke-linejoin="round" opacity=".95"/>
+  <rect x="177" y="37" width="35" height="35" rx="9" fill="#00BCEB"/>
+</svg>

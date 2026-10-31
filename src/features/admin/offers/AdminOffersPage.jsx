@@ -41,6 +41,7 @@ export default function AdminOffersPage() {
   const [previewHtml, setPreviewHtml] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
   const [issueConfirmModalOpen, setIssueConfirmModalOpen] = useState(false);
+  const [issueSuccess, setIssueSuccess] = useState(null);
   const [offerToIssue, setOfferToIssue] = useState(null);
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -248,6 +249,7 @@ export default function AdminOffersPage() {
 
   const openIssueModal = (offer) => {
     setOfferToIssue(offer);
+    setIssueSuccess(null);
     setIssueConfirmModalOpen(true);
   };
 
@@ -261,9 +263,12 @@ export default function AdminOffersPage() {
       setSubmitting(true);
       await offersApi.issueOffer(offerToIssue.id);
       toast?.showSuccess(`Offer ${offerToIssue.offerCode} issued successfully to ${offerToIssue.applicant?.fullName || 'candidate'}`);
-      setIssueConfirmModalOpen(false);
-      setOfferToIssue(null);
-      loadData();
+      setIssueSuccess({
+        offerCode: offerToIssue.offerCode,
+        candidateName: offerToIssue.applicant?.fullName || 'Candidate',
+        designation: offerToIssue.designation,
+      });
+      loadData(true);
       window.dispatchEvent(new CustomEvent('nexora:data-updated'));
     } catch (err) {
       toast?.showError(err.message || 'Failed to issue offer');
@@ -1057,79 +1062,128 @@ export default function AdminOffersPage() {
       {issueConfirmModalOpen && offerToIssue && (
         <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
           <div className="card" style={{ width: '100%', maxWidth: '480px', background: '#FFFFFF', borderRadius: '16px', padding: '1.75rem', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563EB' }}>
-                  <Send size={20} />
+            {issueSuccess ? (
+              <div style={{ textAlign: 'center', padding: '0.75rem 0.25rem' }}>
+                <div
+                  style={{
+                    width: '68px',
+                    height: '68px',
+                    borderRadius: '50%',
+                    background: '#ECFDF5',
+                    border: '2px solid #86EFAC',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1.25rem',
+                    color: '#059669',
+                    boxShadow: '0 10px 25px -5px rgba(5, 150, 105, 0.25)',
+                  }}
+                >
+                  <CheckCircle size={38} />
                 </div>
-                <div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#0F172A' }}>Issue Official Offer</h3>
-                  <div style={{ fontSize: '0.78rem', color: '#64748B' }}>Offer Ref: <code>{offerToIssue.offerCode}</code></div>
+
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>
+                  Official Offer Issued! 🚀
+                </h3>
+
+                <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.6, maxWidth: '400px', margin: '0 auto 1.25rem' }}>
+                  Job offer <strong>{issueSuccess.offerCode}</strong> has been successfully issued to <strong>{issueSuccess.candidateName}</strong> for the position of <strong>{issueSuccess.designation}</strong>.
+                </p>
+
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.5rem', fontSize: '0.82rem', color: '#64748B' }}>
+                  An official email and in-app acceptance notification with secure credentials have been dispatched.
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIssueConfirmModalOpen(false);
+                    setIssueSuccess(null);
+                    setOfferToIssue(null);
+                  }}
+                  className="btn btn-primary"
+                  style={{ padding: '0.65rem 2.25rem', fontSize: '0.95rem' }}
+                >
+                  Done &bull; View Offers
+                </button>
               </div>
-              <button onClick={() => !submitting && setIssueConfirmModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: '#334155', lineHeight: 1.5 }}>
-                Are you sure you want to issue this employment offer to <strong>{offerToIssue.applicant?.fullName || 'the candidate'}</strong>?
-              </p>
-
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '0.85rem 1rem', fontSize: '0.85rem', color: '#475569' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                  <span>Position:</span>
-                  <strong style={{ color: '#0F172A' }}>{offerToIssue.designation}</strong>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563EB' }}>
+                      <Send size={20} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: '#0F172A' }}>Issue Official Offer</h3>
+                      <div style={{ fontSize: '0.78rem', color: '#64748B' }}>Offer Ref: <code>{offerToIssue.offerCode}</code></div>
+                    </div>
+                  </div>
+                  <button onClick={() => !submitting && setIssueConfirmModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+                    <X size={20} />
+                  </button>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                  <span>Annual Package:</span>
-                  <strong style={{ color: '#059669' }}>
-                    {offerToIssue.salary ? `${offerToIssue.currency} ${Number(offerToIssue.salary).toLocaleString('en-IN')} / yr` : 'Not specified'}
-                  </strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Joining Date:</span>
-                  <strong style={{ color: '#0F172A' }}>{new Date(offerToIssue.joiningDate).toLocaleDateString()}</strong>
-                </div>
-              </div>
 
-              <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <CheckCircle size={14} color="#059669" />
-                <span>An official email and in-app candidate notification will be sent automatically.</span>
-              </div>
-            </div>
+                <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#334155', lineHeight: 1.5 }}>
+                    Are you sure you want to issue this employment offer to <strong>{offerToIssue.applicant?.fullName || 'the candidate'}</strong>?
+                  </p>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid #E2E8F0' }}>
-              <button
-                type="button"
-                disabled={submitting}
-                onClick={() => setIssueConfirmModalOpen(false)}
-                className="btn btn-secondary"
-                style={{ padding: '0.6rem 1.1rem' }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={submitting}
-                onClick={handleConfirmIssue}
-                className="btn btn-primary"
-                style={{ padding: '0.6rem 1.25rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                {submitting ? (
-                  <>
-                    <RotateCcw className="animate-spin" size={16} />
-                    <span>Issuing Offer...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send size={16} />
-                    <span>Send Official Offer</span>
-                  </>
-                )}
-              </button>
-            </div>
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '0.85rem 1rem', fontSize: '0.85rem', color: '#475569' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                      <span>Position:</span>
+                      <strong style={{ color: '#0F172A' }}>{offerToIssue.designation}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                      <span>Annual Package:</span>
+                      <strong style={{ color: '#059669' }}>
+                        {offerToIssue.salary ? `${offerToIssue.currency} ${Number(offerToIssue.salary).toLocaleString('en-IN')} / yr` : 'Not specified'}
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>Joining Date:</span>
+                      <strong style={{ color: '#0F172A' }}>{new Date(offerToIssue.joiningDate).toLocaleDateString()}</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <CheckCircle size={14} color="#059669" />
+                    <span>An official email and in-app candidate notification will be sent automatically.</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid #E2E8F0' }}>
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => setIssueConfirmModalOpen(false)}
+                    className="btn btn-secondary"
+                    style={{ padding: '0.6rem 1.1rem' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={handleConfirmIssue}
+                    className="btn btn-primary"
+                    style={{ padding: '0.6rem 1.25rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                  >
+                    {submitting ? (
+                      <>
+                        <RotateCcw className="animate-spin" size={16} />
+                        <span>Issuing Offer...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        <span>Send Official Offer</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

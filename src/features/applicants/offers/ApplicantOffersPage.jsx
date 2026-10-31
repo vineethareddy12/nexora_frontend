@@ -30,6 +30,7 @@ export default function ApplicantOffersPage() {
 
   // Decision Modal
   const [decisionModalOpen, setDecisionModalOpen] = useState(false);
+  const [decisionSuccess, setDecisionSuccess] = useState(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -115,9 +116,12 @@ export default function ApplicantOffersPage() {
           ? 'Congratulations! You have accepted the offer.'
           : 'Your decision to decline the offer has been submitted.'
       );
-      setDecisionModalOpen(false);
-      setDecisionNotes('');
-      loadOffers();
+      setDecisionSuccess({
+        type: decisionType,
+        offerCode: selectedOffer.offerCode,
+        designation: selectedOffer.designation,
+      });
+      loadOffers(true);
       window.dispatchEvent(new CustomEvent('nexora:data-updated'));
     } catch (err) {
       toast?.showError(err.message || 'Failed to submit response');
@@ -267,6 +271,7 @@ export default function ApplicantOffersPage() {
                         onClick={() => {
                           setSelectedOffer(offer);
                           setDecisionType('DECLINED');
+                          setDecisionSuccess(null);
                           setDecisionModalOpen(true);
                         }}
                         className="btn btn-secondary"
@@ -278,6 +283,7 @@ export default function ApplicantOffersPage() {
                         onClick={() => {
                           setSelectedOffer(offer);
                           setDecisionType('ACCEPTED');
+                          setDecisionSuccess(null);
                           setDecisionModalOpen(true);
                         }}
                         className="btn btn-primary"
@@ -306,61 +312,118 @@ export default function ApplicantOffersPage() {
       {decisionModalOpen && selectedOffer && (
         <div className="modal-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
           <div className="card" style={{ width: '100%', maxWidth: '480px', background: '#FFFFFF', borderRadius: '16px', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: decisionType === 'ACCEPTED' ? '#059669' : '#DC2626' }}>
-                {decisionType === 'ACCEPTED' ? 'Accept Employment Offer' : 'Decline Employment Offer'}
-              </h3>
-              <button onClick={() => setDecisionModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleDecisionSubmit}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <p style={{ fontSize: '0.9rem', color: '#334155', margin: 0 }}>
-                  {decisionType === 'ACCEPTED' ? (
-                    <>
-                      By accepting, you confirm your intent to join Nexora Technologies as <strong>{selectedOffer.designation}</strong>. Our onboarding team will contact you with next steps.
-                    </>
-                  ) : (
-                    <>
-                      Are you sure you wish to decline the offer for <strong>{selectedOffer.designation}</strong>? This decision cannot be reversed.
-                    </>
-                  )}
-                </p>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                    {decisionType === 'ACCEPTED' ? 'Comments / Expected Onboarding Availability (Optional)' : 'Reason for Declining (Optional)'}
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder={decisionType === 'ACCEPTED' ? 'Excited to join the engineering team!' : 'Accepted another offer / Location preference...'}
-                    value={decisionNotes}
-                    onChange={(e) => setDecisionNotes(e.target.value)}
-                    className="form-control"
-                    style={{ width: '100%', borderRadius: '8px' }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #E2E8F0' }}>
-                <button type="button" onClick={() => setDecisionModalOpen(false)} className="btn btn-secondary">
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="btn btn-primary"
+            {decisionSuccess ? (
+              <div style={{ textAlign: 'center', padding: '1rem 0.5rem' }}>
+                <div
                   style={{
-                    background: decisionType === 'ACCEPTED' ? '#059669' : '#DC2626',
-                    borderColor: decisionType === 'ACCEPTED' ? '#059669' : '#DC2626',
+                    width: '68px',
+                    height: '68px',
+                    borderRadius: '50%',
+                    background: decisionSuccess.type === 'ACCEPTED' ? '#ECFDF5' : '#FEF2F2',
+                    border: decisionSuccess.type === 'ACCEPTED' ? '2px solid #86EFAC' : '2px solid #FECACA',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1.25rem',
+                    color: decisionSuccess.type === 'ACCEPTED' ? '#059669' : '#DC2626',
+                    boxShadow: decisionSuccess.type === 'ACCEPTED' ? '0 10px 25px -5px rgba(5, 150, 105, 0.25)' : 'none',
                   }}
                 >
-                  {submitting ? 'Submitting...' : decisionType === 'ACCEPTED' ? 'Confirm Acceptance' : 'Confirm Decline'}
+                  {decisionSuccess.type === 'ACCEPTED' ? <CheckCircle size={38} /> : <AlertCircle size={38} />}
+                </div>
+
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>
+                  {decisionSuccess.type === 'ACCEPTED' ? 'Congratulations! Offer Accepted 🎉' : 'Offer Declined Successfully'}
+                </h3>
+
+                <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.6, maxWidth: '400px', margin: '0 auto 1.5rem' }}>
+                  {decisionSuccess.type === 'ACCEPTED'
+                    ? `You have successfully accepted the official employment offer for ${decisionSuccess.designation} (${decisionSuccess.offerCode}). Our HR onboarding team has been notified and will contact you with next steps!`
+                    : `You have submitted your response declining the offer for ${decisionSuccess.designation} (${decisionSuccess.offerCode}). Your application status has been updated.`}
+                </p>
+
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.5rem', fontSize: '0.82rem', color: '#64748B' }}>
+                  A confirmation email with your response details has been dispatched to your registered address.
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDecisionModalOpen(false);
+                    setDecisionSuccess(null);
+                    setSelectedOffer(null);
+                    setDecisionNotes('');
+                  }}
+                  className="btn btn-primary"
+                  style={{
+                    padding: '0.65rem 2.25rem',
+                    fontSize: '0.95rem',
+                    background: decisionSuccess.type === 'ACCEPTED' ? '#059669' : '#0F172A',
+                    borderColor: decisionSuccess.type === 'ACCEPTED' ? '#059669' : '#0F172A',
+                  }}
+                >
+                  Done &bull; View Status
                 </button>
               </div>
-            </form>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: decisionType === 'ACCEPTED' ? '#059669' : '#DC2626' }}>
+                    {decisionType === 'ACCEPTED' ? 'Accept Employment Offer' : 'Decline Employment Offer'}
+                  </h3>
+                  <button onClick={() => setDecisionModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleDecisionSubmit}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <p style={{ fontSize: '0.9rem', color: '#334155', margin: 0 }}>
+                      {decisionType === 'ACCEPTED' ? (
+                        <>
+                          By accepting, you confirm your intent to join Nexora Technologies as <strong>{selectedOffer.designation}</strong>. Our onboarding team will contact you with next steps.
+                        </>
+                      ) : (
+                        <>
+                          Are you sure you wish to decline the offer for <strong>{selectedOffer.designation}</strong>? This decision cannot be reversed.
+                        </>
+                      )}
+                    </p>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                        {decisionType === 'ACCEPTED' ? 'Comments / Expected Onboarding Availability (Optional)' : 'Reason for Declining (Optional)'}
+                      </label>
+                      <textarea
+                        rows={3}
+                        placeholder={decisionType === 'ACCEPTED' ? 'Excited to join the engineering team!' : 'Accepted another offer / Location preference...'}
+                        value={decisionNotes}
+                        onChange={(e) => setDecisionNotes(e.target.value)}
+                        className="form-control"
+                        style={{ width: '100%', borderRadius: '8px' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #E2E8F0' }}>
+                    <button type="button" onClick={() => setDecisionModalOpen(false)} className="btn btn-secondary">
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="btn btn-primary"
+                      style={{
+                        background: decisionType === 'ACCEPTED' ? '#059669' : '#DC2626',
+                        borderColor: decisionType === 'ACCEPTED' ? '#059669' : '#DC2626',
+                      }}
+                    >
+                      {submitting ? 'Submitting...' : decisionType === 'ACCEPTED' ? 'Confirm Acceptance' : 'Confirm Decline'}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
