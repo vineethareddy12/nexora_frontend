@@ -23,10 +23,25 @@ export default function ApplicantOffersPage() {
   const userId = user?.id;
   const toast = useToast();
 
-  const [offers, setOffers] = useState(() => clientCache.get('applicant_offers', userId) || []);
+  const getInitialOffers = () => {
+    try {
+      const cached = clientCache.get('applicant_offers', userId);
+      if (!cached) return [];
+      if (Array.isArray(cached)) return cached;
+      if (Array.isArray(cached.data)) return cached.data;
+      if (Array.isArray(cached.offers)) return cached.offers;
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
+  const [offers, setOffers] = useState(getInitialOffers);
   const [loading, setLoading] = useState(() => !clientCache.isFresh('applicant_offers', userId));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
+
+  const offerList = Array.isArray(offers) ? offers : [];
 
   // Decision Modal
   const [decisionModalOpen, setDecisionModalOpen] = useState(false);
@@ -40,7 +55,7 @@ export default function ApplicantOffersPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const loadOffers = async (isSilent = false) => {
-    if (!isSilent && offers.length === 0) {
+    if (!isSilent && offerList.length === 0) {
       setLoading(true);
     } else if (isSilent) {
       setIsRefreshing(true);
@@ -53,10 +68,17 @@ export default function ApplicantOffersPage() {
         () => offersApi.getApplicantOffers(),
         { userId, ttl: 45000, force: !isSilent }
       );
-      setOffers(res.data || []);
+      const items = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.offers)
+        ? res.offers
+        : [];
+      setOffers(items);
     } catch (err) {
       console.error('Failed to load applicant offers:', err);
-      if (offers.length === 0) {
+      if (offerList.length === 0) {
         setError(err.message || 'Failed to load offers');
       }
     } finally {
@@ -144,15 +166,15 @@ export default function ApplicantOffersPage() {
         <RefreshBadge isRefreshing={isRefreshing} />
       </div>
 
-      {loading && offers.length === 0 ? (
+      {loading && offerList.length === 0 ? (
         <TableSkeleton rows={3} cols={4} />
-      ) : error && offers.length === 0 ? (
+      ) : error && offerList.length === 0 ? (
         <ErrorState
           title="Unable to Load Job Offers"
           message={error}
           onRetry={() => loadOffers(false)}
         />
-      ) : offers.length === 0 ? (
+      ) : offerList.length === 0 ? (
         <EmptyState
           icon={Award}
           title="No Job Offers Issued Yet"
@@ -160,7 +182,7 @@ export default function ApplicantOffersPage() {
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {offers.map((offer) => {
+          {offerList.map((offer) => {
             const isIssued = offer.status === 'ISSUED';
             const isAccepted = offer.status === 'ACCEPTED';
             const isDeclined = offer.status === 'DECLINED';

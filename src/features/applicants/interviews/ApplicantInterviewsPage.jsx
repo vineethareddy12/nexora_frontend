@@ -176,8 +176,21 @@ export default function ApplicantInterviewsPage() {
   const { user } = useAuth();
   const userId = user?.id;
 
+  const getInitialInterviews = () => {
+    try {
+      const cached = clientCache.get('applicant_interviews', userId);
+      if (!cached) return [];
+      if (Array.isArray(cached)) return cached;
+      if (Array.isArray(cached.data)) return cached.data;
+      if (Array.isArray(cached.interviews)) return cached.interviews;
+      return [];
+    } catch {
+      return [];
+    }
+  };
+
   // Stale-While-Revalidate: Seed initial state from memory cache immediately if available
-  const [interviews, setInterviews] = useState(() => clientCache.get('applicant_interviews', userId) || []);
+  const [interviews, setInterviews] = useState(getInitialInterviews);
   const [loading, setLoading] = useState(() => !clientCache.isFresh('applicant_interviews', userId));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
