@@ -138,11 +138,43 @@ export default function AdminOffersPage() {
   const openCreateModal = async () => {
     try {
       // Find candidate applications eligible for offer
-      // Includes: SELECTED, INTERVIEW_SCHEDULED (interview cleared/completed), SHORTLISTED, UNDER_REVIEW
-      const apps = await adminReviewApi.getApplications({ limit: 100 });
-      const candidates = (apps.applications || []).filter((a) =>
-        ['SELECTED', 'INTERVIEW_SCHEDULED', 'SHORTLISTED', 'OFFER_EXTENDED', 'UNDER_REVIEW'].includes(a.status)
-      );
+      // Fetch applications along with interviews to determine exact interview clearance
+      const [appsRes, interviewsRes] = await Promise.all([
+        adminReviewApi.getApplications({ limit: 100 }),
+        interviewsApi.getAdminInterviews({ limit: 100 }).catch(() => ({ interviews: [] })),
+      ]);
+
+      const allInterviews = interviewsRes?.interviews || interviewsRes?.data?.interviews || interviewsRes?.data || [];
+
+      // Map application clearance details
+      const candidates = (appsRes.applications || [])
+        .filter((a) =>
+          ['SELECTED', 'INTERVIEW_SCHEDULED', 'SHORTLISTED', 'OFFER_EXTENDED', 'UNDER_REVIEW'].includes(a.status)
+        )
+        .map((app) => {
+          // Find all interviews for this application
+          const appInterviews = allInterviews.filter((i) => i.applicationId === app.id);
+          const completedRounds = appInterviews.filter((i) => i.status === 'COMPLETED');
+          const clearedRounds = completedRounds.filter((i) => {
+            const rec = i.feedbacks?.[0]?.recommendation;
+            return rec === 'STRONG_HIRE' || rec === 'RECOMMENDED' || !rec;
+          });
+
+          return {
+            ...app,
+            clearedRoundsCount: clearedRounds.length,
+            clearedRoundNames: clearedRounds.map((r) => r.round.replace('_', ' ')).join(', '),
+            hasClearedInterviews: clearedRounds.length > 0,
+            hasPendingInterviews: appInterviews.some((i) => i.status === 'SCHEDULED'),
+          };
+        })
+        .filter((app) => {
+          // Exclude candidates whose interviews are rejected
+          const appInterviews = allInterviews.filter((i) => i.applicationId === app.id);
+          const rejected = appInterviews.some((i) => i.feedbacks?.[0]?.recommendation === 'NOT_RECOMMENDED');
+          return !rejected;
+        });
+
       setEligibleApplications(candidates);
       setCreateModalOpen(true);
     } catch (err) {
@@ -711,10 +743,14 @@ export default function AdminOffersPage() {
                   >
                     <option value="">-- Choose Candidate --</option>
                     {eligibleApplications.map((app) => {
-                      const isInterviewed = app.status === 'INTERVIEW_SCHEDULED' || app.status === 'SELECTED';
+                      const clearanceText = app.hasClearedInterviews
+                        ? `✓ [Cleared: ${app.clearedRoundNames}]`
+                        : app.status === 'SELECTED'
+                        ? '✓ [Selected]'
+                        : '[Shortlisted - Interview Pending]';
                       return (
                         <option key={app.id} value={app.id}>
-                          {app.applicant?.fullName} — {app.job?.title} ({app.referenceNumber}) {isInterviewed ? '✓ [Interview Cleared]' : ''}
+                          {app.applicant?.fullName} — {app.job?.title} ({app.referenceNumber}) {clearanceText}
                         </option>
                       );
                     })}

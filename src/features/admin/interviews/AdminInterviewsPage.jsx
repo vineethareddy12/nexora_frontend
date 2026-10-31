@@ -904,7 +904,22 @@ export default function AdminInterviewsPage() {
                       </td>
                       <td style={{ padding: '1rem 1.25rem' }}>
                         {item.status === 'COMPLETED' ? (
-                          <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>Completed</span>
+                          <div>
+                            <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>Completed</span>
+                            {item.feedbacks && item.feedbacks.length > 0 && (
+                              <div style={{ marginTop: '0.25rem', fontSize: '0.72rem', fontWeight: 600 }}>
+                                {item.feedbacks[0].recommendation === 'STRONG_HIRE' ? (
+                                  <span style={{ color: '#16A34A' }}>✓ Cleared for Offer</span>
+                                ) : item.feedbacks[0].recommendation === 'RECOMMENDED' ? (
+                                  <span style={{ color: '#2563EB' }}>➔ Cleared for Next Round</span>
+                                ) : item.feedbacks[0].recommendation === 'HOLD' ? (
+                                  <span style={{ color: '#D97706' }}>⏸ On Hold</span>
+                                ) : (
+                                  <span style={{ color: '#DC2626' }}>✗ Rejected</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         ) : item.status === 'CANCELLED' ? (
                           <span className="badge badge-danger" style={{ fontSize: '0.72rem' }}>Cancelled</span>
                         ) : lifecycle.isConcluded ? (
@@ -1055,7 +1070,20 @@ export default function AdminInterviewsPage() {
                       <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{jobTitle}</div>
                     </div>
                     {item.status === 'COMPLETED' ? (
-                      <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>Completed</span>
+                      <div style={{ textAlign: 'right' }}>
+                        <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>Completed</span>
+                        {item.feedbacks && item.feedbacks.length > 0 && (
+                          <div style={{ marginTop: '0.2rem', fontSize: '0.68rem', fontWeight: 600 }}>
+                            {item.feedbacks[0].recommendation === 'STRONG_HIRE' ? (
+                              <span style={{ color: '#16A34A' }}>✓ Cleared for Offer</span>
+                            ) : item.feedbacks[0].recommendation === 'RECOMMENDED' ? (
+                              <span style={{ color: '#2563EB' }}>➔ Next Round</span>
+                            ) : (
+                              <span style={{ color: '#DC2626' }}>✗ Rejected</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     ) : item.status === 'CANCELLED' ? (
                       <span className="badge badge-danger" style={{ fontSize: '0.7rem' }}>Cancelled</span>
                     ) : lifecycle.isConcluded ? (
@@ -1655,17 +1683,17 @@ export default function AdminInterviewsPage() {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>Recommendation *</label>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>Evaluation Outcome *</label>
                     <select
                       value={feedbackForm.recommendation}
                       onChange={(e) => setFeedbackForm({ ...feedbackForm, recommendation: e.target.value })}
                       className="form-control"
                       style={{ width: '100%', borderRadius: '8px' }}
                     >
-                      <option value="HIRE">Strong Hire</option>
-                      <option value="NEXT_ROUND">Advance to Next Round</option>
-                      <option value="HOLD">Keep on Hold</option>
-                      <option value="NO_HIRE">Do Not Hire</option>
+                      <option value="HIRE">✓ Cleared & Shortlisted for Official Offer (Strong Hire)</option>
+                      <option value="NEXT_ROUND">➔ Cleared Round — Advance to Next Interview Round</option>
+                      <option value="HOLD">⏸ Keep on Hold (Under Consideration)</option>
+                      <option value="NO_HIRE">✗ Evaluation Rejected (Do Not Hire)</option>
                     </select>
                   </div>
                 </div>
