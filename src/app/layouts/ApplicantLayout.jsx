@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import ScrollToTop from '../../components/common/ScrollToTop';
+import NotificationBell from '../../features/notifications/NotificationBell';
 
 export default function ApplicantLayout() {
   const { user, accessToken, loading, logout } = useAuth();
@@ -208,6 +209,8 @@ export default function ApplicantLayout() {
               <span>Explore Jobs</span>
               <ExternalLink size={13} />
             </Link>
+
+            <NotificationBell role="APPLICANT" />
 
             {/* Profile Dropdown Menu */}
             <div style={{ position: 'relative' }} ref={dropdownRef}>

@@ -11,6 +11,7 @@ export const jobsApi = {
     if (params.employmentType && params.employmentType !== 'ALL') query.append('employmentType', params.employmentType);
     if (params.workMode && params.workMode !== 'ALL') query.append('workMode', params.workMode);
     if (params.location && params.location !== 'ALL') query.append('location', params.location);
+    if (params.availability && params.availability !== 'ALL') query.append('availability', params.availability);
     if (params.page) query.append('page', params.page);
     if (params.limit) query.append('limit', params.limit);
 
@@ -33,6 +34,7 @@ export const jobsApi = {
     if (params.search) query.append('search', params.search);
     if (params.status && params.status !== 'ALL') query.append('status', params.status);
     if (params.department && params.department !== 'ALL') query.append('department', params.department);
+    if (params.availability && params.availability !== 'ALL') query.append('availability', params.availability);
     if (params.page) query.append('page', params.page);
     if (params.limit) query.append('limit', params.limit);
 

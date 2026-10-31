@@ -76,6 +76,12 @@ async function performSilentRefresh(refreshToken) {
 
 export async function authFetch(url, options = {}) {
   const headers = new Headers(options.headers || {});
+
+  // Automatically default Content-Type to application/json for JSON payload strings
+  if (options.body && typeof options.body === 'string' && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   let existingAuth = headers.get('Authorization');
 
   // Ensure clean Bearer token from localStorage

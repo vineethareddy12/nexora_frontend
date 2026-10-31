@@ -50,6 +50,8 @@ export function ToastProvider({ children }) {
     error: (message, options = {}) => addToast({ type: 'error', title: options.title || 'Error', message, ...options }),
     info: (message, options = {}) => addToast({ type: 'info', title: options.title || 'Notice', message, ...options }),
     warning: (message, options = {}) => addToast({ type: 'warning', title: options.title || 'Warning', message, ...options }),
+    showSuccess: (message, options = {}) => addToast({ type: 'success', title: options.title || 'Success', message, ...options }),
+    showError: (message, options = {}) => addToast({ type: 'error', title: options.title || 'Error', message, ...options }),
     remove: removeToast,
   }), [addToast, removeToast]);
 

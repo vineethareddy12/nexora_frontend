@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, Plus, Edit, Trash2, CheckCircle2, AlertCircle, RefreshCw, X, Play, StopCircle, RotateCcw, Search, Calendar, MapPin } from 'lucide-react';
+import { Briefcase, Plus, Edit, Trash2, CheckCircle2, AlertCircle, RefreshCw, X, Play, StopCircle, RotateCcw, Search, Calendar, MapPin, Clock } from 'lucide-react';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { jobsApi } from '../../public/careers/api/jobsApi';
 import { useToast } from '../../../components/toast/ToastContext';
@@ -15,6 +15,7 @@ export default function AdminJobsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [filterDept, setFilterDept] = useState('ALL');
+  const [filterAvailability, setFilterAvailability] = useState('ALL');
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -48,6 +49,7 @@ export default function AdminJobsPage() {
         search: searchTerm.trim() || undefined,
         status: filterStatus !== 'ALL' ? filterStatus : undefined,
         department: filterDept !== 'ALL' ? filterDept : undefined,
+        availability: filterAvailability !== 'ALL' ? filterAvailability : undefined,
       };
       const res = await jobsApi.getAdminJobs(params, token);
       setJobs(res.items || res.jobs || []);
@@ -71,7 +73,7 @@ export default function AdminJobsPage() {
       clearTimeout(timer);
       window.removeEventListener('nexora:admin-authenticated', handleAuth);
     };
-  }, [searchTerm, filterStatus, filterDept, token, accessToken]);
+  }, [searchTerm, filterStatus, filterDept, filterAvailability, token, accessToken]);
 
   const handleOpenAdd = () => {
     setEditingJob(null);
@@ -236,9 +238,19 @@ export default function AdminJobsPage() {
             style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none' }}
           >
             <option value="ALL">All Lifecycle Statuses</option>
-            <option value="PUBLISHED">Published (Active)</option>
+            <option value="PUBLISHED">Published</option>
             <option value="DRAFT">Draft</option>
             <option value="CLOSED">Closed</option>
+          </select>
+
+          <select
+            value={filterAvailability}
+            onChange={(e) => setFilterAvailability(e.target.value)}
+            style={{ padding: '0.65rem 0.85rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none' }}
+          >
+            <option value="ALL">All Postings (Active & Expired)</option>
+            <option value="ACTIVE">Active (Open to Apply)</option>
+            <option value="EXPIRED">Expired (Deadline Passed)</option>
           </select>
 
           {departments.length > 0 && (
@@ -252,6 +264,22 @@ export default function AdminJobsPage() {
                 <option key={d} value={d}>{d}</option>
               ))}
             </select>
+          )}
+
+          {(searchTerm || filterStatus !== 'ALL' || filterAvailability !== 'ALL' || filterDept !== 'ALL') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm('');
+                setFilterStatus('ALL');
+                setFilterAvailability('ALL');
+                setFilterDept('ALL');
+              }}
+              className="btn btn-secondary"
+              style={{ padding: '0.65rem 1rem', fontSize: '0.85rem' }}
+            >
+              Reset Filters
+            </button>
           )}
         </div>
       </div>
@@ -341,110 +369,153 @@ export default function AdminJobsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {jobs.map((job) => (
-                    <tr key={job.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 600 }}>{job.jobCode}</td>
-                      <td style={{ padding: '1rem', fontWeight: 600 }}>{job.title}</td>
-                      <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{job.department}</td>
-                      <td style={{ padding: '1rem' }}><span className="badge badge-info">{job.workMode}</span></td>
-                      <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                        {job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString() : 'None'}
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        {job.status === 'PUBLISHED' && <span className="badge badge-success">Published</span>}
-                        {job.status === 'DRAFT' && <span className="badge badge-warning">Draft</span>}
-                        {job.status === 'CLOSED' && <span className="badge badge-danger">Closed</span>}
-                      </td>
-                      <td style={{ padding: '1rem', textAlign: 'right' }}>
-                        {job.status === 'DRAFT' && (
+                  {jobs.map((job) => {
+                    const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
+                    return (
+                      <tr key={job.id} style={{ borderBottom: '1px solid var(--border-subtle)', background: isExpired && job.status === 'PUBLISHED' ? '#FFFBEB' : undefined }}>
+                        <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 600 }}>{job.jobCode}</td>
+                        <td style={{ padding: '1rem', fontWeight: 600 }}>
+                          <div>{job.title}</div>
+                          {isExpired && job.status === 'PUBLISHED' && (
+                            <span style={{ fontSize: '0.75rem', color: '#DC2626', fontWeight: 500 }}>Deadline closed to applicants</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{job.department}</td>
+                        <td style={{ padding: '1rem' }}><span className="badge badge-info">{job.workMode}</span></td>
+                        <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
+                          {job.applicationDeadline ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: isExpired ? '#DC2626' : 'var(--text-muted)', fontWeight: isExpired ? 600 : 400 }}>
+                              {isExpired && <Clock size={13} color="#DC2626" />}
+                              <span>{new Date(job.applicationDeadline).toLocaleDateString()}</span>
+                              {isExpired && (
+                                <span className="badge badge-danger" style={{ padding: '0.15rem 0.4rem', fontSize: '0.7rem', background: '#FEE2E2', color: '#DC2626', borderColor: '#FCA5A5' }}>
+                                  Expired
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span style={{ color: 'var(--text-muted)' }}>None (Open)</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'flex-start' }}>
+                            {job.status === 'PUBLISHED' && (
+                              isExpired ? (
+                                <span className="badge badge-warning" style={{ background: '#FEF3C7', color: '#D97706', borderColor: '#FCD34D' }}>
+                                  Published (Expired)
+                                </span>
+                              ) : (
+                                <span className="badge badge-success">Published (Active)</span>
+                              )
+                            )}
+                            {job.status === 'DRAFT' && <span className="badge badge-warning">Draft</span>}
+                            {job.status === 'CLOSED' && <span className="badge badge-danger">Closed</span>}
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem', textAlign: 'right' }}>
+                          {job.status === 'DRAFT' && (
+                            <button
+                              className="btn btn-secondary"
+                              title="Publish Vacancy"
+                              onClick={() => handleStatusChange(job, 'PUBLISHED')}
+                              style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--status-success)', fontSize: '0.8rem' }}
+                            >
+                              <Play size={14} />
+                            </button>
+                          )}
+                          {job.status === 'PUBLISHED' && (
+                            <button
+                              className="btn btn-secondary"
+                              title="Close Vacancy"
+                              onClick={() => handleStatusChange(job, 'CLOSED')}
+                              style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--status-warning)', fontSize: '0.8rem' }}
+                            >
+                              <StopCircle size={14} />
+                            </button>
+                          )}
+                          {job.status === 'CLOSED' && (
+                            <button
+                              className="btn btn-secondary"
+                              title="Reopen Vacancy"
+                              onClick={() => handleStatusChange(job, 'PUBLISHED')}
+                              style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--primary)', fontSize: '0.8rem' }}
+                            >
+                              <RotateCcw size={14} />
+                            </button>
+                          )}
                           <button
                             className="btn btn-secondary"
-                            title="Publish Vacancy"
-                            onClick={() => handleStatusChange(job, 'PUBLISHED')}
-                            style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--status-success)', fontSize: '0.8rem' }}
+                            title="Edit Job"
+                            onClick={() => handleOpenEdit(job)}
+                            style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', fontSize: '0.8rem' }}
                           >
-                            <Play size={14} />
+                            <Edit size={14} />
                           </button>
-                        )}
-                        {job.status === 'PUBLISHED' && (
                           <button
                             className="btn btn-secondary"
-                            title="Close Vacancy"
-                            onClick={() => handleStatusChange(job, 'CLOSED')}
-                            style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--status-warning)', fontSize: '0.8rem' }}
+                            title="Delete Job"
+                            onClick={() => handleDelete(job)}
+                            style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
                           >
-                            <StopCircle size={14} />
+                            <Trash2 size={14} />
                           </button>
-                        )}
-                        {job.status === 'CLOSED' && (
-                          <button
-                            className="btn btn-secondary"
-                            title="Reopen Vacancy"
-                            onClick={() => handleStatusChange(job, 'PUBLISHED')}
-                            style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', color: 'var(--primary)', fontSize: '0.8rem' }}
-                          >
-                            <RotateCcw size={14} />
-                          </button>
-                        )}
-                        <button
-                          className="btn btn-secondary"
-                          title="Edit Job"
-                          onClick={() => handleOpenEdit(job)}
-                          style={{ padding: '0.4rem 0.65rem', marginRight: '0.4rem', fontSize: '0.8rem' }}
-                        >
-                          <Edit size={14} />
-                        </button>
-                        <button
-                          className="btn btn-secondary"
-                          title="Delete Job"
-                          onClick={() => handleDelete(job)}
-                          style={{ padding: '0.4rem 0.65rem', color: 'var(--status-danger)', fontSize: '0.8rem' }}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile Vertical Cards View (Clean vertical scroll, zero horizontal cutoff) */}
             <div className="mobile-cards-view">
-              {jobs.map((job) => (
-                <div
-                  key={`card-${job.id}`}
-                  className="card"
-                  style={{
-                    padding: '1.15rem',
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.75rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-                    <div>
-                      <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 700 }}>
-                        {job.jobCode}
-                      </span>
-                      <h4 style={{ margin: '0.2rem 0 0', fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
-                        {job.title}
-                      </h4>
+              {jobs.map((job) => {
+                const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
+                return (
+                  <div
+                    key={`card-${job.id}`}
+                    className="card"
+                    style={{
+                      padding: '1.15rem',
+                      background: '#FFFFFF',
+                      border: isExpired && job.status === 'PUBLISHED' ? '1px solid #FCD34D' : '1px solid #E2E8F0',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 700 }}>
+                          {job.jobCode}
+                        </span>
+                        <h4 style={{ margin: '0.2rem 0 0', fontSize: '1rem', fontWeight: 700, color: '#0F172A' }}>
+                          {job.title}
+                        </h4>
+                      </div>
+                      {job.status === 'PUBLISHED' && (
+                        isExpired ? (
+                          <span className="badge badge-warning" style={{ background: '#FEF3C7', color: '#D97706', borderColor: '#FCD34D' }}>
+                            Published (Expired)
+                          </span>
+                        ) : (
+                          <span className="badge badge-success">Published</span>
+                        )
+                      )}
+                      {job.status === 'DRAFT' && <span className="badge badge-warning">Draft</span>}
+                      {job.status === 'CLOSED' && <span className="badge badge-danger">Closed</span>}
                     </div>
-                    {job.status === 'PUBLISHED' && <span className="badge badge-success">Published</span>}
-                    {job.status === 'DRAFT' && <span className="badge badge-warning">Draft</span>}
-                    {job.status === 'CLOSED' && <span className="badge badge-danger">Closed</span>}
-                  </div>
 
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.8rem', color: '#64748B' }}>
-                    <span className="badge badge-info">{job.workMode}</span>
-                    <span>{job.department}</span>
-                    <span>•</span>
-                    <span>Deadline: {job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString() : 'None'}</span>
-                  </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.8rem', color: '#64748B' }}>
+                      <span className="badge badge-info">{job.workMode}</span>
+                      <span>{job.department}</span>
+                      <span>•</span>
+                      <span style={{ color: isExpired ? '#DC2626' : undefined, fontWeight: isExpired ? 600 : 400 }}>
+                        Deadline: {job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString() : 'None'}
+                        {isExpired && ' (Expired)'}
+                      </span>
+                    </div>
 
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem', paddingTop: '0.65rem', borderTop: '1px solid #F1F5F9' }}>
                     {job.status === 'DRAFT' && (
@@ -495,7 +566,8 @@ export default function AdminJobsPage() {
                     </button>
                   </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
           </>
         )}

@@ -1,56 +1,463 @@
-import React, { useState } from 'react';
-import { Calendar, Clock, Video, MapPin, AlertCircle, CalendarX } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Calendar, 
+  Clock, 
+  Video, 
+  MapPin, 
+  AlertCircle, 
+  CheckCircle,
+  CalendarX, 
+  ExternalLink,
+  RotateCcw,
+  UserCheck,
+  FileText
+} from 'lucide-react';
+import { interviewsApi } from '../../interviews/interviewsApi';
 import { useAuth } from '../../auth/hooks/useAuth';
+
+const formatTime12Hr = (timeStr) => {
+  if (!timeStr) return '';
+  if (typeof timeStr !== 'string') return String(timeStr);
+  const trimmed = timeStr.trim();
+  if (trimmed.toLowerCase().includes('am') || trimmed.toLowerCase().includes('pm')) {
+    return trimmed;
+  }
+  const parts = trimmed.split(':');
+  if (parts.length < 2) return trimmed;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1].padStart(2, '0');
+  if (isNaN(hours)) return trimmed;
+  const period = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${hours}:${minutes} ${period}`;
+};
+
+const getMeetingLifecycle = (item) => {
+  if (!item) return { isConcluded: false, isLive: false, isCompleted: false, isCancelled: false, isJoinable: false, isRescheduled: false };
+
+  const isRescheduled = Array.isArray(item.scheduleHistories) && item.scheduleHistories.length > 0;
+
+  if (item.status === 'COMPLETED') {
+    return {
+      status: 'COMPLETED',
+      isCompleted: true,
+      isCancelled: false,
+      isConcluded: true,
+      isLive: false,
+      isJoinable: false,
+      isRescheduled,
+      label: 'Completed',
+      badgeClass: 'badge-success',
+      description: 'Interview session completed'
+    };
+  }
+
+  if (item.status === 'CANCELLED') {
+    return {
+      status: 'CANCELLED',
+      isCompleted: false,
+      isCancelled: true,
+      isConcluded: true,
+      isLive: false,
+      isJoinable: false,
+      isRescheduled,
+      label: 'Cancelled',
+      badgeClass: 'badge-danger',
+      description: 'Interview cancelled'
+    };
+  }
+
+  try {
+    const rawDate = item.interviewDate;
+    if (!rawDate) return { isConcluded: false, isLive: false, isJoinable: true, isRescheduled, label: 'Scheduled' };
+
+    let year, month, day;
+    if (typeof rawDate === 'string' && rawDate.includes('T')) {
+      const d = new Date(rawDate);
+      year = d.getFullYear();
+      month = d.getMonth();
+      day = d.getDate();
+    } else if (typeof rawDate === 'string' && rawDate.includes('-')) {
+      const parts = rawDate.split('-').map(Number);
+      if (parts[0] > 1000) {
+        year = parts[0];
+        month = parts[1] - 1;
+        day = parts[2];
+      } else {
+        day = parts[0];
+        month = parts[1] - 1;
+        year = parts[2];
+      }
+    } else {
+      const d = new Date(rawDate);
+      year = d.getFullYear();
+      month = d.getMonth();
+      day = d.getDate();
+    }
+
+    const parseTime = (tStr) => {
+      if (!tStr) return { h: 10, m: 0 };
+      const str = String(tStr).trim();
+      const isPM = str.toLowerCase().includes('pm');
+      const isAM = str.toLowerCase().includes('am');
+      const clean = str.replace(/(am|pm)/i, '').trim();
+      const [h, m] = clean.split(':').map(Number);
+      let hours = isNaN(h) ? 10 : h;
+      if (isPM && hours < 12) hours += 12;
+      if (isAM && hours === 12) hours = 0;
+      const minutes = isNaN(m) ? 0 : m;
+      return { h: hours, m: minutes };
+    };
+
+    const startObj = parseTime(item.startTime || item.interviewTime);
+    const endObj = item.endTime ? parseTime(item.endTime) : { h: startObj.h, m: startObj.m + 45 };
+
+    const startDateTime = new Date(year, month, day, startObj.h, startObj.m, 0);
+    const endDateTime = new Date(year, month, day, endObj.h, endObj.m, 0);
+
+    const now = new Date();
+    // 15-minute grace period after scheduled end time
+    const expiredCutoff = new Date(endDateTime.getTime() + 15 * 60 * 1000);
+    // 15-minute early window
+    const earlyJoinWindow = new Date(startDateTime.getTime() - 15 * 60 * 1000);
+
+    if (now > expiredCutoff) {
+      return {
+        status: 'SCHEDULED',
+        isCompleted: false,
+        isCancelled: false,
+        isConcluded: true,
+        isLive: false,
+        isJoinable: false,
+        isRescheduled,
+        label: 'Window Concluded',
+        badgeClass: 'badge-secondary',
+        description: 'Scheduled meeting window has ended'
+      };
+    }
+
+    if (now >= earlyJoinWindow && now <= expiredCutoff) {
+      return {
+        status: 'SCHEDULED',
+        isCompleted: false,
+        isCancelled: false,
+        isConcluded: false,
+        isLive: true,
+        isJoinable: true,
+        isRescheduled,
+        label: 'Live Now',
+        badgeClass: 'badge-success',
+        description: 'Meeting is active now'
+      };
+    }
+
+    return {
+      status: 'SCHEDULED',
+      isCompleted: false,
+      isCancelled: false,
+      isConcluded: false,
+      isLive: false,
+      isJoinable: true,
+      isRescheduled,
+      label: 'Scheduled',
+      badgeClass: 'badge-primary',
+      description: 'Upcoming scheduled interview'
+    };
+  } catch (err) {
+    return { isConcluded: false, isLive: false, isJoinable: true, isRescheduled, label: 'Scheduled' };
+  }
+};
 
 export default function ApplicantInterviewsPage() {
   const { user } = useAuth();
-  // Real interviews state initialized empty
+  const [loading, setLoading] = useState(true);
   const [interviews, setInterviews] = useState([]);
+  const [error, setError] = useState(null);
+
+  const loadInterviews = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await interviewsApi.getApplicantInterviews();
+      const items = Array.isArray(res?.interviews)
+        ? res.interviews
+        : Array.isArray(res?.data?.interviews)
+        ? res.data.interviews
+        : Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res)
+        ? res
+        : [];
+      setInterviews(items);
+    } catch (err) {
+      console.error('Failed to load applicant interviews:', err);
+      setError(err.message || 'Failed to load interviews');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadInterviews();
+
+    const pollTimer = setInterval(() => {
+      loadInterviews();
+    }, 15000);
+
+    const handleFocus = () => loadInterviews();
+    window.addEventListener('focus', handleFocus);
+
+    const handleDataUpdated = () => loadInterviews();
+    window.addEventListener('nexora:data-updated', handleDataUpdated);
+
+    return () => {
+      clearInterval(pollTimer);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('nexora:data-updated', handleDataUpdated);
+    };
+  }, []);
 
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.85rem', marginBottom: '0.35rem' }}>Interview Schedules</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-          Details, meeting coordinates, and instructions for upcoming technical and HR interviews.
+        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.35rem' }}>
+          Interview Schedules
+        </h1>
+        <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
+          Details, meeting coordinates, and instructions for upcoming technical and HR evaluation rounds.
         </p>
       </div>
 
-      {interviews.length === 0 ? (
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#64748B' }}>
+          <RotateCcw className="animate-spin" size={32} style={{ margin: '0 auto 0.75rem' }} />
+          <div>Loading your interview schedules...</div>
+        </div>
+      ) : error ? (
+        <div style={{ padding: '1.25rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', color: '#B91C1C', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{error}</span>
+          <button onClick={loadInterviews} className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>Retry</button>
+        </div>
+      ) : !Array.isArray(interviews) || interviews.length === 0 ? (
         <div className="card" style={{ padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', textAlign: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
           <div
             style={{
               width: '64px',
               height: '64px',
               borderRadius: '16px',
-              background: 'rgba(255, 255, 255, 0.04)',
+              background: '#EFF6FF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 1.25rem',
-              color: 'var(--text-dim)',
+              color: '#2563EB',
             }}
           >
             <CalendarX size={32} />
           </div>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.4rem' }}>No Scheduled Interviews</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.4rem' }}>No Scheduled Interviews</h3>
+          <p style={{ color: '#64748B', fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto' }}>
             You do not have any pending or upcoming interview rounds scheduled right now. Once your application is reviewed and shortlisted by our recruitment team, meeting details will appear here.
           </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {interviews.map((item) => (
-            <div key={item.id} className="glass-panel" style={{ padding: '2rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div>
-                  <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>{item.round}</span>
-                  <h3 style={{ fontSize: '1.35rem', marginBottom: '0.25rem' }}>{item.jobTitle}</h3>
+          {interviews.map((item) => {
+            const isOnline = item.mode === 'ONLINE';
+            const isScheduled = item.status === 'SCHEDULED';
+            const lifecycle = getMeetingLifecycle(item);
+            const meetingUrl = item.meetingLinkOrLocation || item.meetingLink || item.location;
+            const interviewDate = new Date(item.interviewDate).toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            });
+
+            return (
+              <div
+                key={item.id}
+                className="card"
+                style={{
+                  padding: '1.75rem',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '16px',
+                  boxShadow: 'var(--shadow-sm)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+                  <div>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+                      <span className="badge badge-primary" style={{ textTransform: 'capitalize' }}>
+                        {item.round.replace('_', ' ')}
+                      </span>
+                      {lifecycle.isRescheduled && (
+                        <span style={{ fontSize: '0.72rem', background: '#FEF3C7', color: '#B45309', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 700, border: '1px solid #FCD34D', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <RotateCcw size={12} />
+                          <span>Rescheduled</span>
+                        </span>
+                      )}
+                      <span style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                        Application: {item.application?.referenceNumber}
+                      </span>
+                    </div>
+                    <h3 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+                      {item.job?.title || 'Open Position'}
+                    </h3>
+                  </div>
+
+                  {item.status === 'COMPLETED' ? (
+                    <span className="badge badge-success" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}>Completed</span>
+                  ) : item.status === 'CANCELLED' ? (
+                    <span className="badge badge-danger" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}>Cancelled</span>
+                  ) : lifecycle.isConcluded ? (
+                    <span className="badge" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', background: '#F1F5F9', color: '#64748B', border: '1px solid #CBD5E1' }}>Meeting Ended</span>
+                  ) : lifecycle.isLive ? (
+                    <span className="badge badge-success" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E' }}></span>
+                      Live Now
+                    </span>
+                  ) : (
+                    <span className="badge badge-primary" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}>Scheduled</span>
+                  )}
                 </div>
-                <span className="badge badge-success">{item.status}</span>
+
+                {/* Reschedule Alert Banner */}
+                {lifecycle.isRescheduled && (
+                  <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.15rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                    <RotateCcw size={16} color="#D97706" style={{ marginTop: '2px', flexShrink: 0 }} />
+                    <div style={{ fontSize: '0.82rem', color: '#92400E' }}>
+                      <strong>Schedule Updated:</strong> This interview was rescheduled to <strong>{interviewDate}</strong> at <strong>{formatTime12Hr(item.startTime)} – {formatTime12Hr(item.endTime)}</strong>. A confirmation email has been dispatched with the updated coordinates.
+                      {item.scheduleHistories?.[0]?.reason && (
+                        <div style={{ marginTop: '0.2rem' }}>
+                          <em>Reason: {item.scheduleHistories[0].reason}</em>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Details Grid */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+                    gap: '1rem',
+                    padding: '1rem',
+                    background: '#F8FAFC',
+                    borderRadius: '12px',
+                    marginBottom: '1.25rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
+                    <Calendar size={18} color="#2563EB" style={{ marginTop: '2px', flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Date</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0F172A' }}>{interviewDate}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
+                    <Clock size={18} color="#2563EB" style={{ marginTop: '2px', flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Time (AM/PM)</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F172A' }}>
+                        {item.startTime
+                          ? `${formatTime12Hr(item.startTime)} – ${formatTime12Hr(item.endTime)}`
+                          : (item.interviewTime || 'Time TBA')}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
+                    {isOnline ? (
+                      <Video size={18} color="#059669" style={{ marginTop: '2px', flexShrink: 0 }} />
+                    ) : (
+                      <MapPin size={18} color="#D97706" style={{ marginTop: '2px', flexShrink: 0 }} />
+                    )}
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Mode</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0F172A' }}>
+                        {item.mode === 'ONLINE' ? 'Online Video Call' : 'In-Person Office'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dynamic Meeting Coordinates & Expiry States */}
+                {item.status === 'COMPLETED' ? (
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '0.85rem 1.25rem', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', marginBottom: '1rem', gap: '0.65rem' }}>
+                    <CheckCircle size={18} color="#15803D" />
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#166534' }}>Interview Session Completed</div>
+                      <div style={{ fontSize: '0.78rem', color: '#15803D' }}>Thank you for attending this round. Your evaluation is being finalized by the recruitment panel.</div>
+                    </div>
+                  </div>
+                ) : item.status === 'CANCELLED' ? (
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '0.85rem 1.25rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', marginBottom: '1rem', gap: '0.65rem' }}>
+                    <CalendarX size={18} color="#B91C1C" />
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#991B1B' }}>Interview Cancelled</div>
+                      <div style={{ fontSize: '0.78rem', color: '#B91C1C' }}>{item.cancellationReason || 'This scheduled interview was cancelled by the recruitment team.'}</div>
+                    </div>
+                  </div>
+                ) : isOnline && meetingUrl && lifecycle.isConcluded ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.85rem 1.25rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Clock size={18} color="#64748B" />
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Meeting Session Ended</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748B' }}>The scheduled time window ({formatTime12Hr(item.startTime)} – {formatTime12Hr(item.endTime)}) has passed. Access link is expired.</div>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: '#94A3B8', fontWeight: 600, padding: '0.35rem 0.75rem', background: '#F1F5F9', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                      Link Expired
+                    </span>
+                  </div>
+                ) : isOnline && meetingUrl && lifecycle.isJoinable ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.85rem 1.25rem', background: lifecycle.isLive ? '#F0FDF4' : '#EFF6FF', border: lifecycle.isLive ? '1px solid #86EFAC' : '1px solid #BFDBFE', borderRadius: '10px', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Video size={18} color={lifecycle.isLive ? '#15803D' : '#2563EB'} />
+                      <div>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: lifecycle.isLive ? '#166534' : '#1E40AF' }}>
+                          {lifecycle.isLive ? 'Live Meeting Session Active' : 'Online Meeting Access Link Ready'}
+                        </span>
+                        <div style={{ fontSize: '0.75rem', color: lifecycle.isLive ? '#15803D' : '#3B82F6' }}>
+                          {lifecycle.isLive ? 'Interviewers are expecting you now' : 'You can join 10-15 minutes prior to check audio/video'}
+                        </div>
+                      </div>
+                    </div>
+                    <a
+                      href={meetingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary"
+                      style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none', background: lifecycle.isLive ? '#16A34A' : '#2563EB' }}
+                    >
+                      <Video size={15} />
+                      <span>{lifecycle.isLive ? 'Join Live Meeting' : 'Join Meeting'}</span>
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                ) : !isOnline && meetingUrl ? (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.85rem 1.25rem', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', marginBottom: '1rem' }}>
+                    <MapPin size={18} color="#D97706" style={{ marginTop: '2px', flexShrink: 0 }} />
+                    <div style={{ fontSize: '0.85rem', color: '#92400E' }}>
+                      <strong>Office Address:</strong> {meetingUrl}
+                    </div>
+                  </div>
+                ) : null}
+
+                {item.instructions && (
+                  <div style={{ fontSize: '0.85rem', color: '#475569', background: '#F8FAFC', padding: '0.85rem 1.25rem', borderRadius: '10px' }}>
+                    <strong style={{ color: '#0F172A' }}>Instructions from Recruitment Team:</strong>
+                    <p style={{ margin: '0.25rem 0 0 0' }}>{item.instructions}</p>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

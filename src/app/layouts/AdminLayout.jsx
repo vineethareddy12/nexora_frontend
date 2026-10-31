@@ -23,6 +23,7 @@ import {
 import ScrollToTop from '../../components/common/ScrollToTop';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useToast } from '../../components/toast/ToastContext';
+import NotificationBell from '../../features/notifications/NotificationBell';
 
 let lastAdminAuthExpiredToast = 0;
 
@@ -248,6 +249,8 @@ export default function AdminLayout() {
               <span>Public Website</span>
               <ArrowUpRight size={14} />
             </Link>
+
+            <NotificationBell role="ADMIN" />
 
             {/* Administrator Account Info Badge */}
             <div

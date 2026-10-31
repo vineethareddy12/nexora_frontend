@@ -57,6 +57,8 @@ export default function JobDetailsPage() {
     }
   }, [id]);
 
+  const isExpired = job?.applicationDeadline && new Date(job.applicationDeadline) < new Date();
+
   const handleApplySubmit = (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -149,10 +151,38 @@ export default function JobDetailsPage() {
           boxShadow: 'var(--shadow-sm)',
         }}
       >
+        {isExpired && (
+          <div
+            style={{
+              padding: '1rem 1.25rem',
+              marginBottom: '1.5rem',
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              color: '#DC2626',
+            }}
+          >
+            <AlertCircle size={20} style={{ flexShrink: 0 }} />
+            <div style={{ fontSize: '0.95rem' }}>
+              <strong>Application Period Closed:</strong> The deadline for this role was{' '}
+              {new Date(job.applicationDeadline).toLocaleDateString()}. This position is no longer accepting new submissions.
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
           <span className="badge badge-info">{job.department}</span>
           <span className="badge badge-primary">{formatWorkMode(job.workMode)}</span>
-          <span className="badge badge-success">Open Vacancy</span>
+          {isExpired ? (
+            <span className="badge badge-danger" style={{ background: '#FEE2E2', color: '#DC2626', borderColor: '#FCA5A5', fontWeight: 600 }}>
+              Deadline Passed
+            </span>
+          ) : (
+            <span className="badge badge-success">Open Vacancy</span>
+          )}
           {job.salaryRange && (
             <span className="badge badge-neutral">{job.salaryRange}</span>
           )}
@@ -184,8 +214,11 @@ export default function JobDetailsPage() {
           </div>
           {job.applicationDeadline && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Calendar size={16} color="#D97706" />
-              <span>Deadline: {new Date(job.applicationDeadline).toLocaleDateString()}</span>
+              <Calendar size={16} color={isExpired ? '#DC2626' : '#D97706'} />
+              <span style={{ color: isExpired ? '#DC2626' : undefined, fontWeight: isExpired ? 600 : 400 }}>
+                {isExpired ? 'Deadline Passed: ' : 'Deadline: '}
+                {new Date(job.applicationDeadline).toLocaleDateString()}
+              </span>
             </div>
           )}
         </div>
@@ -261,8 +294,28 @@ export default function JobDetailsPage() {
             </div>
           </div>
 
-          {/* Already Logged In Check */}
-          {user ? (
+          {/* Application Status Actions */}
+          {isExpired ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <button
+                type="button"
+                disabled
+                className="btn btn-secondary"
+                style={{
+                  padding: '0.8rem 2rem',
+                  fontSize: '0.95rem',
+                  opacity: 0.65,
+                  cursor: 'not-allowed',
+                  background: '#F1F5F9',
+                  color: '#64748B',
+                  borderColor: '#CBD5E1',
+                }}
+              >
+                <Clock size={16} />
+                <span>Applications Closed</span>
+              </button>
+            </div>
+          ) : user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                 <div

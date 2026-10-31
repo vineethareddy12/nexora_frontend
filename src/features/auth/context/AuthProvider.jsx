@@ -38,10 +38,22 @@ export function AuthProvider({ children }) {
 
     initAuth();
 
-    // Proactive background silent refresh every 15 minutes to keep sessions seamless
+    function isTokenExpired(token) {
+      if (!token) return true;
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        // Expired if current time is within 60 seconds of exp
+        return !payload.exp || Date.now() >= payload.exp * 1000 - 60000;
+      } catch {
+        return true;
+      }
+    }
+
+    // Proactive background silent refresh every 10 minutes, ONLY if token is close to expiring
     const refreshInterval = setInterval(async () => {
+      const storedAccess = localStorage.getItem('nexora_access_token');
       const storedRefresh = localStorage.getItem('nexora_refresh_token');
-      if (storedRefresh) {
+      if (storedRefresh && isTokenExpired(storedAccess)) {
         try {
           const res = await authApi.refresh(storedRefresh);
           if (res?.accessToken) {
@@ -51,17 +63,20 @@ export function AuthProvider({ children }) {
             if (res.refreshToken) localStorage.setItem('nexora_refresh_token', res.refreshToken);
           }
         } catch (e) {
-          // Silent refresh failed in background; authFetch will handle on next request if expired
+          // If refresh token is expired or revoked on server, clear session
+          if (e.message?.toLowerCase().includes('revoked') || e.message?.toLowerCase().includes('expired') || e.message?.toLowerCase().includes('401')) {
+            logout();
+          }
         }
       }
-    }, 15 * 60 * 1000);
+    }, 5 * 60 * 1000);
 
-    // Refresh when user returns to the tab after sleep or switching apps
+    // Refresh when user returns to the tab after sleep or switching apps, ONLY if access token is expired
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
-        const storedRefresh = localStorage.getItem('nexora_refresh_token');
         const storedAccess = localStorage.getItem('nexora_access_token');
-        if (storedRefresh && storedAccess) {
+        const storedRefresh = localStorage.getItem('nexora_refresh_token');
+        if (storedRefresh && isTokenExpired(storedAccess)) {
           try {
             const res = await authApi.refresh(storedRefresh);
             if (res?.accessToken) {
@@ -71,7 +86,9 @@ export function AuthProvider({ children }) {
               if (res.refreshToken) localStorage.setItem('nexora_refresh_token', res.refreshToken);
             }
           } catch (e) {
-            // ignore silent ping error
+            if (e.message?.toLowerCase().includes('revoked') || e.message?.toLowerCase().includes('expired') || e.message?.toLowerCase().includes('401')) {
+              logout();
+            }
           }
         }
       }
@@ -88,11 +105,17 @@ export function AuthProvider({ children }) {
       }
     };
 
+    const handleAuthExpired = () => {
+      logout();
+    };
+
     window.addEventListener('nexora:token-refreshed', handleTokenRefreshed);
+    window.addEventListener('nexora:auth-expired', handleAuthExpired);
     return () => {
       clearInterval(refreshInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('nexora:token-refreshed', handleTokenRefreshed);
+      window.removeEventListener('nexora:auth-expired', handleAuthExpired);
     };
   }, []);
 
