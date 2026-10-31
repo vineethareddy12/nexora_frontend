@@ -1,36 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  ArrowRight,
-  Sparkles,
-  Code2,
-  Smartphone,
-  Cloud,
-  ShieldCheck,
-  Cpu,
-  CheckCircle2,
-  Users,
-  Briefcase,
-  Award,
-  Zap,
-  Globe2,
+import { 
+  ArrowRight, 
+  Sparkles, 
+  Code2, 
+  Cloud, 
+  ShieldCheck, 
+  Cpu, 
+  Clock, 
+  RefreshCw, 
+  Server, 
+  TrendingUp, 
+  Compass, 
+  Zap, 
+  Layers, 
+  Users, 
+  Check, 
+  Briefcase, 
+  MapPin, 
   ChevronRight,
-  Layers,
-  MapPin,
-  Clock,
-  RefreshCw,
-  Terminal,
-  Activity,
-  Check,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Server,
-  TrendingUp,
-  Compass,
-  Building2,
-  Lock
+  Award
 } from 'lucide-react';
 import { companyApi } from '../company/companyApi';
 import { servicesApi } from '../services/api/servicesApi';
@@ -43,27 +32,18 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [servicesError, setServicesError] = useState(null);
 
-  // Hero Video Player controls
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
 
-  const togglePlay = () => {
-    if (!videoRef.current) return;
-    if (isPlaying) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      videoRef.current.play().catch(() => {});
-      setIsPlaying(true);
+  // Guarantee seamless background looping without sound interruption
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+      videoRef.current.defaultMuted = true;
+      videoRef.current.play().catch((err) => {
+        console.warn('Video background autoplay note:', err);
+      });
     }
-  };
-
-  const toggleMute = () => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = !videoRef.current.muted;
-    setIsMuted(videoRef.current.muted);
-  };
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -98,416 +78,238 @@ export default function HomePage() {
   return (
     <div style={{ width: '100%', overflow: 'hidden', background: '#FFFFFF' }}>
       {/* ====================================================================
-          1. Hero Section — Two-Column Layout With High-Tech Video Showcase
+          1. Hero Section — Full-Screen Cinematic Background Video
           ==================================================================== */}
       <section
         style={{
-          background: 'linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 55%, #ECFEFF 100%)',
-          borderBottom: '1px solid #E2E8F0',
-          padding: 'clamp(3rem, 6vw, 5.5rem) clamp(1rem, 3vw, 1.5rem)',
           position: 'relative',
+          minHeight: '88vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          background: '#0F172A',
+          color: '#FFFFFF',
+          padding: 'clamp(4rem, 7vw, 6.5rem) clamp(1rem, 4vw, 2rem)',
         }}
       >
+        {/* Full-Screen Looping Background Video */}
+        <video
+          ref={videoRef}
+          src="/hero-video.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+            filter: 'brightness(0.6) contrast(1.1)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Cinematic Radial Overlay for Sharp Contrast & Readability */}
         <div
           style={{
-            maxWidth: '1280px',
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(circle at center, rgba(15, 23, 42, 0.58) 0%, rgba(15, 23, 42, 0.82) 70%, rgba(15, 23, 42, 0.98) 100%)',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Hero Content Center Stack */}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            maxWidth: '1060px',
             margin: '0 auto',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
-            gap: 'clamp(2.5rem, 5vw, 4.5rem)',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
           }}
         >
-          {/* Left Column: Headline, Description, CTAs, Feature Indicators */}
-          <div>
-            <div style={{ display: 'inline-flex', marginBottom: '1.25rem' }}>
-              <span
-                style={{
-                  background: '#EFF6FF',
-                  border: '1px solid #BFDBFE',
-                  color: '#2563EB',
-                  padding: '0.4rem 0.95rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                }}
-              >
-                <Sparkles size={14} color="#2563EB" />
-                <span>Next-Gen Technology &bull; Engineering &bull; Talent</span>
-              </span>
-            </div>
-
-            <h1
+          {/* Glassmorphic Top Badge */}
+          <div style={{ display: 'inline-flex', marginBottom: '1.5rem' }}>
+            <span
               style={{
-                fontSize: 'clamp(2.15rem, 5vw, 3.65rem)',
-                lineHeight: 1.15,
-                color: '#0F172A',
-                fontWeight: 800,
-                letterSpacing: '-0.03em',
-                marginBottom: '1.35rem',
-              }}
-            >
-              Engineering Digital Solutions.{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
-              >
-                Connecting Exceptional Talent.
-              </span>
-            </h1>
-
-            <p
-              style={{
-                fontSize: '1.15rem',
-                color: '#475569',
-                lineHeight: 1.7,
-                marginBottom: '2.25rem',
-                maxWidth: '580px',
-              }}
-            >
-              {company?.shortDescription ||
-                'Nexora Technologies builds enterprise-grade digital products, cloud architectures, and scalable web platforms while empowering businesses with verified engineering talent.'}
-            </p>
-
-            {/* CTAs */}
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.25rem' }}>
-              <Link
-                to="/services"
-                className="btn btn-primary"
-                style={{ padding: '0.85rem 1.85rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                <span>Explore Services</span>
-                <ArrowRight size={18} />
-              </Link>
-              <Link
-                to="/careers"
-                className="btn btn-secondary"
-                style={{ padding: '0.85rem 1.85rem', fontSize: '1rem' }}
-              >
-                <span>Browse Careers</span>
-              </Link>
-              <Link
-                to="/contact"
-                className="btn btn-secondary"
-                style={{ padding: '0.85rem 1.5rem', fontSize: '1rem', color: '#475569' }}
-              >
-                <span>Contact Us</span>
-              </Link>
-            </div>
-
-            {/* Quick Metrics Strip */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '1rem',
-                padding: '1.25rem 0',
-                borderTop: '1px solid #E2E8F0',
-                borderBottom: '1px solid #E2E8F0',
-                marginBottom: '1.5rem',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#2563EB' }}>99.9%</div>
-                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Platform SLA Uptime</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#06B6D4' }}>24/7</div>
-                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Cloud Monitoring</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#059669' }}>100%</div>
-                <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600 }}>Verified Profiles</div>
-              </div>
-            </div>
-
-            {/* Feature Indicators Row */}
-            <div
-              style={{
-                display: 'flex',
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
+                color: '#93C5FD',
+                padding: '0.45rem 1.15rem',
+                borderRadius: '9999px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '1.5rem',
-                flexWrap: 'wrap',
+                gap: '0.5rem',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
               }}
             >
-              {[
-                'Full-Stack Software Engineering',
-                'Cloud Infrastructure & DevOps',
-                'Talent & Recruitment Hub',
-              ].map((feature, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.45rem',
-                    fontSize: '0.85rem',
-                    color: '#0F172A',
-                    fontWeight: 600,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '20px',
-                      height: '20px',
-                      borderRadius: '50%',
-                      background: '#EFF6FF',
-                      border: '1px solid #BFDBFE',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Check size={12} color="#2563EB" strokeWidth={3} />
-                  </div>
-                  <span>{feature}</span>
-                </div>
-              ))}
-            </div>
+              <Sparkles size={14} color="#60A5FA" />
+              <span>Next-Gen Technology &bull; Cloud Engineering &bull; Global Talent</span>
+            </span>
           </div>
 
-          {/* Right Column: Hero Video Showcase in Modern Browser Window */}
-          <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
-            {/* Ambient Background Glow */}
-            <div
+          {/* Grand Headline */}
+          <h1
+            style={{
+              fontSize: 'clamp(2.35rem, 5.8vw, 4.25rem)',
+              lineHeight: 1.14,
+              fontWeight: 800,
+              color: '#FFFFFF',
+              letterSpacing: '-0.035em',
+              marginBottom: '1.5rem',
+              maxWidth: '960px',
+              textShadow: '0 4px 30px rgba(0, 0, 0, 0.45)',
+            }}
+          >
+            Engineering Digital Solutions.{' '}
+            <span
               style={{
-                position: 'absolute',
-                top: '-25px',
-                right: '-10px',
-                width: '420px',
-                height: '420px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(37, 99, 235, 0.22) 0%, rgba(6, 182, 212, 0.12) 40%, rgba(207, 250, 254, 0) 70%)',
-                filter: 'blur(35px)',
-                zIndex: 0,
-                pointerEvents: 'none',
-              }}
-            />
-
-            {/* Video Player Device Window Container */}
-            <div
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                width: '100%',
-                maxWidth: '560px',
-                background: '#0F172A',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(226, 232, 240, 0.8)',
-                border: '1px solid #CBD5E1',
+                background: 'linear-gradient(135deg, #60A5FA 0%, #38BDF8 50%, #2DD4BF 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
               }}
             >
-              {/* Browser Window Chrome Top Header */}
-              <div
-                style={{
-                  background: '#1E293B',
-                  padding: '0.75rem 1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderBottom: '1px solid #334155',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} />
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} />
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
-                  <span style={{ fontSize: '0.76rem', color: '#94A3B8', marginLeft: '0.5rem', fontWeight: 600 }}>
-                    Nexora Technology Showcase
-                  </span>
-                </div>
+              Connecting Exceptional Talent.
+            </span>
+          </h1>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      fontSize: '0.68rem',
-                      color: '#34D399',
-                      background: 'rgba(52, 211, 153, 0.15)',
-                      padding: '0.15rem 0.55rem',
-                      borderRadius: '9999px',
-                      fontWeight: 700,
-                      letterSpacing: '0.05em',
-                    }}
-                  >
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
-                    LIVE PREVIEW
-                  </span>
+          {/* Subtitle Description */}
+          <p
+            style={{
+              fontSize: 'clamp(1.05rem, 2vw, 1.25rem)',
+              color: '#E2E8F0',
+              lineHeight: 1.75,
+              marginBottom: '2.5rem',
+              maxWidth: '740px',
+              textShadow: '0 2px 12px rgba(0, 0, 0, 0.4)',
+            }}
+          >
+            {company?.shortDescription ||
+              'Delivering high-impact enterprise software engineering, scalable cloud architectures, and an integrated global talent recruitment platform from Hyderabad, India.'}
+          </p>
 
-                  {/* Sound Toggle */}
-                  <button
-                    type="button"
-                    onClick={toggleMute}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      border: 'none',
-                      color: '#E2E8F0',
-                      cursor: 'pointer',
-                      padding: '0.3rem 0.45rem',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                    title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-                  >
-                    {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                  </button>
-
-                  {/* Play/Pause Toggle */}
-                  <button
-                    type="button"
-                    onClick={togglePlay}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      border: 'none',
-                      color: '#E2E8F0',
-                      cursor: 'pointer',
-                      padding: '0.3rem 0.45rem',
-                      borderRadius: '6px',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                    title={isPlaying ? 'Pause Video' : 'Play Video'}
-                  >
-                    {isPlaying ? <Pause size={14} /> : <Play size={14} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Video Element Screen */}
-              <div
-                style={{
-                  position: 'relative',
-                  width: '100%',
-                  aspectRatio: '16/10',
-                  background: '#0F172A',
-                  overflow: 'hidden',
-                }}
-              >
-                <video
-                  ref={videoRef}
-                  src="/hero-video.mp4"
-                  autoPlay
-                  loop
-                  muted={isMuted}
-                  playsInline
-                  preload="auto"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    display: 'block',
-                  }}
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                />
-
-                {/* Clickable Overlay to Pause/Play */}
-                <div
-                  onClick={togglePlay}
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    cursor: 'pointer',
-                    background: isPlaying ? 'transparent' : 'rgba(15, 23, 42, 0.4)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'background 0.2s ease',
-                  }}
-                >
-                  {!isPlaying && (
-                    <div
-                      style={{
-                        width: '64px',
-                        height: '64px',
-                        borderRadius: '50%',
-                        background: 'rgba(37, 99, 235, 0.95)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#FFFFFF',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
-                      }}
-                    >
-                      <Play size={28} style={{ marginLeft: '4px' }} />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Chrome Bottom Footer Bar */}
-              <div
-                style={{
-                  background: '#0F172A',
-                  padding: '0.75rem 1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderTop: '1px solid #1E293B',
-                  fontSize: '0.78rem',
-                  color: '#94A3B8',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                  <Activity size={14} color="#06B6D4" />
-                  <span>Enterprise Engineering & Scalable Cloud Solutions</span>
-                </div>
-                <span style={{ color: '#60A5FA', fontWeight: 600 }}>Nexora Technologies</span>
-              </div>
-            </div>
-
-            {/* Floating Glassmorphic Badge: Verified Hub */}
-            <div
+          {/* Call to Action Buttons */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '1.15rem',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              marginBottom: '3.5rem',
+            }}
+          >
+            <Link
+              to="/services"
+              className="btn"
               style={{
-                position: 'absolute',
-                bottom: '-20px',
-                left: '-15px',
-                zIndex: 2,
-                background: '#FFFFFF',
-                border: '1px solid #BFDBFE',
-                borderRadius: '14px',
-                padding: '0.75rem 1rem',
-                display: 'flex',
+                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                color: '#FFFFFF',
+                padding: '0.95rem 2.2rem',
+                fontSize: '1.05rem',
+                fontWeight: 700,
+                borderRadius: '12px',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.75rem',
-                boxShadow: '0 12px 25px -4px rgba(37, 99, 235, 0.16)',
+                gap: '0.55rem',
+                textDecoration: 'none',
+                boxShadow: '0 10px 25px -4px rgba(37, 99, 235, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15)',
+                transition: 'all 0.2s ease',
               }}
             >
-              <div
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#FFFFFF',
-                  flexShrink: 0,
-                }}
-              >
-                <Award size={19} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0F172A' }}>
-                  Talent Matching Hub
-                </div>
-                <div style={{ fontSize: '0.72rem', color: '#64748B' }}>
-                  Verified Engineering Candidates
-                </div>
-              </div>
+              <span>Explore Services</span>
+              <ArrowRight size={18} />
+            </Link>
+
+            <Link
+              to="/careers"
+              style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: '#FFFFFF',
+                padding: '0.95rem 2.2rem',
+                fontSize: '1.05rem',
+                fontWeight: 700,
+                borderRadius: '12px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span>Browse Careers</span>
+            </Link>
+
+            <Link
+              to="/contact"
+              style={{
+                background: 'transparent',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#CBD5E1',
+                padding: '0.95rem 1.75rem',
+                fontSize: '1.05rem',
+                fontWeight: 600,
+                borderRadius: '12px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                textDecoration: 'none',
+              }}
+            >
+              <span>Contact Us</span>
+            </Link>
+          </div>
+
+          {/* Key Trust Stats Strip */}
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '840px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
+              gap: '1rem',
+              padding: '1.25rem 1.75rem',
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255, 255, 255, 0.14)',
+              borderRadius: '18px',
+              boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.5)',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#60A5FA', letterSpacing: '-0.02em' }}>99.9%</div>
+              <div style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>Platform SLA Uptime</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#38BDF8', letterSpacing: '-0.02em' }}>24/7</div>
+              <div style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>Cloud Monitoring</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#34D399', letterSpacing: '-0.02em' }}>100%</div>
+              <div style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>Verified Profiles</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#A78BFA', letterSpacing: '-0.02em' }}>Global</div>
+              <div style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 600 }}>Delivery Synergy</div>
             </div>
           </div>
         </div>
@@ -806,7 +608,7 @@ export default function HomePage() {
             }}
           >
             {[
-              { stat: '100+', label: 'Digital Products Engineered', desc: 'Scalable platforms deployed for clients', icon: RocketIcon },
+              { stat: '100+', label: 'Digital Products Engineered', desc: 'Scalable platforms deployed for clients', icon: Zap },
               { stat: '99.99%', label: 'Cloud Architecture Uptime', desc: 'Zero unmanaged downtime SLA', icon: Cloud },
               { stat: '15 Days', label: 'Average Talent Matching', desc: 'Rapid interview-to-offer turnaround', icon: Clock },
               { stat: '100%', label: 'Security & Compliance', desc: 'Enterprise-grade access & audit logging', icon: ShieldCheck },
@@ -1293,8 +1095,4 @@ export default function HomePage() {
       </section>
     </div>
   );
-}
-
-function RocketIcon(props) {
-  return <Zap {...props} />;
 }
