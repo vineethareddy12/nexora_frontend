@@ -28,6 +28,8 @@ import {
 import { useAuth } from '../../auth/hooks/useAuth';
 import { adminReviewApi } from '../review/adminReviewApi';
 import { useToast } from '../../../components/toast/ToastContext';
+import { clientCache } from '../../../core/cache/clientCache';
+import { TableSkeleton, RefreshBadge, ErrorState, EmptyState } from '../../../components/common/LoadingStates';
 import { jobsApi } from '../../public/careers/api/jobsApi';
 
 const STATUS_CONFIG = {
@@ -89,11 +91,16 @@ export default function AdminApplicationsPage() {
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1', 10));
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
+  const cacheKey = `admin_applications_${page}_${debouncedSearch}_${statusFilter}_${jobFilter}_${fromDate}_${toDate}_${sortBy}_${sortOrder}`;
+  const cachedData = clientCache.get(cacheKey);
+
   // Data
-  const [applications, setApplications] = useState([]);
+  const [applications, setApplications] = useState(() => cachedData?.applications || []);
   const [jobsList, setJobsList] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
-  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState(() => cachedData?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 });
+  const [loading, setLoading] = useState(!cachedData);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
 
   // Review Drawer / Modal
   const [selectedApp, setSelectedApp] = useState(null);
@@ -146,20 +153,30 @@ export default function AdminApplicationsPage() {
     fetchJobs();
   }, [accessToken]);
 
-  const loadApplications = async () => {
+  const loadApplications = async (isSilent = false) => {
     try {
-      setLoading(true);
-      const data = await adminReviewApi.getApplications({
-        page,
-        limit: 10,
-        search: debouncedSearch,
-        status: statusFilter,
-        jobId: jobFilter !== 'ALL' ? jobFilter : undefined,
-        fromDate: fromDate || undefined,
-        toDate: toDate || undefined,
-        sortBy,
-        sortOrder,
-      });
+      if (!isSilent && applications.length === 0) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+      setFetchError(null);
+
+      const data = await clientCache.fetchWithDedupe(
+        cacheKey,
+        () => adminReviewApi.getApplications({
+          page,
+          limit: 10,
+          search: debouncedSearch,
+          status: statusFilter,
+          jobId: jobFilter !== 'ALL' ? jobFilter : undefined,
+          fromDate: fromDate || undefined,
+          toDate: toDate || undefined,
+          sortBy,
+          sortOrder,
+        }),
+        15000
+      );
 
       if (data) {
         setApplications(data.applications || []);
@@ -167,15 +184,33 @@ export default function AdminApplicationsPage() {
       }
     } catch (err) {
       console.error('Failed to load applications:', err);
-      toast.error(err.message || 'Unable to retrieve applications.');
+      if (applications.length === 0) {
+        setFetchError(err.message || 'Unable to retrieve applications.');
+      } else {
+        toast.error(err.message || 'Failed to refresh applications in background.');
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadApplications();
-  }, [debouncedSearch, statusFilter, jobFilter, fromDate, toDate, sortBy, sortOrder, page]);
+    loadApplications(!!cachedData);
+
+    const handleFocus = () => loadApplications(true);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') loadApplications(true);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [debouncedSearch, statusFilter, jobFilter, fromDate, toDate, sortBy, sortOrder, page, cacheKey]);
 
   // Deep-linking: auto-open details modal if openId is in URL
   const initialOpenRef = useRef(false);
@@ -256,7 +291,9 @@ export default function AdminApplicationsPage() {
       // Refresh application details and listing
       const refreshed = await adminReviewApi.getApplicationDetails(selectedApp.id);
       setSelectedApp(refreshed);
-      loadApplications();
+      clientCache.invalidate('admin_applications');
+      clientCache.invalidate('admin_dashboard');
+      loadApplications(true);
     } catch (err) {
       console.error('Status update failed:', err);
       toast.error(err.message || 'Failed to update application status.');
@@ -301,8 +338,11 @@ export default function AdminApplicationsPage() {
           </p>
         </div>
 
-        {/* Mobile Filters Toggle Button */}
-        <div className="show-mobile-only" style={{ display: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <RefreshBadge isRefreshing={isRefreshing} onRefresh={() => loadApplications(false)} />
+
+          {/* Mobile Filters Toggle Button */}
+          <div className="show-mobile-only" style={{ display: 'none' }}>
           <button
             type="button"
             onClick={() => setFilterDrawerOpen(true)}
@@ -317,6 +357,7 @@ export default function AdminApplicationsPage() {
               </span>
             )}
           </button>
+          </div>
         </div>
       </div>
 
@@ -554,11 +595,14 @@ export default function AdminApplicationsPage() {
             </div>
           )}
 
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '5rem 2rem', color: '#64748B' }}>
-              <Loader2 size={32} className="spin" style={{ margin: '0 auto 1rem', color: '#2563EB' }} />
-              <p style={{ margin: 0 }}>Loading applications...</p>
-            </div>
+          {fetchError && applications.length === 0 ? (
+            <ErrorState
+              title="Unable to load applications"
+              message={fetchError}
+              onRetry={() => loadApplications(false)}
+            />
+          ) : loading && applications.length === 0 ? (
+            <TableSkeleton rows={5} columns={6} />
           ) : applications.length === 0 ? (
             <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
               <FileCheck2 size={40} color="#94A3B8" style={{ margin: '0 auto 1rem' }} />

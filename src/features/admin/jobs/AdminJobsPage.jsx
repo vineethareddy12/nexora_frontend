@@ -3,14 +3,20 @@ import { Briefcase, Plus, Edit, Trash2, CheckCircle2, AlertCircle, RefreshCw, X,
 import { useAuth } from '../../auth/hooks/useAuth';
 import { jobsApi } from '../../public/careers/api/jobsApi';
 import { useToast } from '../../../components/toast/ToastContext';
+import { clientCache } from '../../../core/cache/clientCache';
+import { TableSkeleton, RefreshBadge, ErrorState, EmptyState } from '../../../components/common/LoadingStates';
 
 export default function AdminJobsPage() {
   const { accessToken } = useAuth();
   const toast = useToast();
   const token = accessToken || (typeof window !== 'undefined' ? localStorage.getItem('nexora_access_token') : null);
 
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = `admin_jobs_${searchTerm.trim()}_${filterStatus}_${filterDept}_${filterAvailability}`;
+  const cachedData = clientCache.get(cacheKey);
+
+  const [jobs, setJobs] = useState(() => cachedData || []);
+  const [loading, setLoading] = useState(!cachedData);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
@@ -41,9 +47,13 @@ export default function AdminJobsPage() {
     status: 'DRAFT',
   });
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent && jobs.length === 0) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
       setError(null);
       const params = {
         search: searchTerm.trim() || undefined,
@@ -51,29 +61,40 @@ export default function AdminJobsPage() {
         department: filterDept !== 'ALL' ? filterDept : undefined,
         availability: filterAvailability !== 'ALL' ? filterAvailability : undefined,
       };
-      const res = await jobsApi.getAdminJobs(params, token);
+
+      const res = await clientCache.fetchWithDedupe(
+        cacheKey,
+        () => jobsApi.getAdminJobs(params, token),
+        15000
+      );
+
       setJobs(res.items || res.jobs || []);
     } catch (err) {
       console.error('Error fetching admin jobs:', err);
-      setError(err.message || 'Failed to load jobs.');
+      if (jobs.length === 0) {
+        setError(err.message || 'Failed to load jobs.');
+      } else {
+        toast.error(err.message || 'Failed to update jobs in background.');
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchJobs();
-    }, 250);
+    fetchJobs(!!cachedData);
 
-    const handleAuth = () => fetchJobs();
+    const handleFocus = () => fetchJobs(true);
+    const handleAuth = () => fetchJobs(true);
+    window.addEventListener('focus', handleFocus);
     window.addEventListener('nexora:admin-authenticated', handleAuth);
 
     return () => {
-      clearTimeout(timer);
+      window.removeEventListener('focus', handleFocus);
       window.removeEventListener('nexora:admin-authenticated', handleAuth);
     };
-  }, [searchTerm, filterStatus, filterDept, filterAvailability, token, accessToken]);
+  }, [searchTerm, filterStatus, filterDept, filterAvailability, token, accessToken, cacheKey]);
 
   const handleOpenAdd = () => {
     setEditingJob(null);
@@ -163,7 +184,9 @@ export default function AdminJobsPage() {
       }
 
       setModalOpen(false);
-      fetchJobs();
+      clientCache.invalidate('admin_jobs');
+      clientCache.invalidate('admin_dashboard');
+      fetchJobs(true);
     } catch (err) {
       console.error('Save job failed:', err);
       toast.error(err.message || 'Operation failed.', { title: 'Error' });
@@ -178,7 +201,9 @@ export default function AdminJobsPage() {
     try {
       await jobsApi.updateJobStatus(job.id, newStatus, currentToken);
       toast.success(`Job status changed to ${newStatus}.`, { title: 'Status Changed' });
-      fetchJobs();
+      clientCache.invalidate('admin_jobs');
+      clientCache.invalidate('admin_dashboard');
+      fetchJobs(true);
     } catch (err) {
       toast.error(err.message || 'Failed to update job status.', { title: 'Update Failed' });
     }
@@ -192,7 +217,9 @@ export default function AdminJobsPage() {
     try {
       await jobsApi.deleteJob(job.id, currentToken);
       toast.success(`Job vacancy "${job.title}" removed.`, { title: 'Job Deleted' });
-      fetchJobs();
+      clientCache.invalidate('admin_jobs');
+      clientCache.invalidate('admin_dashboard');
+      fetchJobs(true);
     } catch (err) {
       toast.error(err.message || 'Failed to delete job.', { title: 'Delete Failed' });
     }
@@ -212,10 +239,13 @@ export default function AdminJobsPage() {
             Create, publish, edit, close, or archive job postings.
           </p>
         </div>
-        <button className="btn btn-primary" onClick={handleOpenAdd}>
-          <Plus size={16} />
-          <span>Post New Job Opening</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <RefreshBadge isRefreshing={isRefreshing} onRefresh={() => fetchJobs(false)} />
+          <button className="btn btn-primary" onClick={handleOpenAdd}>
+            <Plus size={16} />
+            <span>Post New Job Opening</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -286,12 +316,9 @@ export default function AdminJobsPage() {
 
       {/* Jobs Table */}
       <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto' }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem' }}>
-            <RefreshCw className="animate-spin" size={28} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
-            <p style={{ color: 'var(--text-muted)' }}>Loading job vacancies...</p>
-          </div>
-        ) : error ? (
+        {loading && jobs.length === 0 ? (
+          <TableSkeleton rows={5} columns={6} />
+        ) : error && jobs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3.5rem 1.5rem' }}>
             <div
               style={{

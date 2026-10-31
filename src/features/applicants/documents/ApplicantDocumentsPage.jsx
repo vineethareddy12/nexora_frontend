@@ -22,7 +22,10 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { documentsApi } from './documentsApi';
+import { useAuth } from '../../auth/hooks/useAuth';
 import { useToast } from '../../../components/toast/ToastContext';
+import { clientCache } from '../../../core/cache/clientCache';
+import { TableSkeleton, RefreshBadge, ErrorState, EmptyState } from '../../../components/common/LoadingStates';
 
 // Human-friendly document type labels & badges
 const DOCUMENT_TYPE_CONFIG = {
@@ -84,11 +87,17 @@ function formatDate(isoString) {
 }
 
 export default function ApplicantDocumentsPage() {
+  const { user } = useAuth();
   const toast = useToast();
 
-  const [documents, setDocuments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('ALL');
+  const cacheKey = clientCache.makeKey(`applicant_documents_${activeFilter}`, user?.id);
+  const cachedData = clientCache.get(cacheKey);
+
+  const [documents, setDocuments] = useState(() => cachedData || []);
+  const [loading, setLoading] = useState(!cachedData);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
 
   // Modal states
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -112,24 +121,42 @@ export default function ApplicantDocumentsPage() {
   const replaceFileInputRef = useRef(null);
 
   // Fetch documents on load or filter change
-  const fetchDocuments = async () => {
+  const fetchDocuments = async (isSilent = false) => {
     try {
-      setLoading(true);
-      const data = await documentsApi.getDocuments({
-        type: activeFilter === 'ALL' ? undefined : activeFilter,
-      });
-      setDocuments(data);
+      if (!isSilent && documents.length === 0) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+      setFetchError(null);
+
+      const data = await clientCache.fetchWithDedupe(
+        cacheKey,
+        () => documentsApi.getDocuments({
+          type: activeFilter === 'ALL' ? undefined : activeFilter,
+        }),
+        15000
+      );
+
+      if (Array.isArray(data)) {
+        setDocuments(data);
+      }
     } catch (err) {
       console.error('Failed to load documents:', err);
-      toast.error(err.message || 'Unable to retrieve your documents repository.');
+      if (documents.length === 0) {
+        setFetchError(err.message || 'Unable to retrieve your documents repository.');
+      } else {
+        toast.error(err.message || 'Failed to update documents vault in background.');
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchDocuments();
-  }, [activeFilter]);
+    fetchDocuments(!!cachedData);
+  }, [activeFilter, cacheKey]);
 
   // Handle client-side file selection & validation
   const handleFileChange = (e) => {
@@ -182,7 +209,8 @@ export default function ApplicantDocumentsPage() {
       });
       setIsUploadModalOpen(false);
       resetForm();
-      fetchDocuments();
+      clientCache.invalidate('applicant_documents');
+      fetchDocuments(true);
     } catch (err) {
       console.error('Upload failed:', err);
       setFormError(err.message || 'Failed to upload document. Please try again.');
@@ -219,7 +247,8 @@ export default function ApplicantDocumentsPage() {
 
       setIsReplaceModalOpen(false);
       resetForm();
-      fetchDocuments();
+      clientCache.invalidate('applicant_documents');
+      fetchDocuments(true);
     } catch (err) {
       console.error('Replace failed:', err);
       setFormError(err.message || 'Failed to replace document. Please try again.');
@@ -247,7 +276,8 @@ export default function ApplicantDocumentsPage() {
 
       setIsDeleteModalOpen(false);
       setSelectedDoc(null);
-      fetchDocuments();
+      clientCache.invalidate('applicant_documents');
+      fetchDocuments(true);
     } catch (err) {
       console.error('Delete failed:', err);
       toast.error(err.message || 'Failed to delete document.');
@@ -323,26 +353,29 @@ export default function ApplicantDocumentsPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            resetForm();
-            setIsUploadModalOpen(true);
-          }}
-          className="btn btn-primary"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.4rem',
-            fontWeight: 600,
-            borderRadius: '10px',
-            boxShadow: 'var(--shadow-sm)',
-          }}
-        >
-          <Plus size={18} />
-          <span>Upload Document</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <RefreshBadge isRefreshing={isRefreshing} onRefresh={() => fetchDocuments(false)} />
+          <button
+            type="button"
+            onClick={() => {
+              resetForm();
+              setIsUploadModalOpen(true);
+            }}
+            className="btn btn-primary"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.75rem 1.4rem',
+              fontWeight: 600,
+              borderRadius: '10px',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
+            <Plus size={18} />
+            <span>Upload Document</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. Vault Quick Stats Cards */}
@@ -553,23 +586,26 @@ export default function ApplicantDocumentsPage() {
       </div>
 
       {/* 4. Document List / Table */}
-      <div
-        className="card"
-        style={{
-          background: '#FFFFFF',
-          borderRadius: '16px',
-          border: '1px solid #E2E8F0',
-          boxShadow: 'var(--shadow-sm)',
-          overflow: 'hidden',
-        }}
-      >
-        {loading ? (
-          <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#64748B' }}>
-            <Loader2 size={32} className="spin" style={{ margin: '0 auto 1rem', color: '#2563EB' }} />
-            <p style={{ fontSize: '0.95rem', margin: 0 }}>Loading your documents vault...</p>
-          </div>
-        ) : documents.length === 0 ? (
-          /* Empty State */
+      {fetchError && documents.length === 0 ? (
+        <ErrorState
+          title="Unable to load documents vault"
+          message={fetchError}
+          onRetry={() => fetchDocuments(false)}
+        />
+      ) : loading && documents.length === 0 ? (
+        <TableSkeleton rows={4} columns={5} />
+      ) : documents.length === 0 ? (
+        <div
+          className="card"
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid #E2E8F0',
+            boxShadow: 'var(--shadow-sm)',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Empty State */}
           <div style={{ padding: '4.5rem 2rem', textAlign: 'center' }}>
             <div
               style={{
@@ -608,7 +644,18 @@ export default function ApplicantDocumentsPage() {
               <span>Upload Document</span>
             </button>
           </div>
-        ) : (
+        </div>
+      ) : (
+        <div
+          className="card"
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid #E2E8F0',
+            boxShadow: 'var(--shadow-sm)',
+            overflow: 'hidden',
+          }}
+        >
           <>
             {/* Desktop / Tablet Documents Table */}
             <div className="desktop-table-view table-responsive">
@@ -934,8 +981,8 @@ export default function ApplicantDocumentsPage() {
               })}
             </div>
           </>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
           5. UPLOAD DOCUMENT MODAL

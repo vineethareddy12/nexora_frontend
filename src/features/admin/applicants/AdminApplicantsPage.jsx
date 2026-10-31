@@ -21,14 +21,12 @@ import {
 import { useAuth } from '../../auth/hooks/useAuth';
 import { adminReviewApi } from '../review/adminReviewApi';
 import { useToast } from '../../../components/toast/ToastContext';
+import { clientCache } from '../../../core/cache/clientCache';
+import { TableSkeleton, RefreshBadge, ErrorState, EmptyState } from '../../../components/common/LoadingStates';
 
 export default function AdminApplicantsPage() {
   const { accessToken } = useAuth();
   const toast = useToast();
-
-  const [applicants, setApplicants] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
-  const [loading, setLoading] = useState(true);
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,6 +35,15 @@ export default function AdminApplicantsPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [page, setPage] = useState(1);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+
+  const cacheKey = `admin_applicants_${page}_${debouncedSearch}_${profileFilter}_${statusFilter}`;
+  const cachedData = clientCache.get(cacheKey);
+
+  const [applicants, setApplicants] = useState(() => cachedData?.applicants || []);
+  const [pagination, setPagination] = useState(() => cachedData?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 });
+  const [loading, setLoading] = useState(!cachedData);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
 
   // Selected Applicant for Details Modal
   const [selectedApplicant, setSelectedApplicant] = useState(null);
@@ -53,16 +60,26 @@ export default function AdminApplicantsPage() {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  const loadApplicants = async () => {
+  const loadApplicants = async (isSilent = false) => {
     try {
-      setLoading(true);
-      const data = await adminReviewApi.getApplicants({
-        page,
-        limit: 10,
-        search: debouncedSearch,
-        hasProfile: profileFilter,
-        status: statusFilter,
-      });
+      if (!isSilent && applicants.length === 0) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+      setFetchError(null);
+
+      const data = await clientCache.fetchWithDedupe(
+        cacheKey,
+        () => adminReviewApi.getApplicants({
+          page,
+          limit: 10,
+          search: debouncedSearch,
+          hasProfile: profileFilter,
+          status: statusFilter,
+        }),
+        15000
+      );
 
       if (data) {
         setApplicants(data.applicants || []);
@@ -70,15 +87,33 @@ export default function AdminApplicantsPage() {
       }
     } catch (err) {
       console.error('Failed to load applicants:', err);
-      toast.error(err.message || 'Unable to retrieve applicants.');
+      if (applicants.length === 0) {
+        setFetchError(err.message || 'Unable to retrieve applicants.');
+      } else {
+        toast.error(err.message || 'Failed to refresh applicants in background.');
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadApplicants();
-  }, [debouncedSearch, profileFilter, statusFilter, page]);
+    loadApplicants(!!cachedData);
+
+    const handleFocus = () => loadApplicants(true);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') loadApplicants(true);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [debouncedSearch, profileFilter, statusFilter, page, cacheKey]);
 
   const openApplicantDetails = async (id) => {
     try {
@@ -114,22 +149,26 @@ export default function AdminApplicantsPage() {
           </p>
         </div>
 
-        {/* Mobile Filters Toggle Button */}
-        <div className="show-mobile-only" style={{ display: 'none' }}>
-          <button
-            type="button"
-            onClick={() => setFilterDrawerOpen(true)}
-            className="btn btn-secondary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.55rem 1rem' }}
-          >
-            <SlidersHorizontal size={15} />
-            <span>Filters</span>
-            {activeFiltersCount > 0 && (
-              <span className="badge badge-primary" style={{ padding: '0.1rem 0.45rem', fontSize: '0.72rem' }}>
-                {activeFiltersCount}
-              </span>
-            )}
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <RefreshBadge isRefreshing={isRefreshing} onRefresh={() => loadApplicants(false)} />
+
+          {/* Mobile Filters Toggle Button */}
+          <div className="show-mobile-only" style={{ display: 'none' }}>
+            <button
+              type="button"
+              onClick={() => setFilterDrawerOpen(true)}
+              className="btn btn-secondary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.55rem 1rem' }}
+            >
+              <SlidersHorizontal size={15} />
+              <span>Filters</span>
+              {activeFiltersCount > 0 && (
+                <span className="badge badge-primary" style={{ padding: '0.1rem 0.45rem', fontSize: '0.72rem' }}>
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -257,11 +296,14 @@ export default function AdminApplicantsPage() {
 
         {/* RIGHT MAIN CONTENT AREA */}
         <div className="admin-page-main-content">
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '5rem 2rem', color: '#64748B' }}>
-              <Loader2 size={32} className="spin" style={{ margin: '0 auto 1rem', color: '#2563EB' }} />
-              <p style={{ margin: 0 }}>Loading applicants directory...</p>
-            </div>
+          {fetchError && applicants.length === 0 ? (
+            <ErrorState
+              title="Unable to load applicants directory"
+              message={fetchError}
+              onRetry={() => loadApplicants(false)}
+            />
+          ) : loading && applicants.length === 0 ? (
+            <TableSkeleton rows={5} columns={6} />
           ) : applicants.length === 0 ? (
             <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
               <Users size={40} color="#94A3B8" style={{ margin: '0 auto 1rem' }} />

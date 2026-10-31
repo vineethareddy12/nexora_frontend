@@ -99,27 +99,41 @@ export async function authFetch(url, options = {}) {
     }
   }
 
-  let response = await fetch(url, { ...options, headers });
+  // Set a protective 15-second abort signal if none provided to prevent indefinite browser hangs
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), options.timeoutMs || 15000);
+  const signal = options.signal || controller.signal;
 
-  // If unauthorized / token expired, attempt synchronized silent token refresh
-  if (response.status === 401) {
-    const refreshToken = localStorage.getItem('nexora_refresh_token');
-    if (refreshToken) {
-      try {
-        const freshAccessToken = await performSilentRefresh(refreshToken);
-        if (freshAccessToken) {
-          headers.set('Authorization', `Bearer ${freshAccessToken}`);
-          // Retry the original request seamlessly with the newly refreshed token
-          return await fetch(url, { ...options, headers });
+  try {
+    let response = await fetch(url, { ...options, headers, signal });
+    clearTimeout(timeoutId);
+
+    // If unauthorized / token expired, attempt synchronized silent token refresh
+    if (response.status === 401) {
+      const refreshToken = localStorage.getItem('nexora_refresh_token');
+      if (refreshToken) {
+        try {
+          const freshAccessToken = await performSilentRefresh(refreshToken);
+          if (freshAccessToken) {
+            headers.set('Authorization', `Bearer ${freshAccessToken}`);
+            // Retry the original request seamlessly with the newly refreshed token
+            return await fetch(url, { ...options, headers });
+          }
+        } catch (err) {
+          // Refresh token actually failed or expired
+          handleSessionExpired();
         }
-      } catch (err) {
-        // Refresh token actually failed or expired
+      } else {
         handleSessionExpired();
       }
-    } else {
-      handleSessionExpired();
     }
-  }
 
-  return response;
+    return response;
+  } catch (fetchErr) {
+    clearTimeout(timeoutId);
+    if (fetchErr.name === 'AbortError') {
+      throw new Error('Request timed out. The server took too long to respond. Please retry.');
+    }
+    throw fetchErr;
+  }
 }

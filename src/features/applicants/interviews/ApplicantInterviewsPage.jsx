@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { interviewsApi } from '../../interviews/interviewsApi';
 import { useAuth } from '../../auth/hooks/useAuth';
+import { clientCache } from '../../../core/cache/clientCache';
+import { TableSkeleton, ErrorState, EmptyState, RefreshBadge } from '../../../components/common/LoadingStates';
 
 const formatTime12Hr = (timeStr) => {
   if (!timeStr) return '';
@@ -170,15 +172,30 @@ const getMeetingLifecycle = (item) => {
 
 export default function ApplicantInterviewsPage() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [interviews, setInterviews] = useState([]);
+  const userId = user?.id;
+
+  // Stale-While-Revalidate: Seed initial state from memory cache immediately if available
+  const [interviews, setInterviews] = useState(() => clientCache.get('applicant_interviews', userId) || []);
+  const [loading, setLoading] = useState(() => !clientCache.isFresh('applicant_interviews', userId));
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
-  const loadInterviews = async () => {
-    try {
+  const loadInterviews = async (isSilent = false) => {
+    // If not silent and no cached data exists, show skeleton loader
+    if (!isSilent && interviews.length === 0) {
       setLoading(true);
-      setError(null);
-      const res = await interviewsApi.getApplicantInterviews();
+    } else if (isSilent) {
+      setIsRefreshing(true);
+    }
+    setError(null);
+
+    try {
+      const res = await clientCache.fetchWithDedupe(
+        'applicant_interviews',
+        () => interviewsApi.getApplicantInterviews(),
+        { userId, ttl: 45000, force: !isSilent }
+      );
+
       const items = Array.isArray(res?.interviews)
         ? res.interviews
         : Array.isArray(res?.data?.interviews)
@@ -188,26 +205,35 @@ export default function ApplicantInterviewsPage() {
         : Array.isArray(res)
         ? res
         : [];
+
       setInterviews(items);
     } catch (err) {
       console.error('Failed to load applicant interviews:', err);
-      setError(err.message || 'Failed to load interviews');
+      // Only set error banner if we don't already have working data
+      if (interviews.length === 0) {
+        setError(err.message || 'Failed to load interviews');
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadInterviews();
+    loadInterviews(false);
 
+    // Silent background poll every 20s
     const pollTimer = setInterval(() => {
-      loadInterviews();
-    }, 15000);
+      loadInterviews(true);
+    }, 20000);
 
-    const handleFocus = () => loadInterviews();
+    const handleFocus = () => loadInterviews(true);
     window.addEventListener('focus', handleFocus);
 
-    const handleDataUpdated = () => loadInterviews();
+    const handleDataUpdated = () => {
+      clientCache.invalidate('applicant_interviews');
+      loadInterviews(true);
+    };
     window.addEventListener('nexora:data-updated', handleDataUpdated);
 
     return () => {
@@ -215,51 +241,36 @@ export default function ApplicantInterviewsPage() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('nexora:data-updated', handleDataUpdated);
     };
-  }, []);
+  }, [userId]);
 
   return (
     <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.35rem' }}>
-          Interview Schedules
-        </h1>
-        <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
-          Details, meeting coordinates, and instructions for upcoming technical and HR evaluation rounds.
-        </p>
-      </div>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#64748B' }}>
-          <RotateCcw className="animate-spin" size={32} style={{ margin: '0 auto 0.75rem' }} />
-          <div>Loading your interview schedules...</div>
-        </div>
-      ) : error ? (
-        <div style={{ padding: '1.25rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', color: '#B91C1C', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>{error}</span>
-          <button onClick={loadInterviews} className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>Retry</button>
-        </div>
-      ) : !Array.isArray(interviews) || interviews.length === 0 ? (
-        <div className="card" style={{ padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', textAlign: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
-          <div
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '16px',
-              background: '#EFF6FF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1.25rem',
-              color: '#2563EB',
-            }}
-          >
-            <CalendarX size={32} />
-          </div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.4rem' }}>No Scheduled Interviews</h3>
-          <p style={{ color: '#64748B', fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto' }}>
-            You do not have any pending or upcoming interview rounds scheduled right now. Once your application is reviewed and shortlisted by our recruitment team, meeting details will appear here.
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.35rem' }}>
+            Interview Schedules
+          </h1>
+          <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
+            Details, meeting coordinates, and instructions for upcoming technical and HR evaluation rounds.
           </p>
         </div>
+        <RefreshBadge isRefreshing={isRefreshing} />
+      </div>
+
+      {loading && interviews.length === 0 ? (
+        <TableSkeleton rows={3} cols={4} />
+      ) : error && interviews.length === 0 ? (
+        <ErrorState
+          title="Unable to Load Interviews"
+          message={error}
+          onRetry={() => loadInterviews(false)}
+        />
+      ) : !Array.isArray(interviews) || interviews.length === 0 ? (
+        <EmptyState
+          icon={CalendarX}
+          title="No Scheduled Interviews"
+          description="You do not have any active or past interview schedules at this time. Once shortlisted for a round, your meeting coordinates and instructions will appear here."
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {interviews.map((item) => {

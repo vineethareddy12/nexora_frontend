@@ -125,6 +125,9 @@ export function AuthProvider({ children }) {
     setRefreshToken(tokens.refreshToken);
     localStorage.setItem('nexora_access_token', tokens.accessToken);
     localStorage.setItem('nexora_refresh_token', tokens.refreshToken);
+    if (userData?.id) {
+      localStorage.setItem('nexora_user_id', userData.id);
+    }
   };
 
   const logout = async () => {
@@ -140,6 +143,8 @@ export function AuthProvider({ children }) {
     setRefreshToken(null);
     localStorage.removeItem('nexora_access_token');
     localStorage.removeItem('nexora_refresh_token');
+    localStorage.removeItem('nexora_user_id');
+    import('../../../core/cache/clientCache.js').then(({ clientCache }) => clientCache.clear());
   };
 
   return (

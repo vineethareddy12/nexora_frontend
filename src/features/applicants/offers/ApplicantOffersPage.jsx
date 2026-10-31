@@ -15,12 +15,17 @@ import {
 import { offersApi } from '../../offers/offersApi';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { useToast } from '../../../components/toast/ToastContext';
+import { clientCache } from '../../../core/cache/clientCache';
+import { TableSkeleton, ErrorState, EmptyState, RefreshBadge } from '../../../components/common/LoadingStates';
 
 export default function ApplicantOffersPage() {
   const { user } = useAuth();
+  const userId = user?.id;
   const toast = useToast();
-  const [loading, setLoading] = useState(true);
-  const [offers, setOffers] = useState([]);
+
+  const [offers, setOffers] = useState(() => clientCache.get('applicant_offers', userId) || []);
+  const [loading, setLoading] = useState(() => !clientCache.isFresh('applicant_offers', userId));
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   // Decision Modal
@@ -33,32 +38,47 @@ export default function ApplicantOffersPage() {
   const [decisionNotes, setDecisionNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const loadOffers = async () => {
-    try {
+  const loadOffers = async (isSilent = false) => {
+    if (!isSilent && offers.length === 0) {
       setLoading(true);
-      setError(null);
-      const res = await offersApi.getApplicantOffers();
+    } else if (isSilent) {
+      setIsRefreshing(true);
+    }
+    setError(null);
+
+    try {
+      const res = await clientCache.fetchWithDedupe(
+        'applicant_offers',
+        () => offersApi.getApplicantOffers(),
+        { userId, ttl: 45000, force: !isSilent }
+      );
       setOffers(res.data || []);
     } catch (err) {
       console.error('Failed to load applicant offers:', err);
-      setError(err.message || 'Failed to load offers');
+      if (offers.length === 0) {
+        setError(err.message || 'Failed to load offers');
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadOffers();
+    loadOffers(false);
 
-    // Auto-poll every 15s for live dashboard status sync
+    // Auto-poll every 20s silently
     const pollTimer = setInterval(() => {
-      loadOffers();
-    }, 15000);
+      loadOffers(true);
+    }, 20000);
 
-    const handleFocus = () => loadOffers();
+    const handleFocus = () => loadOffers(true);
     window.addEventListener('focus', handleFocus);
 
-    const handleDataUpdated = () => loadOffers();
+    const handleDataUpdated = () => {
+      clientCache.invalidate('applicant_offers');
+      loadOffers(true);
+    };
     window.addEventListener('nexora:data-updated', handleDataUpdated);
 
     return () => {
@@ -66,7 +86,7 @@ export default function ApplicantOffersPage() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('nexora:data-updated', handleDataUpdated);
     };
-  }, []);
+  }, [userId]);
 
   const handlePreview = async (offer) => {
     setSelectedOffer(offer);
@@ -108,47 +128,32 @@ export default function ApplicantOffersPage() {
 
   return (
     <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.35rem' }}>
-          Official Job Offers
-        </h1>
-        <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
-          Review issued offer letters, inspect compensation breakdowns, and confirm your employment decision.
-        </p>
-      </div>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#64748B' }}>
-          <RotateCcw className="animate-spin" size={32} style={{ margin: '0 auto 0.75rem' }} />
-          <div>Loading your employment offers...</div>
-        </div>
-      ) : error ? (
-        <div style={{ padding: '1.25rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', color: '#B91C1C', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>{error}</span>
-          <button onClick={loadOffers} className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>Retry</button>
-        </div>
-      ) : offers.length === 0 ? (
-        <div className="card" style={{ padding: 'clamp(2.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)', textAlign: 'center', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px' }}>
-          <div
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '16px',
-              background: '#EFF6FF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1.25rem',
-              color: '#059669',
-            }}
-          >
-            <Award size={32} />
-          </div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.4rem' }}>No Job Offers Issued Yet</h3>
-          <p style={{ color: '#64748B', fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto' }}>
-            There are no active official job offer letters linked to your candidate account at this time.
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.35rem' }}>
+            Official Job Offers
+          </h1>
+          <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
+            Review issued offer letters, inspect compensation breakdowns, and confirm your employment decision.
           </p>
         </div>
+        <RefreshBadge isRefreshing={isRefreshing} />
+      </div>
+
+      {loading && offers.length === 0 ? (
+        <TableSkeleton rows={3} cols={4} />
+      ) : error && offers.length === 0 ? (
+        <ErrorState
+          title="Unable to Load Job Offers"
+          message={error}
+          onRetry={() => loadOffers(false)}
+        />
+      ) : offers.length === 0 ? (
+        <EmptyState
+          icon={Award}
+          title="No Job Offers Issued Yet"
+          description="There are no active official job offer letters linked to your candidate account at this time."
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {offers.map((offer) => {

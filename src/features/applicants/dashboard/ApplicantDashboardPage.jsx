@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { applicationsApi } from '../applications/applicationsApi';
+import { clientCache } from '../../../core/cache/clientCache';
+import { CardSkeleton, TableSkeleton, RefreshBadge, ErrorState } from '../../../components/common/LoadingStates';
 
 const STATUS_CONFIG = {
   SUBMITTED: { label: 'Submitted', badgeClass: 'badge-primary', color: '#2563EB' },
@@ -34,9 +36,14 @@ const STATUS_CONFIG = {
 
 export default function ApplicantDashboardPage() {
   const { user, accessToken } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const cacheKey = clientCache.makeKey('applicant_dashboard', user?.id);
+
+  // Initialize with cached data if available for instant render
+  const cachedData = clientCache.get(cacheKey);
+  const [loading, setLoading] = useState(!cachedData);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [dashboardData, setDashboardData] = useState({
+  const [dashboardData, setDashboardData] = useState(() => cachedData || {
     applicant: null,
     summary: {
       totalApplications: 0,
@@ -51,47 +58,62 @@ export default function ApplicantDashboardPage() {
     recentApplications: [],
   });
 
-  const loadDashboard = async () => {
+  const loadDashboard = async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent && !dashboardData.applicant) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
       setError(null);
-      const data = await applicationsApi.getApplicantDashboard();
-      setDashboardData(data);
+
+      const data = await clientCache.fetchWithDedupe(
+        cacheKey,
+        () => applicationsApi.getApplicantDashboard(),
+        15000 // 15s cache TTL
+      );
+
+      if (data) {
+        setDashboardData(data);
+      }
     } catch (err) {
       console.error('Failed to load applicant dashboard metrics:', err);
-      setError(err.message || 'Unable to retrieve dashboard information.');
+      if (!dashboardData.applicant) {
+        setError(err.message || 'Unable to retrieve dashboard information.');
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
     if (!accessToken) return;
-    loadDashboard();
+    loadDashboard(!!cachedData);
 
-    const handleFocus = () => loadDashboard();
+    const handleFocus = () => loadDashboard(true);
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        loadDashboard();
+        loadDashboard(true);
       }
     };
 
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibility);
 
-    // Auto-sync dashboard every 12 seconds when active
+    // Auto-sync dashboard every 30 seconds silently in the background
     const syncInterval = setInterval(() => {
       if (document.visibilityState === 'visible') {
-        loadDashboard();
+        loadDashboard(true);
       }
-    }, 12000);
+    }, 30000);
 
     return () => {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibility);
       clearInterval(syncInterval);
     };
-  }, [accessToken]);
+  }, [accessToken, cacheKey]);
 
   const candidateName = dashboardData.applicant?.fullName || user?.fullName || 'Candidate';
   const summary = dashboardData.summary || {};
@@ -256,23 +278,7 @@ export default function ApplicantDashboardPage() {
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={loadDashboard}
-              disabled={loading}
-              className="btn btn-secondary"
-              style={{
-                fontSize: '0.8rem',
-                padding: '0.35rem 0.75rem',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-              }}
-              title="Refresh live metrics from server"
-            >
-              <RefreshCw size={13} className={loading ? 'spin' : ''} />
-              <span>{loading ? 'Refreshing...' : 'Refresh Metrics'}</span>
-            </button>
+            <RefreshBadge isRefreshing={isRefreshing} onRefresh={() => loadDashboard(true)} />
             <Link
               to="/app/applications"
               style={{
@@ -299,65 +305,71 @@ export default function ApplicantDashboardPage() {
             gap: '1rem',
           }}
         >
-          {summaryCards.map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <Link
-                key={i}
-                to={stat.path}
-                className="kpi-summary-card card"
-                role="button"
-                tabIndex={0}
-                aria-label={`${stat.label}: ${stat.count} applications. Click to open filtered applications list.`}
-                title={`Filter applications by ${stat.label}`}
-                style={{
-                  padding: '1.25rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: '#FFFFFF',
-                  border: `1px solid ${stat.border}`,
-                  borderRadius: '16px',
-                  boxShadow: 'var(--shadow-sm)',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, marginBottom: '0.35rem' }}>
-                    {stat.label}
-                  </div>
-                  <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-                    {loading ? '-' : stat.count}
-                  </div>
-                  <div className="kpi-action-hint" style={{ fontSize: '0.72rem', color: stat.color, fontWeight: 600, marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.25rem', opacity: 0.85 }}>
-                    <span>Explore</span>
-                    <ArrowRight size={11} />
-                  </div>
-                </div>
-                <div
-                  className="kpi-icon-badge"
+          {loading && !dashboardData.applicant ? (
+            Array.from({ length: 8 }).map((_, i) => (
+              <CardSkeleton key={i} style={{ height: '95px' }} />
+            ))
+          ) : (
+            summaryCards.map((stat, i) => {
+              const Icon = stat.icon;
+              return (
+                <Link
+                  key={i}
+                  to={stat.path}
+                  className="kpi-summary-card card"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${stat.label}: ${stat.count} applications. Click to open filtered applications list.`}
+                  title={`Filter applications by ${stat.label}`}
                   style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '12px',
-                    background: stat.bg,
+                    padding: '1.25rem',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    color: stat.color,
-                    flexShrink: 0,
-                    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                    justifyContent: 'space-between',
+                    background: '#FFFFFF',
+                    border: `1px solid ${stat.border}`,
+                    borderRadius: '16px',
+                    boxShadow: 'var(--shadow-sm)',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
                   }}
                 >
-                  <Icon size={22} />
-                </div>
-              </Link>
-            );
-          })}
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, marginBottom: '0.35rem' }}>
+                      {stat.label}
+                    </div>
+                    <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                      {stat.count}
+                    </div>
+                    <div className="kpi-action-hint" style={{ fontSize: '0.72rem', color: stat.color, fontWeight: 600, marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.25rem', opacity: 0.85 }}>
+                      <span>Explore</span>
+                      <ArrowRight size={11} />
+                    </div>
+                  </div>
+                  <div
+                    className="kpi-icon-badge"
+                    style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '12px',
+                      background: stat.bg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: stat.color,
+                      flexShrink: 0,
+                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                    }}
+                  >
+                    <Icon size={22} />
+                  </div>
+                </Link>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -378,11 +390,8 @@ export default function ApplicantDashboardPage() {
           </Link>
         </div>
 
-        {loading ? (
-          <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: '#64748B' }}>
-            <RefreshCw className="animate-spin" size={28} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
-            <p style={{ fontSize: '0.9rem', margin: 0 }}>Loading your live applications...</p>
-          </div>
+        {loading && !dashboardData.applicant ? (
+          <TableSkeleton rows={4} columns={6} />
         ) : recentApps.length === 0 ? (
           /* Empty Dashboard State */
           <div

@@ -23,6 +23,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { profileApi } from './api/profileApi';
 import { authApi } from '../../auth/api/authApi';
+import { clientCache } from '../../../core/cache/clientCache';
 
 export default function ApplicantProfilePage() {
   const { user, accessToken } = useAuth();
@@ -44,11 +45,14 @@ export default function ApplicantProfilePage() {
     }
   }, [searchParams]);
 
+  const cacheKey = clientCache.makeKey('applicant_profile', user?.id);
+  const cachedProfile = clientCache.get(cacheKey);
+
   // Unified profile state
-  const [profile, setProfile] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
+  const [profile, setProfile] = useState(() => cachedProfile || {
+    fullName: user?.fullName || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
     currentLocation: '',
     highestQualification: '',
     collegeUniversity: '',
@@ -69,7 +73,7 @@ export default function ApplicantProfilePage() {
   });
 
   const [newSkill, setNewSkill] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedProfile);
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
 
@@ -81,36 +85,43 @@ export default function ApplicantProfilePage() {
         return;
       }
       try {
-        setLoading(true);
-        const data = await profileApi.getProfile(accessToken);
+        if (!cachedProfile) setLoading(true);
+        const data = await clientCache.fetchWithDedupe(
+          cacheKey,
+          () => profileApi.getProfile(accessToken),
+          30000
+        );
 
-        // Spread operator merges real PostgreSQL profile data into state
-        setProfile((prev) => ({
-          ...prev,
-          ...data,
-          fullName: data.fullName || user?.fullName || '',
-          email: data.email || user?.email || '',
-          phone: data.phone || user?.phone || '',
-          currentLocation: data.currentLocation || '',
-          highestQualification: data.highestQualification || '',
-          collegeUniversity: data.collegeUniversity || '',
-          graduationYear: data.graduationYear != null ? String(data.graduationYear) : '',
-          technicalSkills: Array.isArray(data.technicalSkills) ? [...data.technicalSkills] : [],
-          totalExperienceYears: data.totalExperienceYears != null ? String(data.totalExperienceYears) : '',
-          currentOrPreviousEmployer: data.currentOrPreviousEmployer || '',
-          linkedinUrl: data.linkedinUrl || '',
-          githubUrl: data.githubUrl || '',
-          portfolioUrl: data.portfolioUrl || '',
-        }));
+        if (data) {
+          setProfile((prev) => ({
+            ...prev,
+            ...data,
+            fullName: data.fullName || user?.fullName || '',
+            email: data.email || user?.email || '',
+            phone: data.phone || user?.phone || '',
+            currentLocation: data.currentLocation || '',
+            highestQualification: data.highestQualification || '',
+            collegeUniversity: data.collegeUniversity || '',
+            graduationYear: data.graduationYear != null ? String(data.graduationYear) : '',
+            technicalSkills: Array.isArray(data.technicalSkills) ? [...data.technicalSkills] : [],
+            totalExperienceYears: data.totalExperienceYears != null ? String(data.totalExperienceYears) : '',
+            currentOrPreviousEmployer: data.currentOrPreviousEmployer || '',
+            linkedinUrl: data.linkedinUrl || '',
+            githubUrl: data.githubUrl || '',
+            portfolioUrl: data.portfolioUrl || '',
+          }));
+        }
       } catch (err) {
-        setStatusMessage({ type: 'error', text: err.message || 'Failed to fetch candidate profile.' });
+        if (!cachedProfile) {
+          setStatusMessage({ type: 'error', text: err.message || 'Failed to fetch candidate profile.' });
+        }
       } finally {
         setLoading(false);
       }
     }
 
     loadProfile();
-  }, [accessToken, user]);
+  }, [accessToken, user, cacheKey]);
 
   // Handle generic profile input changes
   const handleProfileChange = (e) => {
@@ -177,6 +188,8 @@ export default function ApplicantProfilePage() {
         ...prev,
         ...updated,
       }));
+      clientCache.set(cacheKey, { ...profile, ...updated });
+      clientCache.invalidate('applicant_dashboard');
 
       setStatusMessage({ type: 'success', text: 'Candidate profile saved successfully in database!' });
     } catch (err) {

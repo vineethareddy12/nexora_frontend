@@ -26,6 +26,8 @@ import {
 import { applicationsApi } from './applicationsApi';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { useToast } from '../../../components/toast/ToastContext';
+import { clientCache } from '../../../core/cache/clientCache';
+import { TableSkeleton, RefreshBadge, ErrorState, EmptyState } from '../../../components/common/LoadingStates';
 
 const STATUS_CONFIG = {
   SUBMITTED: { label: 'Submitted', badgeClass: 'badge-primary' },
@@ -104,15 +106,24 @@ export default function ApplicantApplicationsPage() {
     }
   }, [searchParams]);
 
+  // Cache key based on all filter parameters
+  const cacheKey = clientCache.makeKey(
+    `applicant_applications_${page}_${debouncedSearch}_${statusFilter}_${fromDate}_${toDate}_${sortBy}_${sortOrder}`,
+    user?.id
+  );
+  const cachedData = clientCache.get(cacheKey);
+
   // Data & Pagination
-  const [applications, setApplications] = useState([]);
-  const [pagination, setPagination] = useState({
+  const [applications, setApplications] = useState(() => cachedData?.applications || (Array.isArray(cachedData) ? cachedData : []));
+  const [pagination, setPagination] = useState(() => cachedData?.pagination || {
     page: 1,
     limit: 10,
-    total: 0,
+    total: cachedData?.applications?.length || 0,
     totalPages: 1,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedData);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
 
   // Modals
   const [selectedApp, setSelectedApp] = useState(null);
@@ -131,19 +142,29 @@ export default function ApplicantApplicationsPage() {
   }, [searchTerm]);
 
   // Fetch applications with server-side filters
-  const fetchApplications = async () => {
+  const fetchApplications = async (isSilent = false) => {
     try {
-      setLoading(true);
-      const data = await applicationsApi.getMyApplications({
-        page,
-        limit,
-        search: debouncedSearch,
-        status: statusFilter,
-        fromDate: fromDate || undefined,
-        toDate: toDate || undefined,
-        sortBy,
-        sortOrder,
-      });
+      if (!isSilent && applications.length === 0) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+      setFetchError(null);
+
+      const data = await clientCache.fetchWithDedupe(
+        cacheKey,
+        () => applicationsApi.getMyApplications({
+          page,
+          limit,
+          search: debouncedSearch,
+          status: statusFilter,
+          fromDate: fromDate || undefined,
+          toDate: toDate || undefined,
+          sortBy,
+          sortOrder,
+        }),
+        15000
+      );
 
       if (data && data.applications) {
         setApplications(data.applications);
@@ -159,18 +180,23 @@ export default function ApplicantApplicationsPage() {
       }
     } catch (err) {
       console.error('Failed to load applications:', err);
-      toast.error(err.message || 'Unable to retrieve applications.');
+      if (applications.length === 0) {
+        setFetchError(err.message || 'Unable to retrieve applications.');
+      } else {
+        toast.error(err.message || 'Failed to update applications in background.');
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchApplications();
+    fetchApplications(!!cachedData);
 
-    const handleFocus = () => fetchApplications();
+    const handleFocus = () => fetchApplications(true);
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') fetchApplications();
+      if (document.visibilityState === 'visible') fetchApplications(true);
     };
 
     window.addEventListener('focus', handleFocus);
@@ -180,7 +206,7 @@ export default function ApplicantApplicationsPage() {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [debouncedSearch, statusFilter, fromDate, toDate, sortBy, sortOrder, page]);
+  }, [debouncedSearch, statusFilter, fromDate, toDate, sortBy, sortOrder, page, cacheKey]);
 
   // Deep-linking: auto-open details modal if openId is in URL
   const initialOpenDoneRef = useRef(false);
@@ -386,6 +412,8 @@ export default function ApplicantApplicationsPage() {
               <option value="status:asc">Status (A-Z)</option>
             </select>
 
+            <RefreshBadge isRefreshing={isRefreshing} onRefresh={() => fetchApplications(false)} />
+
             {(searchTerm || statusFilter !== 'ALL' || fromDate || toDate) && (
               <button
                 type="button"
@@ -493,11 +521,14 @@ export default function ApplicantApplicationsPage() {
       </div>
 
       {/* 3. Applications Listing Container */}
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '5rem 2rem', color: '#64748B' }}>
-          <Loader2 size={32} className="spin" style={{ margin: '0 auto 1rem', color: '#2563EB' }} />
-          <p style={{ fontSize: '0.95rem', margin: 0 }}>Loading your submitted applications...</p>
-        </div>
+      {fetchError && applications.length === 0 ? (
+        <ErrorState
+          title="Unable to load applications"
+          message={fetchError}
+          onRetry={() => fetchApplications(false)}
+        />
+      ) : loading && applications.length === 0 ? (
+        <TableSkeleton rows={5} columns={6} />
       ) : applications.length === 0 ? (
         /* Empty State */
         <div

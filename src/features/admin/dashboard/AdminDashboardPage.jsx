@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { adminReviewApi } from '../review/adminReviewApi';
+import { clientCache } from '../../../core/cache/clientCache';
+import { CardSkeleton, TableSkeleton, RefreshBadge, ErrorState } from '../../../components/common/LoadingStates';
 
 const STATUS_BADGES = {
   SUBMITTED: { label: 'Submitted', badgeClass: 'badge-primary' },
@@ -35,9 +37,14 @@ const STATUS_BADGES = {
 export default function AdminDashboardPage() {
   const { accessToken } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+
+  const cacheKey = 'admin_dashboard';
+  const cachedData = clientCache.get(cacheKey);
+
+  const [loading, setLoading] = useState(!cachedData);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [dashboardData, setDashboardData] = useState({
+  const [dashboardData, setDashboardData] = useState(() => cachedData || {
     summary: {
       totalApplicants: 0,
       totalApplications: 0,
@@ -55,22 +62,55 @@ export default function AdminDashboardPage() {
     recentApplications: [],
   });
 
-  const loadData = async () => {
+  const loadData = async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent && !dashboardData.summary.totalApplicants) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
       setError(null);
-      const data = await adminReviewApi.getDashboard();
-      setDashboardData(data);
+
+      const data = await clientCache.fetchWithDedupe(
+        cacheKey,
+        () => adminReviewApi.getDashboard(),
+        15000
+      );
+
+      if (data) {
+        setDashboardData(data);
+      }
     } catch (err) {
       console.error('Failed to load admin dashboard:', err);
-      setError(err.message || 'Unable to load administrative metrics.');
+      if (!dashboardData.summary.totalApplicants) {
+        setError(err.message || 'Unable to load administrative metrics.');
+      }
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(!!cachedData);
+
+    const handleFocus = () => loadData(true);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') loadData(true);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    const syncInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') loadData(true);
+    }, 30000);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      clearInterval(syncInterval);
+    };
   }, [accessToken]);
 
   const summary = dashboardData.summary || {};
@@ -259,7 +299,7 @@ export default function AdminDashboardPage() {
             {kpi.label}
           </div>
           <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-            {loading ? '-' : kpi.count}
+            {kpi.count}
           </div>
           <div style={{ fontSize: '0.72rem', color: kpi.color, fontWeight: 600, marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <span>Explore</span>
@@ -304,24 +344,16 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={loadData}
-          disabled={loading}
-          className="btn btn-secondary"
-          style={{ padding: '0.55rem 1rem', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-        >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          <span>Refresh Data</span>
-        </button>
+        <RefreshBadge isRefreshing={isRefreshing} onRefresh={() => loadData(true)} />
       </div>
 
       {/* Error Banner */}
-      {error && (
-        <div style={{ padding: '1rem 1.25rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', color: '#B91C1C', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>{error}</span>
-          <button onClick={loadData} className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>Retry</button>
-        </div>
+      {error && !dashboardData.summary.totalApplicants && (
+        <ErrorState
+          title="Unable to load dashboard metrics"
+          message={error}
+          onRetry={() => loadData(false)}
+        />
       )}
 
       {/* 2. Job Management Analytics */}
@@ -405,7 +437,9 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
 
-        {recentApplications.length === 0 ? (
+        {loading && !dashboardData.summary.totalApplicants ? (
+          <TableSkeleton rows={4} columns={6} />
+        ) : recentApplications.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748B' }}>
             <FileCheck2 size={36} color="#CBD5E1" style={{ margin: '0 auto 0.75rem' }} />
             <p style={{ margin: 0, fontWeight: 500 }}>No applications submitted yet.</p>
