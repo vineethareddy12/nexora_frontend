@@ -227,6 +227,7 @@ export default function AdminInterviewsPage() {
   // Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [roundFilter, setRoundFilter] = useState('ALL');
 
   // Modals state
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
@@ -275,9 +276,9 @@ export default function AdminInterviewsPage() {
     notes: '',
   });
 
-  const loadData = async () => {
+  const loadData = async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) setLoading(true);
       const [metricsData, listData] = await Promise.all([
         interviewsApi.getAdminDashboardMetrics(),
         interviewsApi.getAdminInterviews({
@@ -288,7 +289,7 @@ export default function AdminInterviewsPage() {
         }),
       ]);
       setMetrics(metricsData || { total: 0, scheduled: 0, completed: 0, cancelled: 0 });
-      const items = Array.isArray(listData?.interviews)
+      let items = Array.isArray(listData?.interviews)
         ? listData.interviews
         : Array.isArray(listData?.data?.interviews)
         ? listData.data.interviews
@@ -297,30 +298,35 @@ export default function AdminInterviewsPage() {
         : Array.isArray(listData)
         ? listData
         : [];
+
+      if (roundFilter !== 'ALL') {
+        items = items.filter((item) => item.round === roundFilter);
+      }
+
       setInterviews(items);
       const pag = listData?.pagination || listData?.data?.pagination;
       if (pag) setPagination(pag);
     } catch (err) {
       console.error('Failed to load interviews:', err);
-      toast?.error(err.message || 'Failed to load interviews');
+      if (!isSilent) toast?.error(err.message || 'Failed to load interviews');
       setInterviews([]);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(false);
 
-    // Live auto-polling every 15s
+    // Live auto-polling every 15s (silent, no annoying spinner)
     const pollTimer = setInterval(() => {
-      loadData();
+      loadData(true);
     }, 15000);
 
-    const handleFocus = () => loadData();
+    const handleFocus = () => loadData(true);
     window.addEventListener('focus', handleFocus);
 
-    const handleDataUpdated = () => loadData();
+    const handleDataUpdated = () => loadData(true);
     window.addEventListener('nexora:data-updated', handleDataUpdated);
 
     return () => {
@@ -328,7 +334,7 @@ export default function AdminInterviewsPage() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('nexora:data-updated', handleDataUpdated);
     };
-  }, [pagination.page, statusFilter]);
+  }, [pagination.page, statusFilter, roundFilter]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -358,9 +364,12 @@ export default function AdminInterviewsPage() {
         interviewerNames: '',
         instructions: '',
       });
-      // Fetch shortlisted candidates
-      const apps = await adminReviewApi.getApplications({ status: 'SHORTLISTED', limit: 50 });
-      setEligibleApplications(apps.applications || []);
+      // Fetch both SHORTLISTED candidates and candidates with existing interview progress (for Round 2, Round 3, etc.)
+      const apps = await adminReviewApi.getApplications({ limit: 100 });
+      const candidates = (apps.applications || []).filter((a) =>
+        ['SHORTLISTED', 'INTERVIEW_SCHEDULED', 'UNDER_REVIEW', 'SELECTED'].includes(a.status)
+      );
+      setEligibleApplications(candidates);
       setScheduleModalOpen(true);
     } catch (err) {
       toast?.error('Failed to fetch eligible applications: ' + err.message);
@@ -712,6 +721,26 @@ export default function AdminInterviewsPage() {
             </select>
           </div>
 
+          <div style={{ minWidth: '160px' }}>
+            <select
+              value={roundFilter}
+              onChange={(e) => {
+                setRoundFilter(e.target.value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
+              className="form-control"
+              style={{ width: '100%', borderRadius: '10px' }}
+            >
+              <option value="ALL">All Rounds</option>
+              <option value="SCREENING">Screening</option>
+              <option value="TECHNICAL">Technical Round 1</option>
+              <option value="SYSTEM_DESIGN">System Design</option>
+              <option value="MANAGERIAL">Managerial</option>
+              <option value="HR">HR Round</option>
+              <option value="FINAL">Final Round</option>
+            </select>
+          </div>
+
           <button type="submit" className="btn btn-secondary" style={{ padding: '0.55rem 1rem' }}>
             Search
           </button>
@@ -720,6 +749,7 @@ export default function AdminInterviewsPage() {
             onClick={() => {
               setSearch('');
               setStatusFilter('ALL');
+              setRoundFilter('ALL');
               setPagination((prev) => ({ ...prev, page: 1 }));
             }}
             className="btn btn-secondary"
@@ -1182,7 +1212,7 @@ export default function AdminInterviewsPage() {
                 {/* Candidate Selection */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                    Select Candidate (Shortlisted) <span style={{ color: '#DC2626' }}>*</span>
+                    Select Candidate (Shortlisted / Next Round) <span style={{ color: '#DC2626' }}>*</span>
                   </label>
                   <select
                     value={scheduleForm.applicationId}

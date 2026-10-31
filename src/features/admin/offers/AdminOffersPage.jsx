@@ -62,9 +62,9 @@ export default function AdminOffersPage() {
 
   const [withdrawReason, setWithdrawReason] = useState('');
 
-  const loadData = async () => {
+  const loadData = async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) setLoading(true);
       const [metricsData, listData] = await Promise.all([
         offersApi.getAdminMetrics(),
         offersApi.getAdminOffers({
@@ -79,26 +79,26 @@ export default function AdminOffersPage() {
       if (listData.pagination) setPagination(listData.pagination);
     } catch (err) {
       console.error('Failed to load offers:', err);
-      toast?.showError(err.message || 'Failed to load offers');
+      if (!isSilent) toast?.showError(err.message || 'Failed to load offers');
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(false);
 
-    // Auto-poll every 15s for live dashboard updates
+    // Auto-poll every 15s silently without flashing the loading spinner
     const pollTimer = setInterval(() => {
-      loadData();
+      loadData(true);
     }, 15000);
 
-    // Refresh instantly when user focuses back on window
-    const handleFocus = () => loadData();
+    // Refresh silently when user focuses back on window
+    const handleFocus = () => loadData(true);
     window.addEventListener('focus', handleFocus);
 
     // Refresh when actions happen in other components
-    const handleDataUpdated = () => loadData();
+    const handleDataUpdated = () => loadData(true);
     window.addEventListener('nexora:data-updated', handleDataUpdated);
 
     return () => {
@@ -137,10 +137,11 @@ export default function AdminOffersPage() {
 
   const openCreateModal = async () => {
     try {
-      // Find candidate applications eligible for offer (SELECTED or SHORTLISTED)
-      const apps = await adminReviewApi.getApplications({ limit: 50 });
+      // Find candidate applications eligible for offer
+      // Includes: SELECTED, INTERVIEW_SCHEDULED (interview cleared/completed), SHORTLISTED, UNDER_REVIEW
+      const apps = await adminReviewApi.getApplications({ limit: 100 });
       const candidates = (apps.applications || []).filter((a) =>
-        ['SELECTED', 'SHORTLISTED', 'OFFER_EXTENDED', 'UNDER_REVIEW'].includes(a.status)
+        ['SELECTED', 'INTERVIEW_SCHEDULED', 'SHORTLISTED', 'OFFER_EXTENDED', 'UNDER_REVIEW'].includes(a.status)
       );
       setEligibleApplications(candidates);
       setCreateModalOpen(true);
@@ -709,11 +710,14 @@ export default function AdminOffersPage() {
                     style={{ width: '100%', borderRadius: '8px' }}
                   >
                     <option value="">-- Choose Candidate --</option>
-                    {eligibleApplications.map((app) => (
-                      <option key={app.id} value={app.id}>
-                        {app.applicant?.fullName} — {app.job?.title} ({app.referenceNumber})
-                      </option>
-                    ))}
+                    {eligibleApplications.map((app) => {
+                      const isInterviewed = app.status === 'INTERVIEW_SCHEDULED' || app.status === 'SELECTED';
+                      return (
+                        <option key={app.id} value={app.id}>
+                          {app.applicant?.fullName} — {app.job?.title} ({app.referenceNumber}) {isInterviewed ? '✓ [Interview Cleared]' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
